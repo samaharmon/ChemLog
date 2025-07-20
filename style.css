@@ -457,11 +457,13 @@
 .feedback-modal.good {
     background-color: lightgreen;
     border: 2px solid green;
+	border-radius: 0px;
 }
 
 .feedback-modal.warning {
     background-color: white;
     border: 2px solid red;
+	border-radius: 0px
 }
 
 .feedback-modal .close-btn {
@@ -474,11 +476,12 @@
 
 .feedback-modal ul {
     margin-top: 15px;
+	margin-left: 10px;
     text-align: left;
 }
 
 .feedback-modal img.setpoint-table {
     width: 100%;
     margin-top: 15px;
-    border-radius: 8px;
+    border-radius: 0px;
 }
