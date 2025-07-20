@@ -558,11 +558,11 @@ function evaluateFormFeedback(formData) {
         );
     }
 
-    if (mainPH && parseFloat(mainPH) <= 7.0) {
+    if (mainPH && parseFloat(mainPH) < 7.0) {
         messages.push(`<strong>Notify a supervisor of the low pH in the Main Pool immediately.</strong>`);
     }
 
-    if (secPH && parseFloat(secPH) <= 7.0) {
+    if (secPH && parseFloat(secPH) < 7.0) {
         messages.push(`<strong>Notify a supervisor of the low pH in the Secondary Pool immediately.</strong>`);
     }
 
