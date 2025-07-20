@@ -524,7 +524,7 @@ function showFeedbackModal(messages, isGood) {
     // Show image if chlorine needs adjusting
     if (!isGood && messages.some(m => m.includes('chlorine feeder'))) {
         const img = document.createElement('img');
-        img.src = 'setpoints.jpeg'; // Make sure this file is in your folder
+        img.src = 'setpoint.jpeg'; // Make sure this file is in your folder
         img.alt = 'Chlorine Setpoint Table';
         img.className = 'setpoint-table';
         modal.appendChild(img);
@@ -558,21 +558,21 @@ function evaluateFormFeedback(formData) {
         );
     }
 
-    if (mainPH && parseFloat(mainPH) < 7.0) {
+    if (mainPH && parseFloat(mainPH) = ['< 7.0'] {
         messages.push(`<strong>Notify a supervisor of the low pH in the Main Pool immediately.</strong>`);
     }
 
-    if (secPH && parseFloat(secPH) < 7.0) {
+    if (secPH && parseFloat(secPH) = ['< 7.0'] {
         messages.push(`<strong>Notify a supervisor of the low pH in the Secondary Pool immediately.</strong>`);
     }
 
     const validCl = ['3', '5'];
     if (mainCl && !validCl.includes(mainCl)) {
-        messages.push(`Change the chlorine feeder rate for the Main Pool, based on the setpoint table shown below.`);
+        messages.push(`Change the chlorine feeder rate for the Main Pool based on the setpoint table shown below.`);
     }
 
     if (secCl && !validCl.includes(secCl)) {
-        messages.push(`Change the chlorine feeder rate for the Secondary Pool, based on the setpoint table shown below.`);
+        messages.push(`Change the chlorine feeder rate for the Secondary Pool based on the setpoint table shown below.`);
     }
 
     showFeedbackModal(messages, messages.length === 0);
