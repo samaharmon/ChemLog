@@ -568,11 +568,11 @@ function evaluateFormFeedback(formData) {
 
     const validCl = ['3', '5'];
     if (mainCl && !validCl.includes(mainCl)) {
-        messages.push(`Change the chlorine feeder rate for the Main Pool based on the setpoint table shown below.`);
+        messages.push('<strong>Change the chlorine feeder rate for the Main Pool</strong> based on the setpoint table shown below.`);
     }
 
     if (secCl && !validCl.includes(secCl)) {
-        messages.push(`Change the chlorine feeder rate for the Secondary Pool based on the setpoint table shown below.`);
+        messages.push(`<strong>Change the chlorine feeder rate for the Secondary Pool</strong> based on the setpoint table shown below.`);
     }
 
     showFeedbackModal(messages, messages.length === 0);
