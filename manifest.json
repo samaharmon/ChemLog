@@ -1,6 +1,6 @@
 {
-  "name": "Pool Chemistry Log - Capital City Aquatics",
-  "short_name": "Pool Chem Log",
+  "name": "ChemLog",
+  "short_name": "ChemLog",
   "description": "Hourly pool chemistry tracking and management system",
   "start_url": "/",
   "display": "standalone",
