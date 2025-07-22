@@ -2,15 +2,11 @@
             margin: 0;
             padding: 0;
             box-sizing: border-box;
-        }
-
-	html {
-		background-color: #69140e;
 	}
 
         body {
             font-family: 'Franklin Gothic Medium', 'Franklin Gothic Medium Cond', Arial, sans-serif;
-            background-color: #F5F5F5;
+            background-color: #69140e;
             min-height: 100vh;
         }
 
