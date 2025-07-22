@@ -1,0 +1,196 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Settings Persistence Test</title>
+    <style>
+        body { font-family: Arial, sans-serif; padding: 20px; }
+        .test-section { margin: 20px 0; padding: 20px; border: 1px solid #ccc; }
+        .success { color: green; }
+        .error { color: red; }
+        button { padding: 10px 20px; margin: 5px; cursor: pointer; }
+        .result { margin: 10px 0; padding: 10px; background: #f5f5f5; }
+    </style>
+</head>
+<body>
+    <h1>Settings Persistence Test</h1>
+    
+    <div class="test-section">
+        <h2>Test 1: localStorage Persistence</h2>
+        <button onclick="testLocalStorage()">Test localStorage</button>
+        <div id="localStorageResult" class="result"></div>
+    </div>
+    
+    <div class="test-section">
+        <h2>Test 2: Firebase Persistence</h2>
+        <button onclick="testFirebase()">Test Firebase</button>
+        <div id="firebaseResult" class="result"></div>
+    </div>
+    
+    <div class="test-section">
+        <h2>Test 3: Current Settings</h2>
+        <button onclick="showCurrentSettings()">Show Current Settings</button>
+        <div id="currentSettings" class="result"></div>
+    </div>
+    
+    <div class="test-section">
+        <h2>Test 4: Modify and Persist Settings</h2>
+        <button onclick="modifySettings()">Change Forest Lake to Granular</button>
+        <button onclick="reloadAndCheck()">Reload Page and Check</button>
+        <div id="modifyResult" class="result"></div>
+    </div>
+
+    <!-- Include Firebase like the main app -->
+    <script type="module">
+        // Import Firebase modules
+        import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js';
+        import { getFirestore, doc, getDoc, setDoc } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js';
+        
+        // Your web app's Firebase configuration
+        const firebaseConfig = {
+            apiKey: "AIzaSyCRxSL2uuH6O5MFvbq0FS02zF2K_lXGvqI",
+            authDomain: "chemlog-43c08.firebaseapp.com",
+            projectId: "chemlog-43c08",
+            storageBucket: "chemlog-43c08.firebasestorage.app",
+            messagingSenderId: "554394202059",
+            appId: "1:554394202059:web:a8d5824a1d7ccdd871d04e",
+            measurementId: "G-QF5ZQ88VS2"
+        };
+
+        // Initialize Firebase
+        const app = initializeApp(firebaseConfig);
+        const db = getFirestore(app);
+        
+        // Make Firebase available globally with ready flag
+        window.firebase = { 
+            db, 
+            doc, 
+            getDoc, 
+            setDoc,
+            ready: true 
+        };
+        
+        console.log('Firebase initialized successfully for testing');
+        window.dispatchEvent(new CustomEvent('firebaseReady'));
+    </script>
+
+    <script>
+        // Test settings
+        let testSettings = {
+            'Camden CC': 'bleach',
+            'CC of Lexington': 'bleach',
+            'Columbia CC': 'bleach',
+            'Forest Lake': 'bleach',
+            'Forest Lake Lap Pool': 'bleach',
+            'Quail Hollow': 'bleach',
+            'Rockbridge': 'bleach',
+            'Wildewood': 'bleach',
+            'Winchester': 'bleach'
+        };
+
+        function testLocalStorage() {
+            const result = document.getElementById('localStorageResult');
+            try {
+                // Save test data
+                localStorage.setItem('sanitationSettings', JSON.stringify(testSettings));
+                
+                // Read it back
+                const saved = localStorage.getItem('sanitationSettings');
+                const parsed = JSON.parse(saved);
+                
+                if (JSON.stringify(parsed) === JSON.stringify(testSettings)) {
+                    result.innerHTML = '<span class="success">✅ localStorage working correctly</span>';
+                } else {
+                    result.innerHTML = '<span class="error">❌ localStorage data mismatch</span>';
+                }
+            } catch (error) {
+                result.innerHTML = `<span class="error">❌ localStorage error: ${error.message}</span>`;
+            }
+        }
+
+        async function testFirebase() {
+            const result = document.getElementById('firebaseResult');
+            try {
+                if (!window.firebase || !window.firebase.ready) {
+                    result.innerHTML = '<span class="error">❌ Firebase not ready</span>';
+                    return;
+                }
+
+                const { db, doc, setDoc, getDoc } = window.firebase;
+                
+                // Save test data
+                await setDoc(doc(db, 'settings', 'testSanitationMethods'), testSettings);
+                
+                // Read it back
+                const settingsDoc = await getDoc(doc(db, 'settings', 'testSanitationMethods'));
+                
+                if (settingsDoc.exists()) {
+                    const firebaseData = settingsDoc.data();
+                    if (JSON.stringify(firebaseData) === JSON.stringify(testSettings)) {
+                        result.innerHTML = '<span class="success">✅ Firebase working correctly</span>';
+                    } else {
+                        result.innerHTML = '<span class="error">❌ Firebase data mismatch</span>';
+                    }
+                } else {
+                    result.innerHTML = '<span class="error">❌ Firebase document not found</span>';
+                }
+            } catch (error) {
+                result.innerHTML = `<span class="error">❌ Firebase error: ${error.message}</span>`;
+            }
+        }
+
+        function showCurrentSettings() {
+            const result = document.getElementById('currentSettings');
+            const localStorage = localStorage.getItem('sanitationSettings');
+            result.innerHTML = `
+                <strong>localStorage:</strong><br>
+                <pre>${localStorage || 'None'}</pre>
+            `;
+        }
+
+        async function modifySettings() {
+            const result = document.getElementById('modifyResult');
+            try {
+                // Modify settings
+                testSettings['Forest Lake'] = 'granular';
+                
+                // Save to localStorage
+                localStorage.setItem('sanitationSettings', JSON.stringify(testSettings));
+                
+                // Save to Firebase
+                if (window.firebase && window.firebase.ready) {
+                    const { db, doc, setDoc } = window.firebase;
+                    await setDoc(doc(db, 'settings', 'sanitationMethods'), testSettings);
+                }
+                
+                result.innerHTML = '<span class="success">✅ Settings modified and saved</span>';
+            } catch (error) {
+                result.innerHTML = `<span class="error">❌ Error modifying settings: ${error.message}</span>`;
+            }
+        }
+
+        function reloadAndCheck() {
+            // This will reload the page and we can check if settings persist
+            window.location.reload();
+        }
+
+        // On page load, check what settings exist
+        window.addEventListener('load', () => {
+            const urlParams = new URLSearchParams(window.location.search);
+            if (urlParams.get('reloaded')) {
+                // Page was reloaded, check if settings persisted
+                const saved = localStorage.getItem('sanitationSettings');
+                if (saved) {
+                    const parsed = JSON.parse(saved);
+                    if (parsed['Forest Lake'] === 'granular') {
+                        document.getElementById('modifyResult').innerHTML = '<span class="success">✅ Settings persisted after page reload!</span>';
+                    } else {
+                        document.getElementById('modifyResult').innerHTML = '<span class="error">❌ Settings did not persist after page reload</span>';
+                    }
+                }
+            }
+        });
+    </script>
+</body>
+</html>

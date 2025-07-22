@@ -1,0 +1,248 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ChemLog Icon Options</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            padding: 20px;
+            background: #f5f5f5;
+        }
+        .options-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 30px;
+            margin: 20px 0;
+        }
+        .icon-option {
+            background: white;
+            padding: 20px;
+            border-radius: 10px;
+            text-align: center;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        .icon-preview {
+            width: 120px;
+            height: 120px;
+            margin: 0 auto 15px;
+            border-radius: 20px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 24px;
+            font-weight: bold;
+            color: white;
+            position: relative;
+            overflow: hidden;
+        }
+        .option1 { background: linear-gradient(135deg, #007bff, #0056b3); }
+        .option2 { background: linear-gradient(135deg, #17a2b8, #138496); }
+        .option3 { background: linear-gradient(135deg, #28a745, #1e7e34); }
+        .option4 { background: linear-gradient(135deg, #6f42c1, #5a2d8a); }
+        
+        .pool-shape {
+            position: absolute;
+            background: rgba(255,255,255,0.2);
+            border-radius: 50%;
+        }
+        .pool1 {
+            width: 80px;
+            height: 50px;
+            border-radius: 40px;
+            top: 35px;
+            left: 20px;
+        }
+        .pool2 {
+            width: 70px;
+            height: 40px;
+            border-radius: 35px;
+            top: 40px;
+            left: 25px;
+        }
+        .pool3 {
+            width: 90px;
+            height: 60px;
+            border-radius: 45px;
+            top: 30px;
+            left: 15px;
+        }
+        .pool4 {
+            width: 75px;
+            height: 45px;
+            border-radius: 38px;
+            top: 38px;
+            left: 23px;
+        }
+        
+        .waves {
+            position: absolute;
+            width: 100%;
+            height: 8px;
+            background: repeating-linear-gradient(
+                90deg,
+                transparent,
+                transparent 5px,
+                rgba(255,255,255,0.3) 5px,
+                rgba(255,255,255,0.3) 10px
+            );
+        }
+        .waves1 { top: 45px; }
+        .waves2 { top: 50px; }
+        .waves3 { top: 40px; }
+        .waves4 { top: 48px; }
+        
+        h1 { text-align: center; color: #333; }
+        h3 { margin: 10px 0 5px; color: #007bff; }
+        p { color: #666; font-size: 14px; margin: 0; }
+        
+        .generate-btn {
+            background: #007bff;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 5px;
+            cursor: pointer;
+            margin-top: 15px;
+        }
+        .generate-btn:hover {
+            background: #0056b3;
+        }
+    </style>
+</head>
+<body>
+    <h1>ChemLog App Icon Options</h1>
+    <p style="text-align: center; margin-bottom: 30px;">Choose your preferred icon style for the Pool Chemistry Log app</p>
+    
+    <div class="options-grid">
+        <div class="icon-option">
+            <div class="icon-preview option1">
+                <div class="pool-shape pool1"></div>
+                <div class="waves waves1"></div>
+                <span style="position: relative; z-index: 2;">CL</span>
+            </div>
+            <h3>Option 1: Classic Blue</h3>
+            <p>Professional blue gradient with oval pool shape and chemical symbol "CL" for chlorine</p>
+            <button class="generate-btn" onclick="generateIcon(1)">Generate This Icon</button>
+        </div>
+        
+        <div class="icon-option">
+            <div class="icon-preview option2">
+                <div class="pool-shape pool2"></div>
+                <div class="waves waves2"></div>
+                <span style="position: relative; z-index: 2; font-size: 18px;">pH</span>
+            </div>
+            <h3>Option 2: Aqua Teal</h3>
+            <p>Fresh teal gradient with pool outline and "pH" chemistry symbol</p>
+            <button class="generate-btn" onclick="generateIcon(2)">Generate This Icon</button>
+        </div>
+        
+        <div class="icon-option">
+            <div class="icon-preview option3">
+                <div class="pool-shape pool3"></div>
+                <div class="waves waves3"></div>
+                <span style="position: relative; z-index: 2; font-size: 16px;">⚗️</span>
+            </div>
+            <h3>Option 3: Fresh Green</h3>
+            <p>Clean green gradient with chemistry flask emoji and water waves</p>
+            <button class="generate-btn" onclick="generateIcon(3)">Generate This Icon</button>
+        </div>
+        
+        <div class="icon-option">
+            <div class="icon-preview option4">
+                <div class="pool-shape pool4"></div>
+                <div class="waves waves4"></div>
+                <span style="position: relative; z-index: 2; font-size: 14px;">H₂O</span>
+            </div>
+            <h3>Option 4: Professional Purple</h3>
+            <p>Modern purple gradient with water molecule formula "H₂O"</p>
+            <button class="generate-btn" onclick="generateIcon(4)">Generate This Icon</button>
+        </div>
+    </div>
+    
+    <div style="text-align: center; margin-top: 40px; padding: 20px; background: white; border-radius: 10px;">
+        <h3>How to Use Your Chosen Icon:</h3>
+        <ol style="text-align: left; display: inline-block;">
+            <li>Choose your preferred option above</li>
+            <li>Click "Generate This Icon" to create the files</li>
+            <li>The generated icons will work with your PWA meta tags</li>
+            <li>Save the website to your iPhone home screen to see the icon</li>
+        </ol>
+    </div>
+    
+    <script>
+        function generateIcon(option) {
+            const canvas = document.createElement('canvas');
+            const ctx = canvas.getContext('2d');
+            
+            // Set canvas size for different icon sizes needed
+            const sizes = [16, 32, 120, 152, 180, 192, 512];
+            
+            sizes.forEach(size => {
+                canvas.width = size;
+                canvas.height = size;
+                
+                // Create gradient based on option
+                const gradient = ctx.createLinearGradient(0, 0, size, size);
+                switch(option) {
+                    case 1:
+                        gradient.addColorStop(0, '#007bff');
+                        gradient.addColorStop(1, '#0056b3');
+                        break;
+                    case 2:
+                        gradient.addColorStop(0, '#17a2b8');
+                        gradient.addColorStop(1, '#138496');
+                        break;
+                    case 3:
+                        gradient.addColorStop(0, '#28a745');
+                        gradient.addColorStop(1, '#1e7e34');
+                        break;
+                    case 4:
+                        gradient.addColorStop(0, '#6f42c1');
+                        gradient.addColorStop(1, '#5a2d8a');
+                        break;
+                }
+                
+                // Draw background
+                ctx.fillStyle = gradient;
+                ctx.fillRect(0, 0, size, size);
+                
+                // Draw pool shape
+                ctx.fillStyle = 'rgba(255, 255, 255, 0.2)';
+                ctx.beginPath();
+                const poolWidth = size * 0.7;
+                const poolHeight = size * 0.4;
+                const poolX = (size - poolWidth) / 2;
+                const poolY = (size - poolHeight) / 2;
+                ctx.ellipse(poolX + poolWidth/2, poolY + poolHeight/2, poolWidth/2, poolHeight/2, 0, 0, 2 * Math.PI);
+                ctx.fill();
+                
+                // Draw text
+                ctx.fillStyle = 'white';
+                ctx.font = `bold ${size * 0.25}px Arial`;
+                ctx.textAlign = 'center';
+                ctx.textBaseline = 'middle';
+                
+                let text;
+                switch(option) {
+                    case 1: text = 'CL'; break;
+                    case 2: text = 'pH'; break;
+                    case 3: text = '⚗️'; break;
+                    case 4: text = 'H₂O'; break;
+                }
+                
+                ctx.fillText(text, size/2, size/2);
+                
+                // Download the icon
+                const link = document.createElement('a');
+                link.download = `icon-${size}.png`;
+                link.href = canvas.toDataURL();
+                link.click();
+            });
+            
+            alert(`Icon Option ${option} files generated! Check your downloads folder for the PNG files.`);
+        }
+    </script>
+</body>
+</html>

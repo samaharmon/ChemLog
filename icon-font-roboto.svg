@@ -1,0 +1,74 @@
+<svg width="180" height="180" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <!-- Shimmery aqua blue gradient background -->
+    <radialGradient id="shimmerAqua" cx="40%" cy="30%">
+      <stop offset="0%" style="stop-color:#E0FFFF;stop-opacity:1" />
+      <stop offset="25%" style="stop-color:#87CEEB;stop-opacity:1" />
+      <stop offset="50%" style="stop-color:#00CED1;stop-opacity:1" />
+      <stop offset="75%" style="stop-color:#008B8B;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#006666;stop-opacity:1" />
+    </radialGradient>
+    
+    <!-- Luxury pool water -->
+    <linearGradient id="luxuryWater" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#B0E0E6;stop-opacity:0.9" />
+      <stop offset="30%" style="stop-color:#20B2AA;stop-opacity:0.95" />
+      <stop offset="70%" style="stop-color:#008080;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#004C4C;stop-opacity:1" />
+    </linearGradient>
+    
+    <!-- Pool deck/coping - light concrete -->
+    <linearGradient id="concrete" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#F0F0F0;stop-opacity:1" />
+      <stop offset="50%" style="stop-color:#E0E0E0;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#C0C0C0;stop-opacity:1" />
+    </linearGradient>
+    
+    <!-- Pool interior walls -->
+    <linearGradient id="poolWalls" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#B0B0B0;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#808080;stop-opacity:1" />
+    </linearGradient>
+    
+    <!-- Shimmer effects -->
+    <radialGradient id="shimmer1" cx="50%" cy="50%">
+      <stop offset="0%" style="stop-color:rgba(255,255,255,0.4);stop-opacity:1" />
+      <stop offset="100%" style="stop-color:rgba(255,255,255,0);stop-opacity:0" />
+    </radialGradient>
+  </defs>
+  
+  <!-- Shimmery aqua background -->
+  <rect width="180" height="180" rx="30" fill="url(#shimmerAqua)"/>
+  
+  <!-- Multiple shimmer effects for luxury feel -->
+  <circle cx="50" cy="40" r="35" fill="url(#shimmer1)" opacity="0.6"/>
+  <circle cx="130" cy="60" r="25" fill="url(#shimmer1)" opacity="0.4"/>
+  <circle cx="90" cy="25" r="20" fill="url(#shimmer1)" opacity="0.7"/>
+  <circle cx="140" cy="140" r="30" fill="url(#shimmer1)" opacity="0.3"/>
+  
+  <!-- 3D Rectangular Pool - like the luxury image -->
+  <!-- Pool deck/coping (outer edge) -->
+  <path d="M 25 70 L 155 70 L 165 150 L 15 150 Z" fill="url(#concrete)" stroke="#D0D0D0" stroke-width="2"/>
+  
+  <!-- Pool coping (inner edge) -->
+  <path d="M 30 75 L 150 75 L 160 145 L 20 145 Z" fill="#F5F5F5" stroke="#C0C0C0" stroke-width="1"/>
+  
+  <!-- Pool interior walls -->
+  <path d="M 35 80 L 145 80 L 155 140 L 25 140 Z" fill="url(#poolWalls)" stroke="#A0A0A0" stroke-width="1"/>
+  
+  <!-- Pool water surface -->
+  <path d="M 40 85 L 140 85 L 150 135 L 30 135 Z" fill="url(#luxuryWater)"/>
+  
+  <!-- Pool tile lines (like the luxury pool) -->
+  <path d="M 50 90 L 130 90 L 140 130 L 40 130 Z" fill="none" stroke="rgba(255,255,255,0.3)" stroke-width="0.5" opacity="0.8"/>
+  <path d="M 60 95 L 120 95 L 130 125 L 50 125 Z" fill="none" stroke="rgba(255,255,255,0.25)" stroke-width="0.5" opacity="0.6"/>
+  
+  <!-- Water surface reflections -->
+  <ellipse cx="90" cy="110" rx="30" ry="12" fill="none" stroke="rgba(255,255,255,0.4)" stroke-width="1" opacity="0.7"/>
+  <ellipse cx="90" cy="110" rx="20" ry="8" fill="none" stroke="rgba(255,255,255,0.3)" stroke-width="1" opacity="0.5"/>
+  
+  <!-- ChemLog text - Roboto -->
+  <text x="90" y="50" font-family="Roboto, 'Segoe UI', sans-serif" font-size="30" font-weight="700" 
+        text-anchor="middle" dominant-baseline="middle" fill="white" opacity="0.95"
+        style="text-shadow: 2px 2px 6px rgba(0,0,0,0.6);">ChemLog</text>
+</svg>
