@@ -2,7 +2,7 @@
   "name": "ChemLog",
   "short_name": "ChemLog",
   "description": "Hourly pool chemistry tracking and management system",
-  "start_url": "/",
+  "start_url": "./",
   "display": "standalone",
   "background_color": "#69140e",
   "theme_color": "#69140e",
