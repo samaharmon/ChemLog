@@ -1,0 +1,372 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Hourly Pool Chemistry Log - Capital City Aquatics</title>
+    <link rel="stylesheet" href="style.css">
+    
+    <!-- Firebase SDK -->
+    <script type="module">
+        // Import Firebase modules
+        import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js';
+        import { getFirestore, doc, getDoc, setDoc } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js';
+        
+        // Your web app's Firebase configuration
+        const firebaseConfig = {
+            apiKey: "AIzaSyCRxSL2uuH6O5MFvbq0FS02zF2K_lXGvqI",
+            authDomain: "chemlog-43c08.firebaseapp.com",
+            projectId: "chemlog-43c08",
+            storageBucket: "chemlog-43c08.firebasestorage.app",
+            messagingSenderId: "554394202059",
+            appId: "1:554394202059:web:a8d5824a1d7ccdd871d04e",
+            measurementId: "G-QF5ZQ88VS2"
+        };
+
+        // Initialize Firebase
+        const app = initializeApp(firebaseConfig);
+        const db = getFirestore(app);
+        
+        // Make Firebase available globally with ready flag
+        window.firebase = { 
+            db, 
+            doc, 
+            getDoc, 
+            setDoc,
+            ready: true 
+        };
+        
+        console.log('Firebase initialized successfully and marked as ready');
+        
+        // Dispatch a custom event to notify that Firebase is ready
+        window.dispatchEvent(new CustomEvent('firebaseReady'));
+    </script>
+    
+    <script src="script.js" defer></script>
+</head>
+<body>
+    <!-- Main Form -->
+    <div id="mainForm">
+        <div class="header">
+            <div class="header-content">
+                <div class="header-left">
+                    <h1>Pool Chemistry Log</h1>
+                    <p>Capital City Aquatics</p>
+                    <button class="supervisor-login-btn" onclick="openLoginModal()">Supervisor Login</button>
+                </div>
+                <div class="header-right">
+                    <div id="messageBanner"></div>
+                    <div id="firebaseStatus" style="font-size: 12px; color: #666; margin-top: 5px;">Loading settings...</div>
+                </div>
+            </div>
+        </div>
+
+        <div class="container">
+            <div class="form-container">
+                <!-- Respondent Information -->
+                <div class="section">
+                    <h2>Respondent Information</h2>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="firstName">First Name</label>
+                            <input type="text" id="firstName" name="firstName" placeholder="Type here" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="lastName">Last Name</label>
+                            <input type="text" id="lastName" name="lastName" placeholder="Type here" required>
+                        </div>
+                    </div>
+                    <div class="form-group full-width">
+                        <label for="poolLocation">Which pool are you recording data for?</label>
+                        <select id="poolLocation" name="poolLocation" required onchange="handlePoolLocationChange()"" style="width: 70.5%;">
+                            <option value="">Select</option>
+                            <option value="Camden CC">Camden CC</option>
+                            <option value="Columbia CC">Columbia CC</option>
+                            <option value="Forest Lake">Forest Lake</option>
+                            <option value="CC of Lexington">CC of Lexington</option>
+                            <option value="Quail Hollow">Quail Hollow</option>
+                            <option value="Rockbridge">Rockbridge</option>
+                            <option value="Wildewood">Wildewood</option>
+                            <option value="Winchester">Winchester</option>
+                        </select>
+                    </div>
+                </div>
+            </div>
+
+            <div class="form-container">
+                <!-- Chemistry Log -->
+                <div class="section">
+                    <h2>Chemistry Log</h2>
+                    
+                    <!-- Main Pool Section -->
+                    <div class="pool-section">
+                        <h3>Main Pool</h3>
+                        <div class="pool-section-content">
+                            <div class="form-row">
+                                <div class="form-group">
+                                    <label for="mainPoolPH">What is the Main Pool pH?</label>
+                                    <select id="mainPoolPH" name="mainPoolPH" required>
+                                        <option value="">Select</option>
+                                        <option value="< 7.0">< 7.0</option>
+                                        <option value="7.0">7.0</option>
+                                        <option value="7.2">7.2</option>
+                                        <option value="7.4">7.4</option>
+                                        <option value="7.6">7.6</option>
+                                        <option value="7.8">7.8</option>
+                                        <option value="8.0">8.0</option>
+                                        <option value="> 8.0">> 8.0</option>
+                                    </select>
+                                </div>
+                                <div class="form-group">
+                                    <label for="mainPoolCl">What is the Main Pool Cl level?</label>
+                                    <select id="mainPoolCl" name="mainPoolCl" required>
+                                        <option value="">Select</option>
+                                        <option value="0">0</option>
+                                        <option value="1">1</option>
+                                        <option value="2">2</option>
+                                        <option value="3">3</option>
+                                        <option value="5">5</option>
+                                        <option value="7.5">7.5</option>
+                                        <option value="10">10</option>
+                                        <option value="> 10">> 10</option>
+                                    </select>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Secondary Pool Section -->
+                    <div class="pool-section" id="secondaryPoolSection">
+                        <h3>Secondary Pool</h3>
+                        <div class="pool-section-content">
+                            <div class="form-row">
+                                <div class="form-group">
+                                    <label for="secondaryPoolPH">What is the Secondary Pool pH?</label>
+                                    <select id="secondaryPoolPH" name="secondaryPoolPH" required>
+                                        <option value="">Select</option>
+                                        <option value="< 7.0">< 7.0</option>
+                                        <option value="7.0">7.0</option>
+                                        <option value="7.2">7.2</option>
+                                        <option value="7.4">7.4</option>
+                                        <option value="7.6">7.6</option>
+                                        <option value="7.8">7.8</option>
+                                        <option value="8.0">8.0</option>
+                                        <option value="> 8.0">> 8.0</option>
+                                    </select>
+                                </div>
+                                <div class="form-group">
+                                    <label for="secondaryPoolCl">What is the Secondary Pool Cl level?</label>
+                                    <select id="secondaryPoolCl" name="secondaryPoolCl" required>
+                                        <option value="">Select</option>
+                                        <option value="0">0</option>
+                                        <option value="1">1</option>
+                                        <option value="2">2</option>
+                                        <option value="3">3</option>
+                                        <option value="5">5</option>
+                                        <option value="7.5">7.5</option>
+                                        <option value="10">10</option>
+                                        <option value="> 10">> 10</option>
+                                    </select>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <button type="button" class="submit-btn" onclick="submitForm()">Submit</button>
+                </div>
+            </div>
+        </div>
+
+        <div class="footer">
+            <em>Developed by Sam Harmon | 2025<br>
+            v2.1</em>
+        </div>
+    </div>
+
+    <!-- Supervisor Login Modal -->
+    <div id="loginModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>Supervisor Login</h2>
+                <span class="close" onclick="closeLoginModal()">&times;</span>
+            </div>
+            <form id="loginForm" class="modal-form">
+                <div class="form-group">
+                    <label for="email">Username</label>
+                    <input type="text" id="email" name="email" style="width: 100%;" required>
+                </div>
+                <div class="form-group">
+                    <label for="password">Password</label>
+                    <input type="password" id="password" name="password" style="width: 100%;" required>
+                </div>
+                <button type="submit" class="login-btn">Login</button>
+            </form>
+        </div>
+    </div>
+
+
+    <!-- Supervisor Dashboard -->
+    <div id="supervisorDashboard" class="dashboard">
+        <div class="header">
+            <div class="header-content">
+                <div class="header-left">
+                    <h1>Pool Chemistry Dashboard</h1>
+                    <p>Capital City Aquatics</p>
+                </div>
+                <div class="header-right">
+                </div>
+            </div>
+        </div>
+
+        <div class="container" style="max-width: calc(100vw - 100px);">
+            <div class="dashboard-controls">
+                <button class="export-btn" onclick="exportToCSV()">Export to CSV</button>
+                <div class="form-group" style="flex: none; width: 200px;">
+                    <label for="poolFilter">Filter by Pool:</label>
+                    <select id="poolFilter" onchange="filterData()" style="width: 99.999%">
+                        <option value="">All Pools</option>
+                        <option value="Camden CC">Camden CC</option>
+                        <option value="Columbia CC">Columbia CC</option>
+                        <option value="Forest Lake">Forest Lake</option>
+                        <option value="CC of Lexington">CC of Lexington</option>
+                        <option value="Quail Hollow">Quail Hollow</option>
+                        <option value="Rockbridge">Rockbridge</option>
+                        <option value="Wildewood">Wildewood</option>
+                        <option value="Winchester">Winchester</option>
+                    </select>
+                </div>
+                <div class="form-group" style="flex: none; width: 50px">
+                    <label for="dateFilter">Date:</label>
+                    <input type="date" id="dateFilter" onchange="filterData()">
+                </div>
+            </div>
+
+            <h3>Main Pool Chemistry</h3>
+            <table class="data-table" id="dataTable1">
+                <thead>
+                    <tr>
+                        <th>Timestamp</th>
+                        <th>Pool Location</th>
+                        <th>Main Pool pH</th>
+                        <th>Main Pool Cl</th>
+                    </tr>
+                </thead>
+                <tbody id="dataTableBody1">
+                </tbody>
+            </table>
+
+            <h3>Secondary Pool Chemistry</h3>
+            <table class="data-table" id="dataTable2">
+                <thead>
+                    <tr>
+                        <th>Timestamp</th>
+                        <th>Pool Location</th>
+                        <th>Secondary Pool pH</th>
+                        <th>Secondary Pool Cl</th>
+                    </tr>
+                </thead>
+                <tbody id="dataTableBody2">
+                </tbody>
+            </table>
+            
+            <div id="timestampNote" style="margin-top: 5px; text-align: left; color: #666; font-size: 12px; font-style: italic;">
+                <span style="color: red; font-weight: bold;">!!!</span> indicates chemistry values that are more than 3 hours old
+            </div>
+
+            <div class="pagination" id="pagination" style="margin-top: 30px;">
+                <button id="prevBtn" onclick="goToPreviousPage()">←</button>
+                <span id="pageInfo"></span>
+                <button id="nextBtn" onclick="goToNextPage()">→</button>
+            </div>
+        </div>
+    </div>
+
+<!-- Settings Modal -->
+<div id="settingsModal" class="modal">
+    <div class="modal-content settings-modal-content">
+        <div class="modal-header">
+            <h2>Settings</h2>
+            <span class="close" onclick="closeSettings()">&times;</span>
+        </div>
+        
+        <div class="settings-section">
+            <h3>Sanitation Methods</h3>
+            <table class="sanitation-table">
+                <thead>
+                    <tr>
+                        <th>Pool Name</th>
+                        <th>Bleach</th>
+                        <th>Granular</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td>Camden CC</td>
+                        <td><input type="checkbox" class="sanitation-checkbox bleach-checkbox" data-pool="Camden CC" data-method="bleach" onchange="handleSanitationChange(this)"></td>
+                        <td><input type="checkbox" class="sanitation-checkbox granular-checkbox" data-pool="Camden CC" data-method="granular" onchange="handleSanitationChange(this)"></td>
+                    </tr>
+                    <tr>
+                        <td>CC of Lexington</td>
+                        <td><input type="checkbox" class="sanitation-checkbox bleach-checkbox" data-pool="CC of Lexington" data-method="bleach" onchange="handleSanitationChange(this)"></td>
+                        <td><input type="checkbox" class="sanitation-checkbox granular-checkbox" data-pool="CC of Lexington" data-method="granular" onchange="handleSanitationChange(this)"></td>
+                    </tr>
+                    <tr>
+                        <td>Columbia CC</td>
+                        <td><input type="checkbox" class="sanitation-checkbox bleach-checkbox" data-pool="Columbia CC" data-method="bleach" onchange="handleSanitationChange(this)"></td>
+                        <td><input type="checkbox" class="sanitation-checkbox granular-checkbox" data-pool="Columbia CC" data-method="granular" onchange="handleSanitationChange(this)"></td>
+                    </tr>
+                    <tr>
+                        <td>Forest Lake Lap Pool</td>
+                        <td><input type="checkbox" class="sanitation-checkbox bleach-checkbox" data-pool="Forest Lake Lap Pool" data-method="bleach" onchange="handleSanitationChange(this)"></td>
+                        <td><input type="checkbox" class="sanitation-checkbox granular-checkbox" data-pool="Forest Lake Lap Pool" data-method="granular" onchange="handleSanitationChange(this)"></td>
+                    </tr>
+                    <tr>
+                        <td>Forest Lake Main Pool</td>
+                        <td><input type="checkbox" class="sanitation-checkbox bleach-checkbox" data-pool="Forest Lake" data-method="bleach" onchange="handleSanitationChange(this)"></td>
+                        <td><input type="checkbox" class="sanitation-checkbox granular-checkbox" data-pool="Forest Lake" data-method="granular" onchange="handleSanitationChange(this)"></td>
+                    </tr>
+                    <tr>
+                        <td>Quail Hollow</td>
+                        <td><input type="checkbox" class="sanitation-checkbox bleach-checkbox" data-pool="Quail Hollow" data-method="bleach" onchange="handleSanitationChange(this)"></td>
+                        <td><input type="checkbox" class="sanitation-checkbox granular-checkbox" data-pool="Quail Hollow" data-method="granular" onchange="handleSanitationChange(this)"></td>
+                    </tr>
+                    <tr>
+                        <td>Rockbridge</td>
+                        <td><input type="checkbox" class="sanitation-checkbox bleach-checkbox" data-pool="Rockbridge" data-method="bleach" onchange="handleSanitationChange(this)"></td>
+                        <td><input type="checkbox" class="sanitation-checkbox granular-checkbox" data-pool="Rockbridge" data-method="granular" onchange="handleSanitationChange(this)"></td>
+                    </tr>
+                    <tr>
+                        <td>Wildewood</td>
+                        <td><input type="checkbox" class="sanitation-checkbox bleach-checkbox" data-pool="Wildewood" data-method="bleach" onchange="handleSanitationChange(this)"></td>
+                        <td><input type="checkbox" class="sanitation-checkbox granular-checkbox" data-pool="Wildewood" data-method="granular" onchange="handleSanitationChange(this)"></td>
+                    </tr>
+                    <tr>
+                        <td>Winchester</td>
+                        <td><input type="checkbox" class="sanitation-checkbox bleach-checkbox" data-pool="Winchester" data-method="bleach" onchange="handleSanitationChange(this)"></td>
+                        <td><input type="checkbox" class="sanitation-checkbox granular-checkbox" data-pool="Winchester" data-method="granular" onchange="handleSanitationChange(this)"></td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<!-- Feedback Modal -->
+<div id="feedbackModal" style="display: none; position: fixed; top: 20%; left: 50%; transform: translateX(-50%); z-index: 9999; padding: 20px; border-radius: 0px; box-shadow: 0 0 10px rgba(0,0,0,0.3); max-width: 400px; text-align: center;">
+    <div id="modalContent" style="white-space: pre-wrap; font-size: 16px;"></div>
+    <button onclick="closeModal()" style="margin-top: 15px; padding: 5px 15px; font-weight: bold;">X</button>
+        <option value="">Choose recipient</option>
+        <option value="+18644096231">Sam Harmon</option>
+        <option value="+18036738396">Haley Wilson</option>
+    </select>
+    <button onclick="chooseAndSendSMS()">Send Text Message</button>
+
+    <div id="smsRecipientGroup" style="margin-top: 20px; text-align: left;">
+        <label style="font-weight: bold;">Notify:</label><br>
+        <label><input type="radio" name="smsRecipient" value="+18644096231"> Sam Harmon</label><br>
+        <label><input type="radio" name="smsRecipient" value="+18036738396"> Haley Wilson</label><br>
+        <label><input type="radio" name="smsRecipient" value="both"> Both</label>
+    </div>
+</div>
+</body>
+</html>
