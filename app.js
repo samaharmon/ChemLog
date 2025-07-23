@@ -305,6 +305,30 @@ function loadSanitationSettings() {
 }
 
 // ===================================================
+// POOL LOCATION HANDLING
+// ===================================================
+
+// Handle pool location change
+function handlePoolLocationChange() {
+    const poolLocation = document.getElementById('poolLocation').value;
+    const secondaryPoolSection = document.getElementById('secondaryPoolSection');
+    const secondaryPH = document.getElementById('secondaryPoolPH');
+    const secondaryCl = document.getElementById('secondaryPoolCl');
+    
+    if (poolLocation === 'Camden CC') {
+        secondaryPoolSection.classList.add('hidden');
+        secondaryPH.removeAttribute('required');
+        secondaryCl.removeAttribute('required');
+        secondaryPH.value = '';
+        secondaryCl.value = '';
+    } else {
+        secondaryPoolSection.classList.remove('hidden');
+        secondaryPH.setAttribute('required', '');
+        secondaryCl.setAttribute('required', '');
+    }
+}
+
+// ===================================================
 // DOM INITIALIZATION
 // ===================================================
 
@@ -562,30 +586,6 @@ function submitForm() {
     }
     
     resetForm();
-}
-
-// ===================================================
-// POOL LOCATION HANDLING
-// ===================================================
-
-// Handle pool location change
-function handlePoolLocationChange() {
-    const poolLocation = document.getElementById('poolLocation').value;
-    const secondaryPoolSection = document.getElementById('secondaryPoolSection');
-    const secondaryPH = document.getElementById('secondaryPoolPH');
-    const secondaryCl = document.getElementById('secondaryPoolCl');
-    
-    if (poolLocation === 'Camden CC') {
-        secondaryPoolSection.classList.add('hidden');
-        secondaryPH.removeAttribute('required');
-        secondaryCl.removeAttribute('required');
-        secondaryPH.value = '';
-        secondaryCl.value = '';
-    } else {
-        secondaryPoolSection.classList.remove('hidden');
-        secondaryPH.setAttribute('required', '');
-        secondaryCl.setAttribute('required', '');
-    }
 }
 
 // ===================================================
@@ -2408,5 +2408,6 @@ window.evaluateFormFeedback = evaluateFormFeedback;
 window.showMessage = showMessage;
 window.closeModal = closeModal;
 window.displayData = displayData;
+window.submitForm = submitForm;
 
 console.log('🔥✅ Pool Chemistry Log App - All Functions Loaded! ✅🔥');
