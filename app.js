@@ -26,6 +26,7 @@ let app, db;
 
 // Wait for Firebase to be available and DOM to load
 document.addEventListener('DOMContentLoaded', function() {
+    console.log('🔥🔥🔥 APP.JS LOADED - Firebase version running! 🔥🔥🔥'); // Clear identifier
     window.initializeFirebaseApp = initializeFirebase;
     
     if (window.firebaseLoaded) {
