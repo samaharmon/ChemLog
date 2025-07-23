@@ -1,12 +1,13 @@
 // Firebase Configuration
 // ⚠️  IMPORTANT: Replace these with your actual Firebase project config
 const firebaseConfig = {
-    apiKey: "YOUR_API_KEY",
-    authDomain: "YOUR_PROJECT_ID.firebaseapp.com",
-    projectId: "YOUR_PROJECT_ID", 
-    storageBucket: "YOUR_PROJECT_ID.appspot.com",
-    messagingSenderId: "YOUR_SENDER_ID",
-    appId: "YOUR_APP_ID"
+  apiKey: "AIzaSyCRxSL2uuH6O5MFvbq0FS02zF2K_lXGvqI",
+  authDomain: "chemlog-43c08.firebaseapp.com",
+  projectId: "chemlog-43c08",
+  storageBucket: "chemlog-43c08.firebasestorage.app",
+  messagingSenderId: "554394202059",
+  appId: "1:554394202059:web:a8d5824a1d7ccdd871d04e",
+  measurementId: "G-QF5ZQ88VS2"
 };
 
 // Validate Firebase config
