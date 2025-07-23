@@ -45,6 +45,13 @@ window.addEventListener('error', function(e) {
     console.error('In file:', e.filename);
 });
 
+// Add console log to verify script is loading
+console.log('🔥 Pool Chemistry App - Script Starting to Load 🔥');
+
+// ===================================================
+// DASHBOARD DATA TABLE
+// ===================================================
+
 function loadDashboardData() {
     if (!db) {
         updateFirebaseStatus('Database not initialized', true);
@@ -228,8 +235,199 @@ function loadAndDisplayData() {
     }
 }
 
-// Add console log to verify script is loading
-console.log('🔥 Pool Chemistry App - Script Starting to Load 🔥');
+function getHighlightColor(value, type) {
+    if (!value || value === 'N/A' || value === '') return null;
+    
+    const valueStr = value.toString().trim();
+    
+    if (type === 'pH') {
+        if (valueStr.startsWith('< 7.0' || valueStr === '< 7.0' || 
+            valueStr.startsWith('> 8.0') || valueStr === '> 8.0' ||
+            valueStr === '7.8' || valueStr === '8.0')) {
+            return 'red';
+        }
+        const numValue = parseFloat(valueStr.replace(/[<>]/g, ''));
+        if (!isNaN(numValue)) {
+            if (numValue < 7.0 || numValue === 7.8 || numValue === 8.0 || numValue > 8.0) return 'red';
+            if (numValue === 7.0 || numValue === 7.6) return 'yellow';
+        }
+        return null;
+    }
+    
+    if (type === 'cl') {
+        if (valueStr.startsWith('> 10') || valueStr === '> 10' ||
+            valueStr.startsWith('>10') || valueStr === '>10' ||
+            valueStr === '0' || valueStr === '10') {
+            return 'red';
+        }
+        const numValue = parseFloat(valueStr.replace(/[<>]/g, ''));
+        if (!isNaN(numValue)) {
+            if (numValue === 0 || numValue === 10 || numValue > 10) return 'red';
+            if ((numValue > 0 && numValue < 3) || (numValue > 5 && numValue < 10)) return 'yellow';
+        }
+        return null;
+    }
+    
+    return null;
+}
+
+function getPoolWarningLevel(mainPH, mainCl, secondaryPH, secondaryCl) {
+    const values = [
+        { value: mainPH, type: 'pH' },
+        { value: mainCl, type: 'cl' },
+        { value: secondaryPH, type: 'pH' },
+        { value: secondaryCl, type: 'cl' }
+    ];
+    
+    let hasRed = false;
+    let hasYellow = false;
+    
+    values.forEach(item => {
+        const color = getHighlightColor(item.value, item.type);
+        if (color === 'red') hasRed = true;
+        if (color === 'yellow') hasYellow = true;
+    });
+    
+    if (hasRed) return 'red';
+    if (hasYellow) return 'yellow';
+    return null;
+}
+
+function isMoreThan3HoursOld(timestamp) {
+    const now = new Date();
+    const submissionTime = new Date(timestamp);
+    const threeHoursAgo = new Date(now.getTime() - (3 * 60 * 60 * 1000));
+    return submissionTime < threeHoursAgo;
+}
+
+function displayData() {
+    const tbody1 = document.getElementById('dataTableBody1');
+    const tbody2 = document.getElementById('dataTableBody2');
+    tbody1.innerHTML = '';
+    tbody2.innerHTML = '';
+    
+    if (paginatedData.length === 0 || !paginatedData[currentPage]) {
+        tbody1.innerHTML = '<tr><td colspan="4" style="text-align: center; padding: 30px; color: #666;">No data found</td></tr>';
+        tbody2.innerHTML = '<tr><td colspan="4" style="text-align: center; padding: 30px; color: #666;">No data found</td></tr>';
+        return;
+    }
+    
+    const data = paginatedData[currentPage];
+    let hasSecondaryData = false;
+    
+    data.forEach(submission => {
+        const mainPHColor = getHighlightColor(submission.mainPoolPH, 'pH');
+        const mainClColor = getHighlightColor(submission.mainPoolCl, 'cl');
+        const secondaryPHColor = getHighlightColor(submission.secondaryPoolPH, 'pH');
+        const secondaryClColor = getHighlightColor(submission.secondaryPoolCl, 'cl');
+        const warningLevel = getPoolWarningLevel(submission.mainPoolPH, submission.mainPoolCl, submission.secondaryPoolPH, submission.secondaryPoolCl);
+        
+        let poolNameDisplay = submission.poolLocation;
+        if (warningLevel === 'red') {
+            poolNameDisplay = `<u>${submission.poolLocation}</u><span style="color: red;">!!!</span>`;
+        } else if (warningLevel === 'yellow') {
+            poolNameDisplay = `<u>${submission.poolLocation}</u><span style="color: red;">!</span>`;
+        }
+        
+        let timestampDisplay = submission.timestamp;
+        if (currentPage === 0 && isMoreThan3HoursOld(submission.timestamp)) {
+            timestampDisplay = `<span style="color: red; font-weight: bold;">${submission.timestamp}</span>`;
+        }
+        
+        const createCell = (value, color) => {
+            if (color === 'red') {
+                return `<td style="background-color: #ffcccc; color: #cc0000; font-weight: bold;">${value}</td>`;
+            } else if (color === 'yellow') {
+                return `<td style="background-color: #fff2cc; color: #b8860b; font-weight: bold;">${value}</td>`;
+            } else {
+                return `<td>${value}</td>`;
+            }
+        };
+        
+        // Main Pool Table Row
+        const row1 = document.createElement('tr');
+        row1.innerHTML = `
+            <td>${timestampDisplay}</td>
+            <td>${poolNameDisplay}</td>
+            ${createCell(submission.mainPoolPH, mainPHColor)}
+            ${createCell(submission.mainPoolCl, mainClColor)}
+        `;
+        tbody1.appendChild(row1);
+        
+        // Secondary Pool Table Row (only if not Camden CC)
+        if (submission.poolLocation !== 'Camden CC') {
+            hasSecondaryData = true;
+            const row2 = document.createElement('tr');
+            row2.innerHTML = `
+                <td>${timestampDisplay}</td>
+                <td>${poolNameDisplay}</td>
+                ${createCell(submission.secondaryPoolPH, secondaryPHColor)}
+                ${createCell(submission.secondaryPoolCl, secondaryClColor)}
+            `;
+            tbody2.appendChild(row2);
+        }
+    });
+    
+    // If no secondary pool data, show a message
+    if (!hasSecondaryData) {
+        tbody2.innerHTML = '<tr><td colspan="4" style="text-align: center; padding: 30px; color: #666;">No secondary pool data for current selection</td></tr>';
+    }
+    
+    updateTimestampNote();
+}
+
+function updateTimestampNote() {
+    const existingNote = document.getElementById('timestampNote');
+    if (existingNote) {
+        // Show the note only on page 0 (most recent)
+        existingNote.style.display = currentPage === 0 ? 'block' : 'none';
+    }
+}
+
+// Add these functions before your global assignments section
+
+function deleteSubmission(submissionId) {
+    if (confirm('Are you sure you want to delete this submission?')) {
+        formSubmissions = formSubmissions.filter(submission => submission.id !== submissionId);
+        saveFormSubmissions();
+        loadDashboardData();
+        showMessage('Submission deleted successfully!', 'success');
+    }
+}
+
+function changePage(pageNumber) {
+    currentPage = pageNumber;
+    displayData();
+    updatePaginationControls();
+}
+
+function checkForCriticalAlerts() {
+    if (!formSubmissions || formSubmissions.length === 0) return;
+    
+    const criticalAlerts = [];
+    const now = new Date();
+    
+    formSubmissions.forEach(submission => {
+        const submissionTime = new Date(submission.timestamp);
+        const hoursOld = (now - submissionTime) / (1000 * 60 * 60);
+        
+        if (hoursOld > 3) {
+            criticalAlerts.push(`${submission.poolLocation}: Last reading is ${Math.floor(hoursOld)} hours old`);
+        }
+        
+        if (submission.mainPoolPH === '< 7.0' || submission.mainPoolPH === '> 8.0') {
+            criticalAlerts.push(`${submission.poolLocation}: Critical pH level (${submission.mainPoolPH})`);
+        }
+        
+        if (submission.mainPoolCl === '0' || submission.mainPoolCl === '> 10') {
+            criticalAlerts.push(`${submission.poolLocation}: Critical chlorine level (${submission.mainPoolCl})`);
+        }
+    });
+    
+    if (criticalAlerts.length > 0) {
+        showMessage(`${criticalAlerts.length} critical alert(s) found`, 'warning');
+    }
+}
 
 // ===================================================
 // SANITATION SETTINGS
@@ -2044,200 +2242,6 @@ async function showSettings() {
 
 function closeSettings() {
     document.getElementById('settingsModal').style.display = 'none';
-}
-
-function getHighlightColor(value, type) {
-    if (!value || value === 'N/A' || value === '') return null;
-    
-    const valueStr = value.toString().trim();
-    
-    if (type === 'pH') {
-        if (valueStr.startsWith('< 7.0' || valueStr === '< 7.0' || 
-            valueStr.startsWith('> 8.0') || valueStr === '> 8.0' ||
-            valueStr === '7.8' || valueStr === '8.0')) {
-            return 'red';
-        }
-        const numValue = parseFloat(valueStr.replace(/[<>]/g, ''));
-        if (!isNaN(numValue)) {
-            if (numValue < 7.0 || numValue === 7.8 || numValue === 8.0 || numValue > 8.0) return 'red';
-            if (numValue === 7.0 || numValue === 7.6) return 'yellow';
-        }
-        return null;
-    }
-    
-    if (type === 'cl') {
-        if (valueStr.startsWith('> 10') || valueStr === '> 10' ||
-            valueStr.startsWith('>10') || valueStr === '>10' ||
-            valueStr === '0' || valueStr === '10') {
-            return 'red';
-        }
-        const numValue = parseFloat(valueStr.replace(/[<>]/g, ''));
-        if (!isNaN(numValue)) {
-            if (numValue === 0 || numValue === 10 || numValue > 10) return 'red';
-            if ((numValue > 0 && numValue < 3) || (numValue > 5 && numValue < 10)) return 'yellow';
-        }
-        return null;
-    }
-    
-    return null;
-}
-
-function getPoolWarningLevel(mainPH, mainCl, secondaryPH, secondaryCl) {
-    const values = [
-        { value: mainPH, type: 'pH' },
-        { value: mainCl, type: 'cl' },
-        { value: secondaryPH, type: 'pH' },
-        { value: secondaryCl, type: 'cl' }
-    ];
-    
-    let hasRed = false;
-    let hasYellow = false;
-    
-    values.forEach(item => {
-        const color = getHighlightColor(item.value, item.type);
-        if (color === 'red') hasRed = true;
-        if (color === 'yellow') hasYellow = true;
-    });
-    
-    if (hasRed) return 'red';
-    if (hasYellow) return 'yellow';
-    return null;
-}
-
-function isMoreThan3HoursOld(timestamp) {
-    const now = new Date();
-    const submissionTime = new Date(timestamp);
-    const threeHoursAgo = new Date(now.getTime() - (3 * 60 * 60 * 1000));
-    return submissionTime < threeHoursAgo;
-}
-
-function displayData() {
-    const tbody1 = document.getElementById('dataTableBody1');
-    const tbody2 = document.getElementById('dataTableBody2');
-    tbody1.innerHTML = '';
-    tbody2.innerHTML = '';
-    
-    if (paginatedData.length === 0 || !paginatedData[currentPage]) {
-        tbody1.innerHTML = '<tr><td colspan="4" style="text-align: center; padding: 30px; color: #666;">No data found</td></tr>';
-        tbody2.innerHTML = '<tr><td colspan="4" style="text-align: center; padding: 30px; color: #666;">No data found</td></tr>';
-        return;
-    }
-    
-    const data = paginatedData[currentPage];
-    let hasSecondaryData = false;
-    
-    data.forEach(submission => {
-        const mainPHColor = getHighlightColor(submission.mainPoolPH, 'pH');
-        const mainClColor = getHighlightColor(submission.mainPoolCl, 'cl');
-        const secondaryPHColor = getHighlightColor(submission.secondaryPoolPH, 'pH');
-        const secondaryClColor = getHighlightColor(submission.secondaryPoolCl, 'cl');
-        const warningLevel = getPoolWarningLevel(submission.mainPoolPH, submission.mainPoolCl, submission.secondaryPoolPH, submission.secondaryPoolCl);
-        
-        let poolNameDisplay = submission.poolLocation;
-        if (warningLevel === 'red') {
-            poolNameDisplay = `<u>${submission.poolLocation}</u><span style="color: red;">!!!</span>`;
-        } else if (warningLevel === 'yellow') {
-            poolNameDisplay = `<u>${submission.poolLocation}</u><span style="color: red;">!</span>`;
-        }
-        
-        let timestampDisplay = submission.timestamp;
-        if (currentPage === 0 && isMoreThan3HoursOld(submission.timestamp)) {
-            timestampDisplay = `<span style="color: red; font-weight: bold;">${submission.timestamp}</span>`;
-        }
-        
-        const createCell = (value, color) => {
-            if (color === 'red') {
-                return `<td style="background-color: #ffcccc; color: #cc0000; font-weight: bold;">${value}</td>`;
-            } else if (color === 'yellow') {
-                return `<td style="background-color: #fff2cc; color: #b8860b; font-weight: bold;">${value}</td>`;
-            } else {
-                return `<td>${value}</td>`;
-            }
-        };
-        
-        // Main Pool Table Row
-        const row1 = document.createElement('tr');
-        row1.innerHTML = `
-            <td>${timestampDisplay}</td>
-            <td>${poolNameDisplay}</td>
-            ${createCell(submission.mainPoolPH, mainPHColor)}
-            ${createCell(submission.mainPoolCl, mainClColor)}
-        `;
-        tbody1.appendChild(row1);
-        
-        // Secondary Pool Table Row (only if not Camden CC)
-        if (submission.poolLocation !== 'Camden CC') {
-            hasSecondaryData = true;
-            const row2 = document.createElement('tr');
-            row2.innerHTML = `
-                <td>${timestampDisplay}</td>
-                <td>${poolNameDisplay}</td>
-                ${createCell(submission.secondaryPoolPH, secondaryPHColor)}
-                ${createCell(submission.secondaryPoolCl, secondaryClColor)}
-            `;
-            tbody2.appendChild(row2);
-        }
-    });
-    
-    // If no secondary pool data, show a message
-    if (!hasSecondaryData) {
-        tbody2.innerHTML = '<tr><td colspan="4" style="text-align: center; padding: 30px; color: #666;">No secondary pool data for current selection</td></tr>';
-    }
-    
-    updateTimestampNote();
-}
-
-function updateTimestampNote() {
-    const existingNote = document.getElementById('timestampNote');
-    if (existingNote) {
-        // Show the note only on page 0 (most recent)
-        existingNote.style.display = currentPage === 0 ? 'block' : 'none';
-    }
-}
-
-// Add these functions before your global assignments section
-
-function deleteSubmission(submissionId) {
-    if (confirm('Are you sure you want to delete this submission?')) {
-        formSubmissions = formSubmissions.filter(submission => submission.id !== submissionId);
-        saveFormSubmissions();
-        loadDashboardData();
-        showMessage('Submission deleted successfully!', 'success');
-    }
-}
-
-function changePage(pageNumber) {
-    currentPage = pageNumber;
-    displayData();
-    updatePaginationControls();
-}
-
-function checkForCriticalAlerts() {
-    if (!formSubmissions || formSubmissions.length === 0) return;
-    
-    const criticalAlerts = [];
-    const now = new Date();
-    
-    formSubmissions.forEach(submission => {
-        const submissionTime = new Date(submission.timestamp);
-        const hoursOld = (now - submissionTime) / (1000 * 60 * 60);
-        
-        if (hoursOld > 3) {
-            criticalAlerts.push(`${submission.poolLocation}: Last reading is ${Math.floor(hoursOld)} hours old`);
-        }
-        
-        if (submission.mainPoolPH === '< 7.0' || submission.mainPoolPH === '> 8.0') {
-            criticalAlerts.push(`${submission.poolLocation}: Critical pH level (${submission.mainPoolPH})`);
-        }
-        
-        if (submission.mainPoolCl === '0' || submission.mainPoolCl === '> 10') {
-            criticalAlerts.push(`${submission.poolLocation}: Critical chlorine level (${submission.mainPoolCl})`);
-        }
-    });
-    
-    if (criticalAlerts.length > 0) {
-        showMessage(`${criticalAlerts.length} critical alert(s) found`, 'warning');
-    }
 }
 
 function sendSMSNotification(message, phoneNumber) {
