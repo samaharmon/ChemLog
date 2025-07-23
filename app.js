@@ -1526,5 +1526,12 @@ window.openSettings = showSettings; // Alias for backward compatibility
 window.openLoginModal = () => showMessage('Please use the login form', 'info');
 window.closeLoginModal = () => showMessage('Login form closed', 'info');
 
+// Additional backward compatibility functions
+window.loadFormSubmissions = loadDashboardData; // Alias for existing functionality
+window.loadAndDisplayData = async () => {
+    await loadDashboardData();
+    if (isLoggedIn) displayData();
+};
+
 console.log('🔥✅ COMPREHENSIVE FUNCTIONALITY FULLY LOADED AND ASSIGNED');
 console.log('🔥🔥🔥 UNIFIED APP.JS COMPLETE WITH ALL FEATURES 🔥🔥🔥');
