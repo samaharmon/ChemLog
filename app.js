@@ -1868,28 +1868,6 @@ function chooseAndSendSMS() {
     removeOverlay();
 }
 
-function createOrShowOverlay() {
-    let overlay = document.getElementById('modal-overlay');
-    if (!overlay) {
-        overlay = document.createElement('div');
-        overlay.id = 'modal-overlay';
-        overlay.className = 'modal-overlay';
-        overlay.style.cssText = `
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background-color: rgba(0, 0, 0, 0.5);
-            z-index: 10000;
-            display: block;
-        `;
-        document.body.appendChild(overlay);
-    }
-    overlay.style.display = 'block';
-    return overlay;
-}
-
 function removeOverlay() {
     const overlay = document.getElementById('modal-overlay');
     if (overlay) {
