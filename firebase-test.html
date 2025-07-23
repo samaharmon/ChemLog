@@ -1,0 +1,185 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Firebase Test</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 40px; }
+        .status { padding: 10px; margin: 10px 0; border-radius: 5px; }
+        .success { background: #d4edda; color: #155724; }
+        .error { background: #f8d7da; color: #721c24; }
+        .warning { background: #fff3cd; color: #856404; }
+        button { padding: 10px 20px; margin: 5px; }
+    </style>
+</head>
+<body>
+    <h1>Pool Chemistry App - Firebase Test</h1>
+    
+    <div id="testResults"></div>
+    
+    <h3>Test Firebase Connection</h3>
+    <button onclick="testFirebaseConnection()">Test Connection</button>
+    <button onclick="testFormSubmission()">Test Form Submission</button>
+    
+    <div id="firebaseStatus">Loading...</div>
+
+    <!-- Same Firebase setup as main app -->
+    <script type="module">
+        import { initializeApp } from 'https://www.gstatic.com/firebasejs/9.23.0/firebase-app.js';
+        import { getFirestore, collection, addDoc, getDocs, onSnapshot, query, orderBy, where, Timestamp } from 'https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore.js';
+        
+        window.firebase = { 
+            initializeApp, 
+            getFirestore, 
+            collection, 
+            addDoc, 
+            getDocs, 
+            onSnapshot, 
+            query, 
+            orderBy, 
+            where,
+            Timestamp
+        };
+        
+        window.firebaseLoaded = true;
+        if (window.initializeTest) window.initializeTest();
+    </script>
+
+    <script>
+        // Same config as main app - you'll need to update this
+        const firebaseConfig = {
+            apiKey: "YOUR_API_KEY",
+            authDomain: "YOUR_PROJECT_ID.firebaseapp.com",
+            projectId: "YOUR_PROJECT_ID", 
+            storageBucket: "YOUR_PROJECT_ID.appspot.com",
+            messagingSenderId: "YOUR_SENDER_ID",
+            appId: "YOUR_APP_ID"
+        };
+
+        let app, db;
+
+        function validateFirebaseConfig() {
+            const requiredFields = ['apiKey', 'authDomain', 'projectId', 'storageBucket', 'messagingSenderId', 'appId'];
+            for (const field of requiredFields) {
+                if (!firebaseConfig[field] || firebaseConfig[field].startsWith('YOUR_')) {
+                    return false;
+                }
+            }
+            return true;
+        }
+
+        function addTestResult(message, type = 'info') {
+            const div = document.createElement('div');
+            div.className = `status ${type}`;
+            div.textContent = message;
+            document.getElementById('testResults').appendChild(div);
+        }
+
+        function updateStatus(message) {
+            document.getElementById('firebaseStatus').textContent = message;
+        }
+
+        document.addEventListener('DOMContentLoaded', function() {
+            window.initializeTest = initializeFirebase;
+            
+            if (window.firebaseLoaded) {
+                initializeFirebase();
+            } else {
+                const checkFirebase = setInterval(() => {
+                    if (window.firebase) {
+                        clearInterval(checkFirebase);
+                        initializeFirebase();
+                    }
+                }, 100);
+            }
+        });
+
+        function initializeFirebase() {
+            try {
+                updateStatus('Initializing Firebase...');
+                
+                if (!validateFirebaseConfig()) {
+                    addTestResult('❌ Firebase config not set - update the config in this test file', 'error');
+                    updateStatus('Config not set');
+                    return;
+                }
+                
+                if (!window.firebase) {
+                    addTestResult('❌ Firebase SDK not loaded', 'error');
+                    updateStatus('SDK not loaded');
+                    return;
+                }
+                
+                app = window.firebase.initializeApp(firebaseConfig);
+                db = window.firebase.getFirestore(app);
+                
+                addTestResult('✅ Firebase initialized successfully', 'success');
+                updateStatus('✅ Ready for testing');
+                
+            } catch (error) {
+                addTestResult(`❌ Firebase initialization failed: ${error.message}`, 'error');
+                updateStatus('❌ Initialization failed');
+            }
+        }
+
+        async function testFirebaseConnection() {
+            if (!db) {
+                addTestResult('❌ Database not initialized', 'error');
+                return;
+            }
+
+            try {
+                addTestResult('🔄 Testing database connection...', 'warning');
+                
+                // Try to read from collection (won't error even if collection doesn't exist)
+                const testQuery = window.firebase.query(
+                    window.firebase.collection(db, 'poolSubmissions'),
+                    window.firebase.orderBy('timestamp', 'desc')
+                );
+                
+                addTestResult('✅ Database connection successful', 'success');
+                
+            } catch (error) {
+                addTestResult(`❌ Database connection failed: ${error.message}`, 'error');
+            }
+        }
+
+        async function testFormSubmission() {
+            if (!db) {
+                addTestResult('❌ Database not initialized', 'error');
+                return;
+            }
+
+            try {
+                addTestResult('🔄 Testing form submission...', 'warning');
+                
+                const testData = {
+                    firstName: 'Test',
+                    lastName: 'User',
+                    poolLocation: 'Test Pool',
+                    mainPoolPH: '7.4',
+                    mainPoolCl: '2',
+                    timestamp: new Date(),
+                    submittedBy: 'Test User',
+                    isTest: true
+                };
+
+                const docRef = await window.firebase.addDoc(
+                    window.firebase.collection(db, 'poolSubmissions'), 
+                    testData
+                );
+                
+                addTestResult(`✅ Form submission successful! Document ID: ${docRef.id}`, 'success');
+                
+            } catch (error) {
+                addTestResult(`❌ Form submission failed: ${error.message}`, 'error');
+                
+                if (error.code === 'permission-denied') {
+                    addTestResult('💡 This might be a Firestore security rules issue. Check your Firebase console.', 'warning');
+                }
+            }
+        }
+    </script>
+</body>
+</html>

@@ -1,0 +1,120 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Pool Chemistry Test</title>
+    <style>
+        body { font-family: Arial, sans-serif; padding: 20px; }
+        .form-group { margin: 10px 0; }
+        label { display: block; font-weight: bold; }
+        input, select { width: 200px; padding: 5px; margin: 5px 0; }
+        button { padding: 10px 20px; margin: 10px 0; }
+        .status { padding: 10px; margin: 10px 0; border-radius: 5px; }
+        .success { background: #d4edda; color: #155724; }
+        .error { background: #f8d7da; color: #721c24; }
+    </style>
+</head>
+<body>
+    <h1>Pool Chemistry - Minimal Test</h1>
+    
+    <div id="firebaseStatus">Loading...</div>
+    
+    <form id="testForm">
+        <div class="form-group">
+            <label>First Name:</label>
+            <input type="text" id="firstName" required>
+        </div>
+        <div class="form-group">
+            <label>Last Name:</label>
+            <input type="text" id="lastName" required>
+        </div>
+        <div class="form-group">
+            <label>Pool:</label>
+            <select id="poolLocation" required>
+                <option value="">Select</option>
+                <option value="Test Pool">Test Pool</option>
+            </select>
+        </div>
+        <div class="form-group">
+            <label>pH:</label>
+            <select id="mainPoolPH" required>
+                <option value="">Select</option>
+                <option value="7.4">7.4</option>
+            </select>
+        </div>
+        <div class="form-group">
+            <label>Chlorine:</label>
+            <select id="mainPoolCl" required>
+                <option value="">Select</option>
+                <option value="2">2</option>
+            </select>
+        </div>
+        <button type="button" onclick="submitForm()">Submit Test</button>
+    </form>
+
+    <script type="module">
+        import { initializeApp } from 'https://www.gstatic.com/firebasejs/9.23.0/firebase-app.js';
+        import { getFirestore, collection, addDoc } from 'https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore.js';
+        
+        // ⚠️ UPDATE THESE VALUES WITH YOUR REAL FIREBASE CONFIG
+        const firebaseConfig = {
+            apiKey: "YOUR_API_KEY",
+            authDomain: "YOUR_PROJECT_ID.firebaseapp.com",
+            projectId: "YOUR_PROJECT_ID",
+            storageBucket: "YOUR_PROJECT_ID.appspot.com",
+            messagingSenderId: "YOUR_SENDER_ID",
+            appId: "YOUR_APP_ID"
+        };
+
+        let app, db;
+
+        try {
+            // Check if config is set
+            if (firebaseConfig.apiKey === "YOUR_API_KEY") {
+                document.getElementById('firebaseStatus').innerHTML = 
+                    '<div class="error">❌ Update Firebase config in this file first!</div>';
+            } else {
+                app = initializeApp(firebaseConfig);
+                db = getFirestore(app);
+                document.getElementById('firebaseStatus').innerHTML = 
+                    '<div class="success">✅ Firebase initialized</div>';
+            }
+        } catch (error) {
+            document.getElementById('firebaseStatus').innerHTML = 
+                `<div class="error">❌ Firebase error: ${error.message}</div>`;
+        }
+
+        window.submitForm = async function() {
+            if (!db) {
+                alert('Firebase not initialized');
+                return;
+            }
+
+            const formData = {
+                firstName: document.getElementById('firstName').value,
+                lastName: document.getElementById('lastName').value,
+                poolLocation: document.getElementById('poolLocation').value,
+                mainPoolPH: document.getElementById('mainPoolPH').value,
+                mainPoolCl: document.getElementById('mainPoolCl').value,
+                timestamp: new Date(),
+                isTest: true
+            };
+
+            if (!formData.firstName || !formData.lastName || !formData.poolLocation || 
+                !formData.mainPoolPH || !formData.mainPoolCl) {
+                alert('Please fill all fields');
+                return;
+            }
+
+            try {
+                const docRef = await addDoc(collection(db, 'poolSubmissions'), formData);
+                alert(`✅ Success! Document ID: ${docRef.id}`);
+                document.getElementById('testForm').reset();
+            } catch (error) {
+                alert(`❌ Failed: ${error.message}`);
+            }
+        };
+    </script>
+</body>
+</html>
