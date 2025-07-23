@@ -866,6 +866,39 @@ function showMessage(message, type = 'info') {
     showFeedback(message, type);
 }
 
+// Define the missing functions
+function closeModal() {
+    const modal = document.querySelector('.modal');
+    if (modal) {
+        modal.style.display = 'none';
+    }
+}
+
+function handleLocationChange() {
+    const poolLocation = document.getElementById('poolLocation').value;
+    const secondarySection = document.getElementById('secondaryPoolSection');
+    
+    if (POOLS_WITH_SECONDARY.includes(poolLocation)) {
+        if (secondarySection) {
+            secondarySection.style.display = 'block';
+        }
+    } else {
+        if (secondarySection) {
+            secondarySection.style.display = 'none';
+        }
+    }
+}
+
+function showFeedbackModal(message) {
+    const modal = document.querySelector('.modal');
+    const modalContent = document.querySelector('.modal-content');
+    
+    if (modal && modalContent) {
+        modalContent.innerHTML = message;
+        modal.style.display = 'block';
+    }
+}
+
 // Now assign all functions to window
 window.showMessage = showMessage;
 window.showFeedback = showFeedback;
