@@ -1358,7 +1358,7 @@ function evaluateFormFeedback(formData) {
                 } else if (secPH === '7.8') { 
                     // Handle 7.8 pH cases
                     if (poolLocation === 'CC of Lexington') {
-                        messages.push('<strong>Lower the pH of the Baby Pool.</strong><br>Add a small splash (~1.5 tablespoons
+                        messages.push('<strong>Lower the pH of the Baby Pool.</strong><br>Add a small splash (~1.5 tablespoons of acid) below a skimmer basket. Always check for suction before pouring.');
                     } else if (poolLocation === 'Columbia CC') {
                         messages.push('<strong>Lower the pH of the Baby Pool.</strong><br>Add 1/8 scoop of acid below a skimmer basket. Always check for suction before pouring.');
                     } else if (poolLocation === 'Quail Hollow') {
