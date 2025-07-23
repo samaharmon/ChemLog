@@ -1,3 +1,8 @@
+html, body {
+    background-color: white !important;
+    background: white !important;
+}
+
 * {
             margin: 0;
             padding: 0;
