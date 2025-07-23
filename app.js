@@ -91,7 +91,10 @@ function updateFirebaseStatus(message, isError = false) {
 
 // Form submission function
 async function submitForm() {
+    console.log('submitForm called'); // Debug log
+    
     if (!db) {
+        console.log('Database not initialized'); // Debug log
         showFeedback('Database not initialized. Please refresh the page.', 'error');
         return;
     }
@@ -110,16 +113,21 @@ async function submitForm() {
             submittedBy: `${document.getElementById('firstName').value} ${document.getElementById('lastName').value}`
         };
 
+        console.log('Form data:', formData); // Debug log
+
         // Validate required fields
         if (!formData.firstName || !formData.lastName || !formData.poolLocation || 
             !formData.mainPoolPH || !formData.mainPoolCl) {
+            console.log('Validation failed'); // Debug log
             alert('Please fill in all required fields');
             return;
         }
 
+        console.log('Attempting to submit to Firebase...'); // Debug log
+
         // Submit to Firebase
         const docRef = await window.firebase.addDoc(window.firebase.collection(db, 'poolSubmissions'), formData);
-        console.log('Document written with ID: ', docRef.id);
+        console.log('✅ Document written with ID: ', docRef.id); // Debug log
         
         // Show success message
         showFeedback('Form submitted successfully!', 'success');
@@ -142,7 +150,7 @@ async function submitForm() {
         }
         
     } catch (error) {
-        console.error('Error adding document: ', error);
+        console.error('❌ Error adding document: ', error);
         console.error('Error code:', error.code);
         console.error('Error message:', error.message);
         
