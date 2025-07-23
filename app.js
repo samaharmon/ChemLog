@@ -40,9 +40,6 @@ const supervisorCredentials = {
 // SANITATION SETTINGS
 // ===================================================
 
-// Declare sanitationSettings globally
-let sanitationSettings = {};
-
 // Initialize default sanitation settings (all pools default to bleach)
 async function initializeSanitationSettings() {
     const pools = ['Camden CC', 'CC of Lexington', 'Columbia CC', 'Forest Lake', 'Forest Lake Lap Pool', 'Quail Hollow', 'Rockbridge', 'Wildewood', 'Winchester'];
@@ -300,51 +297,73 @@ function loadSanitationSettings() {
 // ===================================================
 
 // Wait for Firebase to be available and DOM to load
-document.addEventListener('DOMContentLoaded', function() {
+document.addEventListener('DOMContentLoaded', async function () {
     console.log('🔥🔥🔥 UNIFIED APP.JS LOADED 🔥🔥🔥');
-    window.initializeFirebaseApp = initializeFirebase;
     
-    if (window.firebaseLoaded) {
-        initializeFirebase();
-    } else {
-        // Wait for Firebase modules to load
-        const checkFirebase = setInterval(() => {
-            if (window.firebase) {
-                clearInterval(checkFirebase);
-                initializeFirebase();
-            }
-        }, 100);
-        
-        // Timeout after 10 seconds
-        setTimeout(() => {
-            clearInterval(checkFirebase);
-            if (!window.firebase) {
-                updateFirebaseStatus('Firebase failed to load - check internet connection', true);
-            }
-        }, 10000);
-    }
-    
-    // Initialize app to form view
+    // Initialize app
     initializeApp();
     
-    // Initialize Firebase
-    initializeFirebase();
-    
-    // Get form elements
-    const form = document.getElementById('chemistryForm');
-    if (form) {
-        form.addEventListener('submit', submitForm);
-    }
+    // Load form submissions from localStorage
+    loadFormSubmissions();
     
     // Initialize location change handler
-    const locationSelect = document.getElementById('poolLocation');
-    if (locationSelect) {
-        locationSelect.addEventListener('change', handleLocationChange);
-        handleLocationChange(); // Set initial state
+    handlePoolLocationChange();
+
+    // Attach form submission event listener - FIXED
+    const mainForm = document.getElementById('chemistryForm') || document.querySelector('form');
+    if (mainForm) {
+        mainForm.addEventListener('submit', function (e) {
+            e.preventDefault();
+            submitForm();
+        });
+        console.log('Form submit event listener attached');
+    } else {
+        console.warn('No form found with ID "chemistryForm"');
     }
-    
-    // Load sanitation settings
-    loadSanitationSettings();
+
+    // Pool location change handler
+    const poolLocationSelect = document.getElementById('poolLocation');
+    if (poolLocationSelect) {
+        poolLocationSelect.addEventListener('change', handlePoolLocationChange);
+    } else {
+        console.warn('No pool location select found');
+    }
+
+    // Attach login form submission event listener
+    const loginForm = document.getElementById('loginForm');
+    if (loginForm) {
+        loginForm.addEventListener('submit', function(e) {
+            e.preventDefault();
+            const username = document.getElementById('email').value;
+            const password = document.getElementById('password').value;
+            
+            if ((username === 'supervisor' && password === 'poolchem2025') || 
+                (username === 'capitalcity' && password === '$ummer2025')) {
+                
+                // Store login token
+                const token = {
+                    username: username,
+                    expires: Date.now() + (24 * 60 * 60 * 1000) // 24 hours
+                };
+                localStorage.setItem('loginToken', JSON.stringify(token));
+                
+                closeLoginModal();
+                showDashboard();
+            } else {
+                showMessage('Invalid credentials', 'error');
+            }
+        });
+        console.log('Login form submit event listener attached');
+    }
+
+    // Initialize Firebase after DOM is ready
+    if (window.firebase) {
+        initializeFirebase();
+    } else {
+        console.log('Firebase not available, using localStorage only');
+    }
+
+    checkLogin();
 });
 
 // Add this function to initialize the correct default view
@@ -1677,11 +1696,6 @@ function showMessage(message, type) {
 
 // Add these missing functions to app.js
 
-function sendSMSNotification(message, phoneNumber) {
-    console.log(`SMS would be sent to ${phoneNumber}: ${message}`);
-    showMessage('SMS notification sent successfully!', 'success');
-}
-
 function deleteSubmission(submissionId) {
     if (confirm('Are you sure you want to delete this submission?')) {
         // Remove from formSubmissions array
@@ -1755,14 +1769,73 @@ function areAllCheckboxesChecked() {
     return Array.from(checkboxes).every(checkbox => checkbox.checked);
 }
 
+// Replace the incomplete chooseAndSendSMS function that starts around line 2030 with this complete version:
+
 function chooseAndSendSMS() {
-    const selectedRecipient = document.querySelector('input[name="smsRecipient"]:checked');
-    if (selectedRecipient) {
-        const recipientValue = selectedRecipient.value;
-        alert(`Message sent successfully to ${recipientValue}`);
-    } else {
-        alert('Please select a recipient.');
+    const checkboxes = document.querySelectorAll('#samOption, #haleyOption');
+    const selectedRecipients = [];
+    
+    checkboxes.forEach(checkbox => {
+        if (checkbox.checked) {
+            selectedRecipients.push(checkbox.value);
+        }
+    });
+
+    if (selectedRecipients.length === 0) {
+        alert('Please select at least one supervisor to notify.');
+        return;
     }
+
+    if (formSubmissions.length === 0) {
+        alert("No form submission found to share.");
+        return;
+    }
+    
+    const latest = formSubmissions[formSubmissions.length - 1];
+
+    // Determine which values need highlighting
+    const mainPH = latest.mainPoolPH;
+    const secPH = latest.secondaryPoolPH;
+    const mainCl = latest.mainPoolCl;
+    const secCl = latest.secondaryPoolCl;
+    
+    // Create highlighted message parts
+    const mainPoolPHText = mainPH === '< 7.0' ? 
+        `⚠️ Main Pool pH: ${mainPH} - REQUIRES ATTENTION ⚠️` : 
+        `Main Pool pH: ${mainPH}`;
+        
+    const secPoolPHText = secPH === '< 7.0' ? 
+        `⚠️ Secondary Pool pH: ${secPH} - REQUIRES ATTENTION ⚠️` : 
+        `Secondary Pool pH: ${secPH}`;
+        
+    const mainPoolClText = (mainCl === '10' || mainCl === '> 10' || parseFloat(mainCl) > 10) ? 
+        `⚠️ Main Pool Cl: ${mainCl} - HIGH LEVEL ⚠️` : 
+        `Main Pool Cl: ${mainCl}`;
+        
+    const secPoolClText = (secCl === '10' || secCl === '> 10' || parseFloat(secCl) > 10) ? 
+        `⚠️ Secondary Pool Cl: ${secCl} - HIGH LEVEL ⚠️` : 
+        `Secondary Pool Cl: ${secCl}`;
+        
+    const message =
+        `Pool Chemistry Log\n\n` +
+        `Submitted by: ${latest.firstName} ${latest.lastName}\n` +
+        `Pool Location: ${latest.poolLocation}\n\n` +
+        `${mainPoolPHText}\n` +
+        `${mainPoolClText}\n` +
+        `${secPoolPHText}\n` +
+        `${secPoolClText}\n\n` +
+        `Time: ${latest.timestamp}`;
+
+    // Send to each selected recipient
+    selectedRecipients.forEach(recipient => {
+        window.location.href = `sms:${recipient}?body=${encodeURIComponent(message)}`;
+    });
+    
+    // Close modals and remove overlay
+    const feedbackModal = document.querySelector('.feedback-modal');
+    if (feedbackModal) feedbackModal.remove();
+    
+    removeOverlay();
 }
 
 function createOrShowOverlay() {
@@ -2319,7 +2392,7 @@ window.updatePaginationControls = updatePaginationControls;
 window.saveFormSubmissions = saveFormSubmissions;
 window.loadFormSubmissions = loadFormSubmissions;
 window.showDashboard = showDashboard;
-window.handleLocationChange = handleLocationChange;
+window.handlePoolLocationChange = handlePoolLocationChange;
 window.showFeedbackModal = showFeedbackModal;
 window.evaluateFormFeedback = evaluateFormFeedback;
 window.showMessage = showMessage;
