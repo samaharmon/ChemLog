@@ -506,6 +506,7 @@ function submitForm() {
     document.querySelectorAll('.form-group.error').forEach(group => {
         group.classList.remove('error');
     });
+
     
     const basicRequiredFields = ['firstName', 'lastName', 'poolLocation'];
     let hasErrors = false;
@@ -587,6 +588,7 @@ function submitForm() {
     
     resetForm();
 }
+window.submitForm = submitForm;
 
 // ===================================================
 // DATA MANAGEMENT & DASHBOARD
@@ -2408,6 +2410,5 @@ window.evaluateFormFeedback = evaluateFormFeedback;
 window.showMessage = showMessage;
 window.closeModal = closeModal;
 window.displayData = displayData;
-window.submitForm = submitForm;
 
 console.log('🔥✅ Pool Chemistry Log App - All Functions Loaded! ✅🔥');
