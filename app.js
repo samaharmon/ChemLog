@@ -296,11 +296,11 @@ function loadSanitationSettings() {
 // DOM INITIALIZATION
 // ===================================================
 
-// Wait for Firebase to be available and DOM to load
+// Replace the DOMContentLoaded section:
 document.addEventListener('DOMContentLoaded', async function () {
     console.log('🔥🔥🔥 UNIFIED APP.JS LOADED 🔥🔥🔥');
     
-    // Initialize app
+    // Initialize app FIRST
     initializeApp();
     
     // Load form submissions from localStorage
@@ -309,7 +309,7 @@ document.addEventListener('DOMContentLoaded', async function () {
     // Initialize location change handler
     handlePoolLocationChange();
 
-    // Attach form submission event listener - FIXED
+    // Attach form submission event listener
     const mainForm = document.getElementById('chemistryForm') || document.querySelector('form');
     if (mainForm) {
         mainForm.addEventListener('submit', function (e) {
@@ -317,16 +317,12 @@ document.addEventListener('DOMContentLoaded', async function () {
             submitForm();
         });
         console.log('Form submit event listener attached');
-    } else {
-        console.warn('No form found with ID "chemistryForm"');
     }
 
     // Pool location change handler
     const poolLocationSelect = document.getElementById('poolLocation');
     if (poolLocationSelect) {
         poolLocationSelect.addEventListener('change', handlePoolLocationChange);
-    } else {
-        console.warn('No pool location select found');
     }
 
     // Attach login form submission event listener
@@ -340,10 +336,9 @@ document.addEventListener('DOMContentLoaded', async function () {
             if ((username === 'supervisor' && password === 'poolchem2025') || 
                 (username === 'capitalcity' && password === '$ummer2025')) {
                 
-                // Store login token
                 const token = {
                     username: username,
-                    expires: Date.now() + (24 * 60 * 60 * 1000) // 24 hours
+                    expires: Date.now() + (24 * 60 * 60 * 1000)
                 };
                 localStorage.setItem('loginToken', JSON.stringify(token));
                 
@@ -353,7 +348,6 @@ document.addEventListener('DOMContentLoaded', async function () {
                 showMessage('Invalid credentials', 'error');
             }
         });
-        console.log('Login form submit event listener attached');
     }
 
     // Initialize Firebase after DOM is ready
@@ -363,46 +357,57 @@ document.addEventListener('DOMContentLoaded', async function () {
         console.log('Firebase not available, using localStorage only');
     }
 
+    // Check login LAST - this will override our form display if logged in
     checkLogin();
 });
 
 // Add this function to initialize the correct default view
+// Replace the existing initializeApp function with this:
 function initializeApp() {
     // Ensure we start with the form view
     currentView = 'form';
     isLoggedIn = false;
     
     // Hide dashboard and show form
-    const dashboard = document.querySelector('.dashboard');
-    const form = document.querySelector('.container');
+    const dashboard = document.getElementById('supervisorDashboard');
+    const form = document.getElementById('mainForm');
     
     if (dashboard) {
         dashboard.style.display = 'none';
     }
     
     if (form) {
-        form.style.display = 'flex';
+        form.style.display = 'block';
     }
     
-    // Ensure the header shows the login button, not logout
+    // Ensure the header shows only one login button
     updateHeaderButtons();
 }
 
-// Add this function to manage header buttons
+// Replace the existing updateHeaderButtons function:
 function updateHeaderButtons() {
+    // Remove any existing header buttons first
+    document.querySelectorAll('.supervisor-login-btn, .logout-btn, .menu-container').forEach(btn => {
+        btn.remove();
+    });
+    
     const headerRight = document.querySelector('.header-right');
     if (!headerRight) return;
     
     if (isLoggedIn) {
-        // Show menu and logout buttons
+        // Show menu and logout buttons for dashboard
         headerRight.innerHTML = `
             <div class="menu-container">
                 <button class="menu-btn" onclick="toggleMenu()">☰</button>
+                <div id="dropdownMenu" class="dropdown-menu" style="display: none;">
+                    <div onclick="showSettings()">Settings</div>
+                    <div onclick="clearAllData()">Clear All Data</div>
+                    <div onclick="logout()">Logout</div>
+                </div>
             </div>
-            <button class="logout-btn" onclick="logout()">Logout</button>
         `;
     } else {
-        // Show supervisor login button only
+        // Show only one supervisor login button for form view
         headerRight.innerHTML = `
             <button class="supervisor-login-btn" onclick="openLoginModal()">Supervisor Login</button>
         `;
@@ -433,18 +438,33 @@ function checkLoginStatus() {
     }
 }
 
-// Check login with token
+// Replace the existing checkLogin function:
 function checkLogin() {
     const token = localStorage.getItem('loginToken');
     if (token) {
-        const { username, expires } = JSON.parse(token);
-        if (Date.now() < expires) {
-            showDashboard();
-            return true;
-        } else {
+        try {
+            const { username, expires } = JSON.parse(token);
+            if (Date.now() < expires) {
+                isLoggedIn = true;
+                showDashboard();
+                return true;
+            } else {
+                localStorage.removeItem('loginToken');
+            }
+        } catch (error) {
             localStorage.removeItem('loginToken');
         }
     }
+    
+    // If no valid login, ensure we show the form
+    isLoggedIn = false;
+    const dashboard = document.getElementById('supervisorDashboard');
+    const form = document.getElementById('mainForm');
+    
+    if (dashboard) dashboard.style.display = 'none';
+    if (form) form.style.display = 'block';
+    
+    updateHeaderButtons();
     return false;
 }
 
@@ -1860,18 +1880,6 @@ function createOrShowOverlay() {
     return overlay;
 }
 
-function createOrShowOverlay() {
-    let overlay = document.getElementById('modal-overlay');
-    if (!overlay) {
-        overlay = document.createElement('div');
-        overlay.id = 'modal-overlay';
-        overlay.className = 'modal-overlay';
-        document.body.appendChild(overlay);
-    }
-    overlay.style.display = 'block'; // Show the overlay
-    return overlay;
-}
-
 function removeOverlay() {
     const overlay = document.getElementById('modal-overlay');
     if (overlay) {
@@ -1944,8 +1952,6 @@ function showRecipientSelectionInModal(modal) {
     sendBtn.className = 'notify-btn';
     sendBtn.onclick = chooseAndSendSMS;
     modal.appendChild(sendBtn);
-    const checkboxes = document.querySelectorAll('#samOption, #haleyOption');
-    const selectedRecipients = [];
     
     checkboxes.forEach(checkbox => {
         if (checkbox.checked) {
