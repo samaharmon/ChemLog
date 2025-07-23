@@ -2189,5 +2189,6 @@ window.useLocalDataOnly = useLocalDataOnly;
 window.initializeFormSubmissions = initializeFormSubmissions;
 window.openLoginModal = openLoginModal;
 window.closeLoginModal = closeLoginModal;
+window.handleLoginSubmit = handleLoginSubmit;
 
 console.log('🔥✅ Pool Chemistry Log App - All Functions Loaded! ✅🔥');
