@@ -882,18 +882,20 @@ function showFeedbackModal(message) {
 
 // Replace the existing evaluateFormFeedback function
 function evaluateFormFeedback(formData) {
-    const poolLocation = document.getElementById('poolLocation').value;
-    const mainPH = document.getElementById('mainPoolPH').value;
-    const mainCl = document.getElementById('mainPoolCl').value;
-    const secPH = document.getElementById('secondaryPoolPH').value;
-    const secCl = document.getElementById('secondaryPoolCl').value;
+    // Get values from the formData object, not DOM elements
+    const poolLocation = formData.poolLocation;
+    const mainPH = formData.mainPoolPH;
+    const mainCl = formData.mainPoolCl;
+    const secPH = formData.secondaryPoolPH;
+    const secCl = formData.secondaryPoolCl;
     
-    // DEBUG LOGS - Remove after testing
-    console.log('=== DEBUG INFO ===');
-    console.log('Pool Location:', `"${poolLocation}"`);
-    console.log('Secondary pH:', `"${secPH}"`);
-    console.log('Pool Location === "Quail Hollow":', poolLocation === 'Quail Hollow');
-    console.log('Secondary pH === "7.8":', secPH === '7.8');
+    // DEBUG LOGS
+    console.log('=== EVALUATING FORM FEEDBACK ===');
+    console.log('Pool Location:', poolLocation);
+    console.log('Main pH:', mainPH);
+    console.log('Main Cl:', mainCl);
+    console.log('Secondary pH:', secPH);
+    console.log('Secondary Cl:', secCl);
     
     // Initialize messages array locally
     const messages = [];
@@ -921,7 +923,7 @@ function evaluateFormFeedback(formData) {
             setpointImgNeeded = true;
         }
     } else {
-        // Bleach method for main pool Cl - RESTORED ORIGINAL MESSAGES
+        // Bleach method for main pool Cl
         if (mainCl === '0' || mainCl === '1' || mainCl === '2') {
             messages.push('<strong>Raise the Cl level in the Main Pool.</strong><br>If not handled the previous hour, change the Cl feeder rate according to the setpoint chart to raise the Cl level.');
             messages.push('<img src="setpoint.jpeg" alt="Setpoint Chart" style="max-width: 100%; height: auto; margin-top: 10px;">');
@@ -938,8 +940,8 @@ function evaluateFormFeedback(formData) {
         }
     }
     
-    // Check secondary pool if not Camden CC
-    if (poolLocation !== 'Camden CC') {
+    // Check secondary pool if not Camden CC and if secondary values exist
+    if (poolLocation !== 'Camden CC' && secPH !== 'N/A' && secCl !== 'N/A') {
         // Check secondary pH - different rules for Forest Lake vs other pools
         if (poolLocation === 'Forest Lake') {
             // For Forest Lake secondary pool: 7.0 is acceptable, 7.6 and 7.8 require lowering (same as main pools)
@@ -962,7 +964,7 @@ function evaluateFormFeedback(formData) {
                     if (poolLocation === 'Columbia CC') {
                         messages.push('<strong>Raise the pH of the Baby Pool.</strong><br>Sprinkle 1.5 tablespoons of soda ash in the pool itself. It is not harmful.');
                     } else if (poolLocation === 'Wildewood') {
-                        messages.push('<strong>Notify a supervisor of the high Cl in the Splash Pad immediately. Wait for assistance.</strong><br>');
+                        messages.push('<strong>Notify a supervisor of the low pH in the Splash Pad immediately. Wait for assistance.</strong><br>');
                     } else {
                         messages.push('<strong>Raise the pH of the Baby Pool.</strong><br>Ensure that the waterline is at normal height, and turn the fill line on if it is low. Always set a timer when turning on the fill line.');
                     }
@@ -997,7 +999,7 @@ function evaluateFormFeedback(formData) {
                     } else if (poolLocation === 'Wildewood') {
                         messages.push('<strong>Lower the pH of the Splash Pad.</strong><br>Add 1/3 scoop of acid to the splash pad tank.');
                     } else if (poolLocation === 'Winchester') {
-                        messages.push('<strong>Lower the pH of the Baby Pool.</strong><br>Add 1/3 scoop of acid basket. Always check for suction before pouring.');
+                        messages.push('<strong>Lower the pH of the Baby Pool.</strong><br>Add 1/3 scoop of acid below a skimmer basket. Always check for suction before pouring.');
                     } else {
                         // Fallback for any other pools
                         messages.push('<strong>Lower the pH of the Secondary Pool.</strong><br>Add 2 gallons of acid below a skimmer basket. Always check for suction before pouring.');
@@ -1016,7 +1018,7 @@ function evaluateFormFeedback(formData) {
                     setpointImgNeeded = true;
                 }
             } else {
-                // Bleach method for Forest Lake secondary pool - RESTORED ORIGINAL MESSAGES
+                // Bleach method for Forest Lake secondary pool
                 if (secCl === '0' || secCl === '1' || secCl === '2') {
                     messages.push('<strong>Raise the Cl level in the Lap Pool.</strong><br>If not handled the previous hour, change the Cl feeder rate according to the setpoint chart.');
                     messages.push('<img src="setpoint.jpeg" alt="Setpoint Chart" style="max-width: 100%; height: auto; margin-top: 10px;">');
@@ -1034,6 +1036,10 @@ function evaluateFormFeedback(formData) {
             }
         } else {
             // General rules for secondary pools (excluding Forest Lake)
+            if (secCl === '0' || secCl === '10' || secCl === '> 10') {
+                isGood = false;
+            }
+            
             switch (secCl) {
                 case '0':
                     switch (poolLocation) {
@@ -1091,11 +1097,14 @@ function evaluateFormFeedback(formData) {
         }
     }
     
+    // DEBUG: Log final state
+    console.log('Final evaluation - isGood:', isGood, 'messages:', messages.length);
+    
     // Show feedback modal
-    if (messages.length > 0) {
-        // If there are messages, show the modal with checkboxes
+    if (messages.length > 0 || !isGood) {
+        // If there are messages or chemistry is not good, show the modal with checkboxes
         showFeedbackModal(messages, false, setpointImgNeeded);
-    } else if (isGood) {
+    } else {
         // If all values are good, show the modal without checkboxes
         showFeedbackModal(['All water chemistry values are within acceptable ranges.'], true);
     }
@@ -1103,12 +1112,40 @@ function evaluateFormFeedback(formData) {
 
 // Replace the existing showFeedbackModal function
 function showFeedbackModal(messages, isGood, setpointImgNeeded) {
+    // Create overlay first
+    createOrShowOverlay();
+    
     const modal = document.createElement('div');
     modal.className = 'feedback-modal ' + (isGood ? 'good' : 'warning');
+    modal.style.cssText = `
+        position: fixed;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        background: white;
+        padding: 20px;
+        border-radius: 8px;
+        box-shadow: 0 4px 20px rgba(0,0,0,0.3);
+        z-index: 10001;
+        max-width: 600px;
+        max-height: 80vh;
+        overflow-y: auto;
+        font-family: 'Franklin Gothic Medium', Arial, sans-serif;
+    `;
 
     const closeBtn = document.createElement('button');
     closeBtn.className = 'close-btn';
     closeBtn.innerHTML = '×';
+    closeBtn.style.cssText = `
+        position: absolute;
+        top: 10px;
+        right: 15px;
+        background: none;
+        border: none;
+        font-size: 24px;
+        cursor: pointer;
+        color: #666;
+    `;
     closeBtn.onclick = () => {
         if (isGood || areAllCheckboxesChecked()) {
             modal.remove();
@@ -1120,8 +1157,17 @@ function showFeedbackModal(messages, isGood, setpointImgNeeded) {
 
     const feedbackContent = document.createElement('div');
     feedbackContent.className = 'feedback-content';
+    feedbackContent.style.cssText = `
+        margin-top: 30px;
+        padding: 10px;
+    `;
 
     const title = document.createElement('h2');
+    title.style.cssText = `
+        margin: 0 0 20px 0;
+        color: ${isGood ? '#28a745' : '#dc3545'};
+        text-align: center;
+    `;
     title.textContent = isGood
         ? '✅ Water chemistry looks good!'
         : '🚨 You need to make immediate changes to the water chemistry:';
@@ -1129,32 +1175,67 @@ function showFeedbackModal(messages, isGood, setpointImgNeeded) {
 
     if (!isGood) {
         const messageList = document.createElement('div');
+        messageList.style.cssText = `
+            margin: 20px 0;
+        `;
+        
         messages.forEach(msg => {
             if (msg.includes('setpoint.jpeg')) {
                 const chartContainer = document.createElement('div');
                 chartContainer.className = 'setpoint-container';
-                chartContainer.style.textAlign = 'center';
-                chartContainer.style.margin = '20px 0';
+                chartContainer.style.cssText = `
+                    text-align: center;
+                    margin: 20px 0;
+                `;
 
                 const chart = document.createElement('img');
                 chart.src = 'setpoint.jpeg';
                 chart.alt = 'Setpoint Chart';
                 chart.className = 'setpoint-chart';
-                chart.style.maxWidth = '100%';
-                chart.style.height = 'auto';
+                chart.style.cssText = `
+                    max-width: 100%;
+                    height: auto;
+                    border: 1px solid #ddd;
+                    border-radius: 4px;
+                `;
 
                 chartContainer.appendChild(chart);
                 messageList.appendChild(chartContainer);
             } else {
                 const checkboxItem = document.createElement('div');
                 checkboxItem.className = 'checkbox-item';
+                checkboxItem.style.cssText = `
+                    display: flex;
+                    align-items: flex-start;
+                    margin: 15px 0;
+                    padding: 10px;
+                    border: 1px solid #e0e0e0;
+                    border-radius: 4px;
+                    background-color: #f9f9f9;
+                `;
 
                 const checkbox = document.createElement('input');
                 checkbox.type = 'checkbox';
                 checkbox.className = 'feedback-checkbox';
+                checkbox.style.cssText = `
+                    margin-right: 10px;
+                    margin-top: 4px;
+                    transform: scale(1.2);
+                `;
 
                 const label = document.createElement('label');
                 label.innerHTML = msg;
+                label.style.cssText = `
+                    flex: 1;
+                    font-size: 14px;
+                    line-height: 1.4;
+                    cursor: pointer;
+                `;
+                
+                // Make label clickable
+                label.onclick = () => {
+                    checkbox.checked = !checkbox.checked;
+                };
 
                 checkboxItem.appendChild(checkbox);
                 checkboxItem.appendChild(label);
@@ -1165,6 +1246,12 @@ function showFeedbackModal(messages, isGood, setpointImgNeeded) {
     } else {
         const message = document.createElement('p');
         message.textContent = messages[0];
+        message.style.cssText = `
+            text-align: center;
+            font-size: 16px;
+            color: #28a745;
+            margin: 20px 0;
+        `;
         feedbackContent.appendChild(message);
     }
 
@@ -1177,15 +1264,51 @@ function showFeedbackModal(messages, isGood, setpointImgNeeded) {
         const notifyBtn = document.createElement('button');
         notifyBtn.className = 'notify-btn';
         notifyBtn.textContent = 'Notify a Supervisor';
+        notifyBtn.style.cssText = `
+            background-color: #dc3545;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 14px;
+            margin: 10px 5px;
+            font-family: 'Franklin Gothic Medium', Arial, sans-serif;
+        `;
         notifyBtn.onclick = () => {
             showRecipientSelectionInModal(modal);
         };
-        modal.appendChild(notifyBtn);
+        feedbackContent.appendChild(notifyBtn);
     }
 
     modal.appendChild(closeBtn);
     modal.appendChild(feedbackContent);
     document.body.appendChild(modal);
+    
+    console.log('Modal created with messages:', messages, 'isGood:', isGood);
+}
+
+// Also ensure the overlay has proper styling
+function createOrShowOverlay() {
+    let overlay = document.getElementById('modal-overlay');
+    if (!overlay) {
+        overlay = document.createElement('div');
+        overlay.id = 'modal-overlay';
+        overlay.className = 'modal-overlay';
+        overlay.style.cssText = `
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.5);
+            z-index: 10000;
+            display: block;
+        `;
+        document.body.appendChild(overlay);
+    }
+    overlay.style.display = 'block';
+    return overlay;
 }
 
 // Replace the existing showMessage function
@@ -1321,9 +1444,19 @@ function createOrShowOverlay() {
         overlay = document.createElement('div');
         overlay.id = 'modal-overlay';
         overlay.className = 'modal-overlay';
+        overlay.style.cssText = `
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.5);
+            z-index: 10000;
+            display: block;
+        `;
         document.body.appendChild(overlay);
     }
-    overlay.style.display = 'block'; // Show the overlay
+    overlay.style.display = 'block';
     return overlay;
 }
 
@@ -1562,130 +1695,6 @@ function isMoreThan3HoursOld(timestamp) {
 }
 
 function updateTimestampNote() {
-    const existingNote = document.getElementById('timestampNote');
-    if (existingNote) {
-        // Show the note only on page 0 (most recent)
-        existingNote.style.display = currentPage === 0 ? 'block' : 'none';
-    }
-}
-
-function organizePaginatedData(data) {
-    if (data.length === 0) return [];
-
-    const sortedData = [...data].sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp));
-    const poolLocations = [...new Set(sortedData.map(item => item.poolLocation))];
-
-    // Page 0: Most recent per pool
-    const page0 = [];
-    const seenPools = new Set();
-    for (let item of sortedData) {
-        if (!seenPools.has(item.poolLocation)) {
-            page0.push(item);
-            seenPools.add(item.poolLocation);
-        }
-    }
-
-    // Other pages: Group by pool + date (not full timestamp)
-    const grouped = {};
-
-    for (let item of sortedData) {
-        const dateOnly = new Date(item.timestamp).toLocaleDateString();
-        const key = `${item.poolLocation}__${dateOnly}`;
-
-        if (!grouped[key]) grouped[key] = [];
-        grouped[key].push(item);
-    }
-
-    const groupKeys = Object.keys(grouped).sort((a, b) => {
-        const [poolA, dateA] = a.split('__');
-        const [poolB, dateB] = b.split('__');
-        const dateObjA = new Date(dateA);
-        const dateObjB = new Date(dateB);
-        return dateObjB - dateObjA;
-    });
-
-    const pages = [page0];
-
-    for (let key of groupKeys) {
-        const submissions = grouped[key];
-        const submissionsSorted = submissions.sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp));
-        pages.push(submissionsSorted);
-    }
-
-    return pages;
-}
-
-function clearAllData() {
-    if (confirm('Are you sure you want to clear all form submission data? This cannot be undone.')) {
-        allSubmissions = [];
-        filteredSubmissions = [];
-        
-        // Also clear from Firebase if available
-        if (db) {
-            // Note: This would require admin privileges to delete all documents
-            console.log('Clearing all data from Firebase would require admin privileges');
-        }
-        
-        showMessage('All data cleared successfully.', 'success');
-        loadDashboardData();
-    }
-}
-
-function notifySupervisor() {
-    const feedbackModal = document.getElementById('feedbackModal');
-    if (feedbackModal) {
-        feedbackModal.style.display = 'block';
-    }
-}
-
-function updatePaginationControls() {
-    const totalPages = Math.ceil(filteredSubmissions.length / itemsPerPage);
-    const pageInfo = document.getElementById('pageInfo');
-    const prevBtn = document.getElementById('prevBtn');
-    const nextBtn = document.getElementById('nextBtn');
-    
-    if (pageInfo) pageInfo.textContent = `Page ${currentPage} of ${totalPages}`;
-    if (prevBtn) prevBtn.disabled = currentPage === 1;
-    if (nextBtn) nextBtn.disabled = currentPage === totalPages;
-}
-
-function saveFormSubmissions() {
-    // Since we're using Firebase, this function can be simplified
-    // The data is automatically saved to Firebase in the submitForm function
-    console.log('Data automatically saved to Firebase');
-}
-
-function loadFormSubmissions() {
-    // Since we're using Firebase, this function loads from Firebase
-    // This is handled by loadDashboardData()
-    loadDashboardData();
-}
-
-function showDashboard() {
-    isLoggedIn = true;
-    currentView = 'dashboard';
-    
-    // Hide form and show dashboard
-    const form = document.querySelector('.container');
-    const dashboard = document.querySelector('.dashboard');
-    
-    if (form) form.style.display = 'none';
-    if (dashboard) dashboard.style.display = 'block';
-    
-    // Update header buttons
-    updateHeaderButtons();
-    
-    // Load dashboard data
-    loadDashboardData();
-}
-
-// Fix the incomplete string in evaluateFormFeedback function
-// Find the line with "Add a small splash (~1.5 tablespoons" and complete it:
-function fixEvaluateFormFeedback() {
-    // This fixes the incomplete string around line 826 in your evaluateFormFeedback function
-    // Replace the incomplete line with:
-    // messages.push('<strong>Lower the pH of the Baby Pool.</strong><br>Add a small splash (~1.5 tablespoons) of acid below a skimmer basket. Always check for suction before pouring.');
-}
 
 // ===================================================
 // GLOBAL ASSIGNMENTS
