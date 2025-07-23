@@ -190,6 +190,9 @@ function filterAndDisplayData() {
 
 // Updated displayData function
 function displayData() {
+    console.log('displayData called, paginatedData length:', paginatedData.length);
+    console.log('currentPage:', currentPage);
+    console.log('Table bodies found:', !!document.getElementById('dataTableBody1'), !!document.getElementById('dataTableBody2'));
     console.log('Displaying data, current page:', currentPage);
     
     const tbody1 = document.getElementById('dataTableBody1');
@@ -678,6 +681,7 @@ document.addEventListener('DOMContentLoaded', async function () {
     checkLogin();
     initializeApp();
     initializeFormSubmissions(); // ADD THIS LINE
+    initializeFirebase();
     
     // ... rest of your existing code
 });
