@@ -495,6 +495,25 @@ function checkLogin() {
     return false;
 }
 
+function createOrShowOverlay() {
+    let overlay = document.getElementById('modal-overlay');
+    if (!overlay) {
+        overlay = document.createElement('div');
+        overlay.id = 'modal-overlay';
+        overlay.className = 'modal-overlay';
+        document.body.appendChild(overlay);
+    }
+    overlay.style.display = 'block'; // Show the overlay
+    return overlay;
+}
+
+function removeOverlay() {
+    const overlay = document.getElementById('modal-overlay');
+    if (overlay) {
+        overlay.style.display = 'none'; // Hide the overlay
+    }
+}
+
 // ===================================================
 // FORM SUBMISSION
 // ===================================================
@@ -1496,184 +1515,6 @@ function evaluateFormFeedback(formData) {
         // If all values are good, show the modal without checkboxes
         showFeedbackModal(['All water chemistry values are within acceptable ranges.'], true);
     }
-}
-
-// Replace the existing showFeedbackModal function
-function showFeedbackModal(messages, isGood, setpointImgNeeded) {
-    // Create overlay first
-    createOrShowOverlay();
-    
-    const modal = document.createElement('div');
-    modal.className = 'feedback-modal ' + (isGood ? 'good' : 'warning');
-    modal.style.cssText = `
-        position: fixed;
-        top: 50%;
-        left: 50%;
-        transform: translate(-50%, -50%);
-        background: white;
-        padding: 20px;
-        border-radius: 8px;
-        box-shadow: 0 4px 20px rgba(0,0,0,0.3);
-        z-index: 10001;
-        max-width: 600px;
-        max-height: 80vh;
-        overflow-y: auto;
-        font-family: 'Franklin Gothic Medium', Arial, sans-serif;
-    `;
-
-    const closeBtn = document.createElement('button');
-    closeBtn.className = 'close-btn';
-    closeBtn.innerHTML = '×';
-    closeBtn.style.cssText = `
-        position: absolute;
-        top: 10px;
-        right: 15px;
-        background: none;
-        border: none;
-        font-size: 24px;
-        cursor: pointer;
-        color: #666;
-    `;
-    closeBtn.onclick = () => {
-        if (isGood || areAllCheckboxesChecked()) {
-            modal.remove();
-            removeOverlay();
-        } else {
-            showMessage('Please complete all water chemistry changes and check them off the list before closing.', 'error');
-        }
-    };
-
-    const feedbackContent = document.createElement('div');
-    feedbackContent.className = 'feedback-content';
-    feedbackContent.style.cssText = `
-        margin-top: 30px;
-        padding: 10px;
-    `;
-
-    const title = document.createElement('h2');
-    title.style.cssText = `
-        margin: 0 0 20px 0;
-        color: ${isGood ? '#28a745' : '#dc3545'};
-        text-align: center;
-    `;
-    title.textContent = isGood
-        ? '✅ Water chemistry looks good!'
-        : '🚨 You need to make immediate changes to the water chemistry:';
-    feedbackContent.appendChild(title);
-
-    if (!isGood) {
-        const messageList = document.createElement('div');
-        messageList.style.cssText = `
-            margin: 20px 0;
-        `;
-        
-        messages.forEach(msg => {
-            if (msg.includes('setpoint.jpeg')) {
-                const chartContainer = document.createElement('div');
-                chartContainer.className = 'setpoint-container';
-                chartContainer.style.cssText = `
-                    text-align: center;
-                    margin: 20px 0;
-                `;
-
-                const chart = document.createElement('img');
-                chart.src = 'setpoint.jpeg';
-                chart.alt = 'Setpoint Chart';
-                chart.className = 'setpoint-chart';
-                chart.style.cssText = `
-                    max-width: 100%;
-                    height: auto;
-                    border: 1px solid #ddd;
-                    border-radius: 4px;
-                `;
-
-                chartContainer.appendChild(chart);
-                messageList.appendChild(chartContainer);
-            } else {
-                const checkboxItem = document.createElement('div');
-                checkboxItem.className = 'checkbox-item';
-                checkboxItem.style.cssText = `
-                    display: flex;
-                    align-items: flex-start;
-                    margin: 15px 0;
-                    padding: 10px;
-                    border: 1px solid #e0e0e0;
-                    border-radius: 4px;
-                    background-color: #f9f9f9;
-                `;
-
-                const checkbox = document.createElement('input');
-                checkbox.type = 'checkbox';
-                checkbox.className = 'feedback-checkbox';
-                checkbox.style.cssText = `
-                    margin-right: 10px;
-                    margin-top: 4px;
-                    transform: scale(1.2);
-                `;
-
-                const label = document.createElement('label');
-                label.innerHTML = msg;
-                label.style.cssText = `
-                    flex: 1;
-                    font-size: 14px;
-                    line-height: 1.4;
-                    cursor: pointer;
-                `;
-                
-                // Make label clickable
-                label.onclick = () => {
-                    checkbox.checked = !checkbox.checked;
-                };
-
-                checkboxItem.appendChild(checkbox);
-                checkboxItem.appendChild(label);
-                messageList.appendChild(checkboxItem);
-            }
-        });
-        feedbackContent.appendChild(messageList);
-    } else {
-        const message = document.createElement('p');
-        message.textContent = messages[0];
-        message.style.cssText = `
-            text-align: center;
-            font-size: 16px;
-            color: #28a745;
-            margin: 20px 0;
-        `;
-        feedbackContent.appendChild(message);
-    }
-
-    // Add Notify a Supervisor button only if messages contain "notify a supervisor"
-    const shouldShowNotifyButton = messages.some(msg => 
-        msg.toLowerCase().includes('notify a supervisor')
-    );
-    
-    if (shouldShowNotifyButton) {
-        const notifyBtn = document.createElement('button');
-        notifyBtn.className = 'notify-btn';
-        notifyBtn.textContent = 'Notify a Supervisor';
-        notifyBtn.style.cssText = `
-            background-color: #dc3545;
-            color: white;
-            border: none;
-            padding: 10px 20px;
-            border-radius: 4px;
-            cursor: pointer;
-            font-size: 14px;
-            margin: 10px 5px;
-            font-family: 'Franklin Gothic Medium', Arial, sans-serif;
-        `;
-        notifyBtn.onclick = () => {
-            showRecipientSelectionInModal(modal);
-        };
-        feedbackContent.appendChild(notifyBtn);
-    }
-
-    modal.appendChild(closeBtn);
-    modal.appendChild(feedbackContent);
-    document.body.appendChild(modal);
-    
-    console.log('Modal created with messages:', messages, 'isGood:', isGood);
 }
 
 // Replace the existing showMessage function
