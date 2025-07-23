@@ -143,8 +143,16 @@ async function submitForm() {
         
     } catch (error) {
         console.error('Error adding document: ', error);
-        showFeedback('Error submitting form. Please try again.', 'error');
-        updateFirebaseStatus('Error submitting form', true);
+        console.error('Error code:', error.code);
+        console.error('Error message:', error.message);
+        
+        if (error.code === 'permission-denied') {
+            showFeedback('Permission denied. Please check Firestore security rules.', 'error');
+            updateFirebaseStatus('❌ Permission denied - check Firestore rules', true);
+        } else {
+            showFeedback(`Error submitting form: ${error.message}`, 'error');
+            updateFirebaseStatus('Error submitting form', true);
+        }
     }
 }
 
