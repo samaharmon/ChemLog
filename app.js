@@ -45,6 +45,49 @@ window.addEventListener('error', function(e) {
     console.error('In file:', e.filename);
 });
 
+function loadDashboardData() {
+    if (!db) {
+        updateFirebaseStatus('Database not initialized', true);
+        return;
+    }
+    
+    try {
+        const q = window.firebase.query(
+            window.firebase.collection(db, 'poolSubmissions'), 
+            window.firebase.orderBy('timestamp', 'desc')
+        );
+        
+        // Set up real-time listener
+        window.firebase.onSnapshot(q, (querySnapshot) => {
+            allSubmissions = [];
+            querySnapshot.forEach((doc) => {
+                const data = doc.data();
+                data.id = doc.id;
+                // Convert Firestore timestamp to JavaScript Date
+                if (data.timestamp && data.timestamp.toDate) {
+                    data.timestamp = data.timestamp.toDate();
+                }
+                allSubmissions.push(data);
+            });
+            
+            console.log('Loaded submissions:', allSubmissions.length);
+            updateFirebaseStatus(`Loaded ${allSubmissions.length} submissions`);
+            
+            // Apply current filters and update display
+            if (isLoggedIn) {
+                filterData();
+            }
+        }, (error) => {
+            console.error('Error loading data: ', error);
+            updateFirebaseStatus('Error loading data', true);
+        });
+        
+    } catch (error) {
+        console.error('Error setting up data listener: ', error);
+        updateFirebaseStatus('Error connecting to database', true);
+    }
+}
+
 // Add console log to verify script is loading
 console.log('🔥 Pool Chemistry App - Script Starting to Load 🔥');
 
@@ -151,6 +194,49 @@ async function initializeSanitationSettings() {
     setTimeout(() => {
         if (statusDiv) statusDiv.style.display = 'none';
     }, 3000);
+}
+
+function loadDashboardData() {
+    if (!db) {
+        updateFirebaseStatus('Database not initialized', true);
+        return;
+    }
+    
+    try {
+        const q = window.firebase.query(
+            window.firebase.collection(db, 'poolSubmissions'), 
+            window.firebase.orderBy('timestamp', 'desc')
+        );
+        
+        // Set up real-time listener
+        window.firebase.onSnapshot(q, (querySnapshot) => {
+            allSubmissions = [];
+            querySnapshot.forEach((doc) => {
+                const data = doc.data();
+                data.id = doc.id;
+                // Convert Firestore timestamp to JavaScript Date
+                if (data.timestamp && data.timestamp.toDate) {
+                    data.timestamp = data.timestamp.toDate();
+                }
+                allSubmissions.push(data);
+            });
+            
+            console.log('Loaded submissions:', allSubmissions.length);
+            updateFirebaseStatus(`Loaded ${allSubmissions.length} submissions`);
+            
+            // Apply current filters and update display
+            if (isLoggedIn) {
+                filterData();
+            }
+        }, (error) => {
+            console.error('Error loading data: ', error);
+            updateFirebaseStatus('Error loading data', true);
+        });
+        
+    } catch (error) {
+        console.error('Error setting up data listener: ', error);
+        updateFirebaseStatus('Error connecting to database', true);
+    }
 }
 
 // ===================================================
@@ -711,49 +797,6 @@ function showDashboard() {
     }
     
     loadDashboardData(); // This will now show all saved data
-}
-
-function loadDashboardData() {
-    if (!db) {
-        updateFirebaseStatus('Database not initialized', true);
-        return;
-    }
-    
-    try {
-        const q = window.firebase.query(
-            window.firebase.collection(db, 'poolSubmissions'), 
-            window.firebase.orderBy('timestamp', 'desc')
-        );
-        
-        // Set up real-time listener
-        window.firebase.onSnapshot(q, (querySnapshot) => {
-            allSubmissions = [];
-            querySnapshot.forEach((doc) => {
-                const data = doc.data();
-                data.id = doc.id;
-                // Convert Firestore timestamp to JavaScript Date
-                if (data.timestamp && data.timestamp.toDate) {
-                    data.timestamp = data.timestamp.toDate();
-                }
-                allSubmissions.push(data);
-            });
-            
-            console.log('Loaded submissions:', allSubmissions.length);
-            updateFirebaseStatus(`Loaded ${allSubmissions.length} submissions`);
-            
-            // Apply current filters and update display
-            if (isLoggedIn) {
-                filterData();
-            }
-        }, (error) => {
-            console.error('Error loading data: ', error);
-            updateFirebaseStatus('Error loading data', true);
-        });
-        
-    } catch (error) {
-        console.error('Error setting up data listener: ', error);
-        updateFirebaseStatus('Error connecting to database', true);
-    }
 }
 
 // Filter dashboard data
