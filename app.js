@@ -88,6 +88,146 @@ function loadDashboardData() {
     }
 }
 
+function organizePaginatedData(data) {
+    if (data.length === 0) return [];
+
+    const sortedData = [...data].sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp));
+    const poolLocations = [...new Set(sortedData.map(item => item.poolLocation))];
+
+    // Page 0: Most recent per pool
+    const page0 = [];
+    const seenPools = new Set();
+    for (let item of sortedData) {
+        if (!seenPools.has(item.poolLocation)) {
+            page0.push(item);
+            seenPools.add(item.poolLocation);
+        }
+    }
+
+    // Other pages: Group by pool + date (not full timestamp)
+    const grouped = {};
+
+    for (let item of sortedData) {
+        const dateOnly = new Date(item.timestamp).toLocaleDateString();
+        const key = `${item.poolLocation}__${dateOnly}`;
+
+        if (!grouped[key]) grouped[key] = [];
+        grouped[key].push(item);
+    }
+
+    const groupKeys = Object.keys(grouped).sort((a, b) => {
+        const [poolA, dateA] = a.split('__');
+        const [poolB, dateB] = b.split('__');
+        const dateObjA = new Date(dateA);
+        const dateObjB = new Date(dateB);
+        return dateObjB - dateObjA;
+    });
+
+    const pages = [page0];
+
+    for (let key of groupKeys) {
+        const submissions = grouped[key];
+        const submissionsSorted = submissions.sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp));
+        pages.push(submissionsSorted);
+    }
+
+    return pages;
+}
+
+// Display data in tables
+function displayData() {
+    const startIndex = (currentPage - 1) * itemsPerPage;
+    const endIndex = startIndex + itemsPerPage;
+    const pageData = filteredSubmissions.slice(startIndex, endIndex);
+    
+    // Clear existing table data
+    const tbody1 = document.getElementById('dataTableBody1');
+    const tbody2 = document.getElementById('dataTableBody2');
+    
+    if (tbody1) tbody1.innerHTML = '';
+    if (tbody2) tbody2.innerHTML = '';
+    
+    pageData.forEach(submission => {
+        // Main pool table
+        if (tbody1) {
+            const row1 = document.createElement('tr');
+            const timeString = submission.timestamp ? submission.timestamp.toLocaleString() : 'N/A';
+            const isOld = submission.timestamp && (new Date() - submission.timestamp) > (3 * 60 * 60 * 1000); // 3 hours
+            
+            row1.innerHTML = `
+                <td>${isOld ? '!!! ' : ''}${timeString}</td>
+                <td>${submission.poolLocation || 'N/A'}</td>
+                <td>${submission.mainPoolPH || 'N/A'}</td>
+                <td>${submission.mainPoolCl || 'N/A'}</td>
+                <td>${submission.sanitationMethod || 'N/A'}</td>
+            `;
+            tbody1.appendChild(row1);
+        }
+        
+        // Secondary pool table (if data exists)
+        if ((submission.secondaryPoolPH || submission.secondaryPoolCl) && tbody2) {
+            const row2 = document.createElement('tr');
+            const timeString = submission.timestamp ? submission.timestamp.toLocaleString() : 'N/A';
+            const isOld = submission.timestamp && (new Date() - submission.timestamp) > (3 * 60 * 60 * 1000); // 3 hours
+            
+            row2.innerHTML = `
+                <td>${isOld ? '!!! ' : ''}${timeString}</td>
+                <td>${submission.poolLocation || 'N/A'}</td>
+                <td>${submission.secondaryPoolPH || 'N/A'}</td>
+                <td>${submission.secondaryPoolCl || 'N/A'}</td>
+                <td>${submission.sanitationMethod || 'N/A'}</td>
+            `;
+            tbody2.appendChild(row2);
+        }
+    });
+    
+    updatePagination();
+}
+
+function updatePaginationControls() {
+    const prevBtn = document.getElementById('prevBtn');
+    const nextBtn = document.getElementById('nextBtn');
+    const pageInfo = document.getElementById('pageInfo');
+    
+    if (!prevBtn || !nextBtn || !pageInfo) return;
+    
+    if (paginatedData.length <= 1) {
+        document.getElementById('pagination').style.display = 'none';
+        return;
+    }
+    
+    document.getElementById('pagination').style.display = 'flex';
+    
+    // Update button states
+    prevBtn.disabled = currentPage === 0;
+    prevBtn.style.opacity = currentPage === 0 ? '0.5' : '1';
+    prevBtn.style.cursor = currentPage === 0 ? 'not-allowed' : 'pointer';
+    
+    nextBtn.disabled = currentPage >= paginatedData.length - 1;
+    nextBtn.style.opacity = currentPage >= paginatedData.length - 1 ? '0.5' : '1';
+    nextBtn.style.cursor = currentPage >= paginatedData.length - 1 ? 'not-allowed' : 'pointer';
+    
+    // Update page info
+    const currentPageData = paginatedData[currentPage];
+    const pageDisplayText = currentPage === 0 
+        ? `Recent (${currentPageData.length})` 
+        : `${new Date(currentPageData[0].timestamp).toLocaleDateString()} (${currentPageData.length})`;
+    
+    pageInfo.textContent = pageDisplayText;
+}
+
+function loadAndDisplayData() {
+    try {
+        loadDashboardData();
+        if (isLoggedIn) {
+            filterData();
+        }
+    } catch (error) {
+        console.error('Error loading and displaying data:', error);
+        showMessage('Error loading data', 'error');
+    }
+}
+
 // Add console log to verify script is loading
 console.log('🔥 Pool Chemistry App - Script Starting to Load 🔥');
 
@@ -826,56 +966,6 @@ function filterData() {
     
     currentPage = 1;
     displayData();
-}
-
-// Display data in tables
-function displayData() {
-    const startIndex = (currentPage - 1) * itemsPerPage;
-    const endIndex = startIndex + itemsPerPage;
-    const pageData = filteredSubmissions.slice(startIndex, endIndex);
-    
-    // Clear existing table data
-    const tbody1 = document.getElementById('dataTableBody1');
-    const tbody2 = document.getElementById('dataTableBody2');
-    
-    if (tbody1) tbody1.innerHTML = '';
-    if (tbody2) tbody2.innerHTML = '';
-    
-    pageData.forEach(submission => {
-        // Main pool table
-        if (tbody1) {
-            const row1 = document.createElement('tr');
-            const timeString = submission.timestamp ? submission.timestamp.toLocaleString() : 'N/A';
-            const isOld = submission.timestamp && (new Date() - submission.timestamp) > (3 * 60 * 60 * 1000); // 3 hours
-            
-            row1.innerHTML = `
-                <td>${isOld ? '!!! ' : ''}${timeString}</td>
-                <td>${submission.poolLocation || 'N/A'}</td>
-                <td>${submission.mainPoolPH || 'N/A'}</td>
-                <td>${submission.mainPoolCl || 'N/A'}</td>
-                <td>${submission.sanitationMethod || 'N/A'}</td>
-            `;
-            tbody1.appendChild(row1);
-        }
-        
-        // Secondary pool table (if data exists)
-        if ((submission.secondaryPoolPH || submission.secondaryPoolCl) && tbody2) {
-            const row2 = document.createElement('tr');
-            const timeString = submission.timestamp ? submission.timestamp.toLocaleString() : 'N/A';
-            const isOld = submission.timestamp && (new Date() - submission.timestamp) > (3 * 60 * 60 * 1000); // 3 hours
-            
-            row2.innerHTML = `
-                <td>${isOld ? '!!! ' : ''}${timeString}</td>
-                <td>${submission.poolLocation || 'N/A'}</td>
-                <td>${submission.secondaryPoolPH || 'N/A'}</td>
-                <td>${submission.secondaryPoolCl || 'N/A'}</td>
-                <td>${submission.sanitationMethod || 'N/A'}</td>
-            `;
-            tbody2.appendChild(row2);
-        }
-    });
-    
-    updatePagination();
 }
 
 // Reset form after submission
@@ -2105,38 +2195,6 @@ function updateTimestampNote() {
     }
 }
 
-function updatePaginationControls() {
-    const prevBtn = document.getElementById('prevBtn');
-    const nextBtn = document.getElementById('nextBtn');
-    const pageInfo = document.getElementById('pageInfo');
-    
-    if (!prevBtn || !nextBtn || !pageInfo) return;
-    
-    if (paginatedData.length <= 1) {
-        document.getElementById('pagination').style.display = 'none';
-        return;
-    }
-    
-    document.getElementById('pagination').style.display = 'flex';
-    
-    // Update button states
-    prevBtn.disabled = currentPage === 0;
-    prevBtn.style.opacity = currentPage === 0 ? '0.5' : '1';
-    prevBtn.style.cursor = currentPage === 0 ? 'not-allowed' : 'pointer';
-    
-    nextBtn.disabled = currentPage >= paginatedData.length - 1;
-    nextBtn.style.opacity = currentPage >= paginatedData.length - 1 ? '0.5' : '1';
-    nextBtn.style.cursor = currentPage >= paginatedData.length - 1 ? 'not-allowed' : 'pointer';
-    
-    // Update page info
-    const currentPageData = paginatedData[currentPage];
-    const pageDisplayText = currentPage === 0 
-        ? `Recent (${currentPageData.length})` 
-        : `${new Date(currentPageData[0].timestamp).toLocaleDateString()} (${currentPageData.length})`;
-    
-    pageInfo.textContent = pageDisplayText;
-}
-
 // Add these functions before your global assignments section
 
 function deleteSubmission(submissionId) {
@@ -2185,65 +2243,6 @@ function checkForCriticalAlerts() {
 function sendSMSNotification(message, phoneNumber) {
     console.log(`SMS would be sent to ${phoneNumber}: ${message}`);
     showMessage('SMS notification sent successfully!', 'success');
-}
-
-function organizePaginatedData(data) {
-    if (data.length === 0) return [];
-
-    const sortedData = [...data].sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp));
-    const poolLocations = [...new Set(sortedData.map(item => item.poolLocation))];
-
-    // Page 0: Most recent per pool
-    const page0 = [];
-    const seenPools = new Set();
-    for (let item of sortedData) {
-        if (!seenPools.has(item.poolLocation)) {
-            page0.push(item);
-            seenPools.add(item.poolLocation);
-        }
-    }
-
-    // Other pages: Group by pool + date (not full timestamp)
-    const grouped = {};
-
-    for (let item of sortedData) {
-        const dateOnly = new Date(item.timestamp).toLocaleDateString();
-        const key = `${item.poolLocation}__${dateOnly}`;
-
-        if (!grouped[key]) grouped[key] = [];
-        grouped[key].push(item);
-    }
-
-    const groupKeys = Object.keys(grouped).sort((a, b) => {
-        const [poolA, dateA] = a.split('__');
-        const [poolB, dateB] = b.split('__');
-        const dateObjA = new Date(dateA);
-        const dateObjB = new Date(dateB);
-        return dateObjB - dateObjA;
-    });
-
-    const pages = [page0];
-
-    for (let key of groupKeys) {
-        const submissions = grouped[key];
-        const submissionsSorted = submissions.sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp));
-        pages.push(submissionsSorted);
-    }
-
-    return pages;
-}
-
-
-function loadAndDisplayData() {
-    try {
-        loadDashboardData();
-        if (isLoggedIn) {
-            filterData();
-        }
-    } catch (error) {
-        console.error('Error loading and displaying data:', error);
-        showMessage('Error loading data', 'error');
-    }
 }
 
 // ===================================================
