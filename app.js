@@ -763,26 +763,15 @@ function checkLoginStatus() {
 function checkLogin() {
     const token = localStorage.getItem('loginToken');
     if (token) {
-        try {
-            const { username, expires } = JSON.parse(token);
-            if (Date.now() < expires) {
-                // Token is valid but DON'T automatically show dashboard
-                isLoggedIn = true;
-                updateHeaderButtons(); // Just update the UI state
-                return true;
-            } else {
-                // Token expired, remove it
-                localStorage.removeItem('loginToken');
-            }
-        } catch (error) {
-            // Invalid token, remove it
+        const { username, expires } = JSON.parse(token);
+        if (Date.now() < expires) {
+            showDashboard();
+            return true;
+        } else {
             localStorage.removeItem('loginToken');
         }
     }
-    
-    // No valid login - ensure form is shown
-    isLoggedIn = false;
-    updateHeaderButtons();
+    // Don't automatically show login form - let user click supervisor login button
     return false;
 }
 
