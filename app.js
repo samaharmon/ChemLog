@@ -37,6 +37,114 @@ const supervisorCredentials = {
 };
 
 // ===================================================
+// SANITATION SETTINGS
+// ===================================================
+
+// Declare sanitationSettings globally
+let sanitationSettings = {};
+
+// Initialize default sanitation settings (all pools default to bleach)
+async function initializeSanitationSettings() {
+    const pools = ['Camden CC', 'CC of Lexington', 'Columbia CC', 'Forest Lake', 'Forest Lake Lap Pool', 'Quail Hollow', 'Rockbridge', 'Wildewood', 'Winchester'];
+    const statusDiv = document.getElementById('firebaseStatus');
+    
+    console.log('Initializing sanitation settings...');
+    
+    // Set defaults first
+    pools.forEach(pool => {
+        sanitationSettings[pool] = 'bleach'; // Default to bleach
+    });
+
+    // Check if Firebase is ready, or wait for it
+    if (!window.firebase || !window.firebase.ready) {
+        console.log('Waiting for Firebase to be ready...');
+        await new Promise((resolve) => {
+            const checkFirebase = () => {
+                if (window.firebase && window.firebase.ready) {
+                    console.log('Firebase is now ready');
+                    resolve();
+                } else {
+                    setTimeout(checkFirebase, 100);
+                }
+            };
+            
+            // Also listen for the firebaseReady event
+            window.addEventListener('firebaseReady', resolve, { once: true });
+            
+            // Start checking
+            checkFirebase();
+            
+            // Timeout after 10 seconds
+            setTimeout(() => {
+                console.warn('Firebase initialization timeout, proceeding with localStorage');
+                resolve();
+            }, 10000);
+        });
+    }
+
+    // Try to load from Firebase if available
+    try {
+        if (window.firebase && window.firebase.db && window.firebase.ready) {
+            console.log('Loading settings from Firebase...');
+            if (statusDiv) statusDiv.textContent = 'Loading settings from cloud...';
+            const { db, doc, getDoc } = window.firebase;
+            const settingsDoc = await getDoc(doc(db, 'settings', 'sanitationMethods'));
+            
+            if (settingsDoc.exists()) {
+                const firebaseSettings = settingsDoc.data();
+                // Merge Firebase settings with defaults
+                Object.assign(sanitationSettings, firebaseSettings);
+                console.log('Successfully loaded sanitation settings from Firebase:', sanitationSettings);
+                if (statusDiv) statusDiv.textContent = 'Settings synced with cloud ✓';
+            } else {
+                console.log('No Firebase settings found, using defaults');
+                if (statusDiv) statusDiv.textContent = 'Using default settings';
+                
+                // Save default settings to Firebase for next time
+                const { setDoc } = window.firebase;
+                await setDoc(doc(db, 'settings', 'sanitationMethods'), sanitationSettings);
+                console.log('Saved default settings to Firebase');
+            }
+        } else {
+            console.log('Firebase not available, using localStorage');
+            // Fallback to localStorage if Firebase not available
+            if (statusDiv) statusDiv.textContent = 'Loading local settings...';
+            const saved = localStorage.getItem('sanitationSettings');
+            if (saved) {
+                sanitationSettings = JSON.parse(saved);
+                console.log('Loaded sanitation settings from localStorage:', sanitationSettings);
+                if (statusDiv) statusDiv.textContent = 'Using local settings';
+            } else {
+                console.log('No localStorage settings found, using defaults');
+                if (statusDiv) statusDiv.textContent = 'Using default settings';
+                // Save defaults to localStorage
+                localStorage.setItem('sanitationSettings', JSON.stringify(sanitationSettings));
+            }
+        }
+    } catch (error) {
+        console.warn('Could not load settings from Firebase, using localStorage fallback:', error);
+        if (statusDiv) statusDiv.textContent = 'Using local settings (offline)';
+        // Fallback to localStorage
+        const saved = localStorage.getItem('sanitationSettings');
+        if (saved) {
+            sanitationSettings = JSON.parse(saved);
+            console.log('Loaded sanitation settings from localStorage fallback:', sanitationSettings);
+        } else {
+            // Save defaults to localStorage
+            localStorage.setItem('sanitationSettings', JSON.stringify(sanitationSettings));
+            console.log('Saved default settings to localStorage');
+        }
+    }
+    
+    console.log('Final sanitationSettings after initialization:', sanitationSettings);
+    
+    // Hide status after 3 seconds
+    setTimeout(() => {
+        if (statusDiv) statusDiv.style.display = 'none';
+    }, 3000);
+}
+
+// ===================================================
 // FIREBASE INITIALIZATION
 // ===================================================
 
@@ -326,18 +434,9 @@ function checkLogin() {
 // ===================================================
 
 // Form submission function
-async function submitForm(event) {
-    if (event) event.preventDefault();
+function submitForm() {
+    console.log('Submit button clicked'); // Debug log
     
-    console.log('🔥 Form submission started');
-    
-    if (!db) {
-        console.log('Database not initialized');
-        showMessage('Database not initialized. Please refresh the page.', 'error');
-        return;
-    }
-    
-    // Remove existing error highlights
     document.querySelectorAll('.form-group.error').forEach(group => {
         group.classList.remove('error');
     });
@@ -366,10 +465,8 @@ async function submitForm(event) {
         }
     });
     
-    const poolLocationValue = document.getElementById('poolLocation').value;
-    const poolsWithSecondary = ['Forest Lake', 'Columbia CC', 'CC of Lexington', 'Wildewood'];
-    
-    if (POOLS_WITH_SECONDARY.includes(poolLocationValue)) {
+    const poolLocation = document.getElementById('poolLocation').value;
+    if (poolLocation !== 'Camden CC') {
         const secondaryPoolFields = ['secondaryPoolPH', 'secondaryPoolCl'];
         secondaryPoolFields.forEach(fieldName => {
             const field = document.getElementById(fieldName);
@@ -391,67 +488,38 @@ async function submitForm(event) {
         return;
     }
 
-    try {
-        // Get form data
-        const firstName = document.getElementById('firstName').value;
-        const lastName = document.getElementById('lastName').value;
-        const submissionPoolLocation = document.getElementById('poolLocation').value;
-        const mainPoolPH = document.getElementById('mainPoolPH').value;
-        const mainPoolCl = document.getElementById('mainPoolCl').value;
-        const secondaryPoolPH = POOLS_WITH_SECONDARY.includes(submissionPoolLocation) ? 
-            document.getElementById('secondaryPoolPH').value : 'N/A';
-        const secondaryPoolCl = POOLS_WITH_SECONDARY.includes(submissionPoolLocation) ? 
-            document.getElementById('secondaryPoolCl').value : 'N/A';
-        
-        const formData = {
-            firstName,
-            lastName,
-            poolLocation: submissionPoolLocation,
-            mainPoolPH,
-            mainPoolCl,
-            secondaryPoolPH,
-            secondaryPoolCl,
-            timestamp: new Date(),
-            submittedBy: `${firstName} ${lastName}`,
-            sanitationMethod: sanitationSettings[submissionPoolLocation] || 'bleach',
-            submittedAt: new Date().toISOString()
-        };
-
-        console.log('🔥 Form data:', formData);
-        console.log('🔥 Submitting to Firebase...');
-
-        // Submit to Firebase
-        const docRef = await window.firebase.addDoc(window.firebase.collection(db, 'poolSubmissions'), formData);
-        console.log('🔥✅ Document written with ID: ', docRef.id);
-        
-        // Show success message
-        showMessage('Form submitted successfully!', 'success');
-        
-        // Reset form
-        resetForm();
-        
-        // Refresh dashboard if logged in
-        if (isLoggedIn || currentView === 'dashboard') {
-            await loadAndDisplayData();
-            loadDashboardData();
-        }
-        
-        // Show feedback modal
-        evaluateFormFeedback(formData);
-        
-    } catch (error) {
-        console.error('🔥❌ Error adding document: ', error);
-        console.error('Error code:', error.code);
-        console.error('Error message:', error.message);
-        
-        if (error.code === 'permission-denied') {
-            showMessage('Permission denied. Please check Firestore security rules.', 'error');
-            updateFirebaseStatus('❌ Permission denied - check Firestore rules', true);
-        } else {
-            showMessage(`Error submitting form: ${error.message}`, 'error');
-            updateFirebaseStatus('Error submitting form', true);
-        }
+    const formData = new FormData();
+    formData.append('mainPoolPH', document.getElementById('mainPoolPH').value);
+    formData.append('mainPoolCl', document.getElementById('mainPoolCl').value);
+    formData.append('secondaryPoolPH', document.getElementById('secondaryPoolPH').value);
+    formData.append('secondaryPoolCl', document.getElementById('secondaryPoolCl').value);
+    
+    // Process form submission
+    evaluateFormFeedback(formData);
+    
+    // Save data
+    const submission = {
+        id: Date.now(),
+        timestamp: new Date().toLocaleString(),
+        firstName: document.getElementById('firstName').value,
+        lastName: document.getElementById('lastName').value,
+        poolLocation: document.getElementById('poolLocation').value,
+        mainPoolPH: document.getElementById('mainPoolPH').value,
+        mainPoolCl: document.getElementById('mainPoolCl').value,
+        secondaryPoolPH: poolLocation === 'Camden CC' ? 'N/A' : document.getElementById('secondaryPoolPH').value,
+        secondaryPoolCl: poolLocation === 'Camden CC' ? 'N/A' : document.getElementById('secondaryPoolCl').value
+    };
+    
+    formSubmissions.push(submission);
+    saveFormSubmissions(); // ADD THIS LINE - Save to localStorage after adding new submission
+    
+    showMessage('Submission saved successfully!', 'success');
+    
+    if (document.getElementById('supervisorDashboard').style.display === 'block') {
+        loadDashboardData();
     }
+    
+    resetForm();
 }
 
 // ===================================================
@@ -793,10 +861,13 @@ document.addEventListener('DOMContentLoaded', function() {
 
 // Logout function
 function logout() {
-    isLoggedIn = false;
-    localStorage.removeItem('isLoggedIn');
+    document.getElementById('dropdownMenu').style.display = 'none';
+    localStorage.removeItem('loginToken');
     document.getElementById('supervisorDashboard').style.display = 'none';
     document.getElementById('mainForm').style.display = 'block';
+    document.getElementById('poolFilter').value = '';
+    document.getElementById('dateFilter').value = '';
+    currentPage = 0;
 }
 
 // ===================================================
@@ -804,35 +875,37 @@ function logout() {
 // ===================================================
 
 function exportToCSV() {
-    if (filteredSubmissions.length === 0) {
-        showFeedback('No data to export', 'error');
+    if (filteredData.length === 0) {
+        showMessage('No data to export.', 'error');
         return;
     }
     
-    const headers = ['Timestamp', 'Pool Location', 'Submitted By', 'Main Pool pH', 'Main Pool Cl', 'Secondary Pool pH', 'Secondary Pool Cl', 'Sanitation Method'];
+    const headers = ['Timestamp', 'First Name', 'Last Name', 'Pool Location', 'Main pH', 'Main Cl', 'Secondary pH', 'Secondary Cl'];
     const csvContent = [
         headers.join(','),
-        ...filteredSubmissions.map(submission => [
-            submission.timestamp ? submission.timestamp.toLocaleString() : '',
-            submission.poolLocation || '',
-            submission.submittedBy || '',
-            submission.mainPoolPH || '',
-            submission.mainPoolCl || '',
-            submission.secondaryPoolPH || '',
-            submission.secondaryPoolCl || '',
-            submission.sanitationMethod || ''
+        ...filteredData.map(row => [
+            `"${row.timestamp}"`,
+            `"${row.firstName}"`,
+            `"${row.lastName}"`,
+            `"${row.poolLocation}"`,
+            `"${row.mainPoolPH}"`,
+            `"${row.mainPoolCl}"`,
+            `"${row.secondaryPoolPH}"`,
+            `"${row.secondaryPoolCl}"`
         ].join(','))
     ].join('\n');
     
     const blob = new Blob([csvContent], { type: 'text/csv' });
-    const url = URL.createObjectURL(blob);
+    const url = window.URL.createObjectURL(blob);
     const a = document.createElement('a');
     a.href = url;
-    a.download = `pool-chemistry-log-${new Date().toISOString().split('T')[0]}.csv`;
+    a.download = `pool-chemistry-data-${new Date().toISOString().split('T')[0]}.csv`;
+    document.body.appendChild(a);
     a.click();
-    URL.revokeObjectURL(url);
+    document.body.removeChild(a);
+    window.URL.revokeObjectURL(url);
     
-    showFeedback('Data exported successfully!', 'success');
+    showMessage('Data exported successfully!', 'success');
 }
 
 // ===================================================
@@ -849,30 +922,49 @@ function closeSettings() {
 }
 
 // Handle sanitation method changes
-function handleSanitationChange(checkbox) {
+async function handleSanitationChange(checkbox) {
     const pool = checkbox.dataset.pool;
     const method = checkbox.dataset.method;
+    
+    console.log(`Changing sanitation for ${pool} to ${method}, checked: ${checkbox.checked}`);
     
     if (checkbox.checked) {
         // Uncheck the other method for this pool
         const otherMethod = method === 'bleach' ? 'granular' : 'bleach';
-        const otherCheckbox = document.querySelector(`input[data-pool="${pool}"][data-method="${otherMethod}"]`);
-        if (otherCheckbox) otherCheckbox.checked = false;
+        const otherCheckbox = document.querySelector(`[data-pool="${pool}"][data-method="${otherMethod}"]`);
+        if (otherCheckbox) {
+            otherCheckbox.checked = false;
+        }
         
         // Update settings
         sanitationSettings[pool] = method;
     } else {
         // If unchecking, default to bleach
         sanitationSettings[pool] = 'bleach';
-        const bleachCheckbox = document.querySelector(`input[data-pool="${pool}"][data-method="bleach"]`);
-        if (bleachCheckbox) bleachCheckbox.checked = true;
+        const bleachCheckbox = document.querySelector(`[data-pool="${pool}"][data-method="bleach"]`);
+        if (bleachCheckbox) {
+            bleachCheckbox.checked = true;
+        }
     }
     
-    console.log('Sanitation method changed:', pool, method, checkbox.checked);
-    console.log('Current settings:', sanitationSettings);
+    console.log('Updated sanitationSettings:', sanitationSettings);
     
-    // Save settings
-    saveSanitationSettings();
+    // Always save to localStorage first for immediate persistence
+    localStorage.setItem('sanitationSettings', JSON.stringify(sanitationSettings));
+    console.log('Saved sanitation settings to localStorage');
+    
+    // Try to save to Firebase if available
+    try {
+        if (window.firebase && window.firebase.db && window.firebase.ready) {
+            const { db, doc, setDoc } = window.firebase;
+            await setDoc(doc(db, 'settings', 'sanitationMethods'), sanitationSettings);
+            console.log('Successfully saved sanitation settings to Firebase');
+        } else {
+            console.log('Firebase not available, settings saved to localStorage only');
+        }
+    } catch (error) {
+        console.warn('Could not save to Firebase, but settings are saved to localStorage:', error);
+    }
 }
 
 // ===================================================
@@ -942,8 +1034,50 @@ function showFeedback(message, type = 'info') {
 }
 
 // Define the showMessage function
-function showMessage(message, type = 'info') {
-    showFeedback(message, type);
+function showMessage(message, type) {
+    // Remove any existing message banner
+    const existingBanner = document.getElementById('messageBanner');
+    if (existingBanner) {
+        existingBanner.remove();
+    }
+    
+    // Create new message banner
+    const banner = document.createElement('div');
+    banner.id = 'messageBanner';
+    banner.textContent = message;
+    
+    // Style based on type
+    if (type === 'error') {
+        banner.style.backgroundColor = '#f8d7da';
+        banner.style.color = '#721c24';
+        banner.style.border = '1px solid #f5c6cb';
+    } else if (type === 'success') {
+        banner.style.backgroundColor = '#d4edda';
+        banner.style.color = '#155724';
+        banner.style.border = '1px solid #c3e6cb';
+    }
+    
+    banner.style.cssText += `
+        position: fixed;
+        top: 20px;
+        left: 50%;
+        transform: translateX(-50%);
+        z-index: 10000;
+        padding: 10px 20px;
+        border-radius: 0px;
+        font-family: 'Franklin Gothic Medium', Arial, sans-serif;
+        font-size: 14px;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.15);
+    `;
+    
+    document.body.appendChild(banner);
+    
+   // Auto-remove after 3 seconds
+    setTimeout(() => {
+        if (banner) {
+            banner.remove();
+        }
+    }, 3000);
 }
 
 function notifySupervisor() {
@@ -953,10 +1087,8 @@ function notifySupervisor() {
 
 // Define the missing functions
 function closeModal() {
-    const modal = document.querySelector('.modal');
-    if (modal) {
-        modal.style.display = 'none';
-    }
+    const feedbackModal = document.getElementById('feedbackModal');
+    feedbackModal.style.display = 'none';
 }
 
 function handleLocationChange() {
@@ -974,14 +1106,90 @@ function handleLocationChange() {
     }
 }
 
-function showFeedbackModal(message) {
-    const modal = document.querySelector('.modal');
-    const modalContent = document.querySelector('.modal-content');
-    
-    if (modal && modalContent) {
-        modalContent.innerHTML = message;
-        modal.style.display = 'block';
+function showFeedbackModal(messages, isGood, setpointImgNeeded) {
+    const modal = document.createElement('div');
+    modal.className = 'feedback-modal ' + (isGood ? 'good' : 'warning');
+
+    const closeBtn = document.createElement('button');
+    closeBtn.className = 'close-btn';
+    closeBtn.innerHTML = '×';
+    closeBtn.onclick = () => {
+        if (isGood || areAllCheckboxesChecked()) {
+            modal.remove();
+            removeOverlay();
+        } else {
+            showMessage('Please complete all water chemistry changes and check them off the list before closing.', 'error');
+        }
+    };
+
+    const feedbackContent = document.createElement('div');
+    feedbackContent.className = 'feedback-content';
+
+    const title = document.createElement('h2');
+    title.textContent = isGood
+        ? '✅ Water chemistry looks good!'
+        : '🚨 You need to make immediate changes to the water chemistry:';
+    feedbackContent.appendChild(title);
+
+    if (!isGood) {
+        const messageList = document.createElement('div');
+        messages.forEach(msg => {
+            if (msg.includes('setpoint.jpeg')) {
+                const chartContainer = document.createElement('div');
+                chartContainer.className = 'setpoint-container';
+                chartContainer.style.textAlign = 'center';
+                chartContainer.style.margin = '20px 0';
+
+                const chart = document.createElement('img');
+                chart.src = 'setpoint.jpeg';
+                chart.alt = 'Setpoint Chart';
+                chart.className = 'setpoint-chart';
+                chart.style.maxWidth = '100%';
+                chart.style.height = 'auto';
+
+                chartContainer.appendChild(chart);
+                messageList.appendChild(chartContainer);
+            } else {
+                const checkboxItem = document.createElement('div');
+                checkboxItem.className = 'checkbox-item';
+
+                const checkbox = document.createElement('input');
+                checkbox.type = 'checkbox';
+                checkbox.className = 'feedback-checkbox';
+
+                const label = document.createElement('label');
+                label.innerHTML = msg;
+
+                checkboxItem.appendChild(checkbox);
+                checkboxItem.appendChild(label);
+                messageList.appendChild(checkboxItem);
+            }
+        });
+        feedbackContent.appendChild(messageList);
+    } else {
+        const message = document.createElement('p');
+        message.textContent = messages[0];
+        feedbackContent.appendChild(message);
     }
+
+    // Add Notify a Supervisor button only if messages contain "notify a supervisor"
+    const shouldShowNotifyButton = messages.some(msg => 
+        msg.toLowerCase().includes('notify a supervisor')
+    );
+    
+    if (shouldShowNotifyButton) {
+        const notifyBtn = document.createElement('button');
+        notifyBtn.className = 'notify-btn';
+        notifyBtn.textContent = 'Notify a Supervisor';
+        notifyBtn.onclick = () => {
+            showRecipientSelectionInModal(modal);
+        };
+        modal.appendChild(notifyBtn);
+    }
+
+    modal.appendChild(closeBtn);
+    modal.appendChild(feedbackContent);
+    document.body.appendChild(modal);
 }
 
 // ===================================================
@@ -1420,29 +1628,6 @@ function showFeedbackModal(messages, isGood, setpointImgNeeded) {
     console.log('Modal created with messages:', messages, 'isGood:', isGood);
 }
 
-// Also ensure the overlay has proper styling
-function createOrShowOverlay() {
-    let overlay = document.getElementById('modal-overlay');
-    if (!overlay) {
-        overlay = document.createElement('div');
-        overlay.id = 'modal-overlay';
-        overlay.className = 'modal-overlay';
-        overlay.style.cssText = `
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background-color: rgba(0, 0, 0, 0.5);
-            z-index: 10000;
-            display: block;
-        `;
-        document.body.appendChild(overlay);
-    }
-    overlay.style.display = 'block';
-    return overlay;
-}
-
 // Replace the existing showMessage function
 function showMessage(message, type) {
     // Remove any existing message banner
@@ -1570,6 +1755,16 @@ function areAllCheckboxesChecked() {
     return Array.from(checkboxes).every(checkbox => checkbox.checked);
 }
 
+function chooseAndSendSMS() {
+    const selectedRecipient = document.querySelector('input[name="smsRecipient"]:checked');
+    if (selectedRecipient) {
+        const recipientValue = selectedRecipient.value;
+        alert(`Message sent successfully to ${recipientValue}`);
+    } else {
+        alert('Please select a recipient.');
+    }
+}
+
 function createOrShowOverlay() {
     let overlay = document.getElementById('modal-overlay');
     if (!overlay) {
@@ -1589,6 +1784,18 @@ function createOrShowOverlay() {
         document.body.appendChild(overlay);
     }
     overlay.style.display = 'block';
+    return overlay;
+}
+
+function createOrShowOverlay() {
+    let overlay = document.getElementById('modal-overlay');
+    if (!overlay) {
+        overlay = document.createElement('div');
+        overlay.id = 'modal-overlay';
+        overlay.className = 'modal-overlay';
+        document.body.appendChild(overlay);
+    }
+    overlay.style.display = 'block'; // Show the overlay
     return overlay;
 }
 
@@ -1748,8 +1955,30 @@ function toggleMenu() {
     });
 }
 
-function showSettings() {
+async function showSettings() {
     document.getElementById('dropdownMenu').style.display = 'none';
+    
+    // Refresh settings from Firebase before showing modal (if available)
+    try {
+        if (window.firebase && window.firebase.db && window.firebase.ready) {
+            console.log('Refreshing settings from Firebase before showing modal...');
+            const { db, doc, getDoc } = window.firebase;
+            const settingsDoc = await getDoc(doc(db, 'settings', 'sanitationMethods'));
+            
+            if (settingsDoc.exists()) {
+                const firebaseSettings = settingsDoc.data();
+                Object.assign(sanitationSettings, firebaseSettings);
+                console.log('Refreshed sanitation settings from Firebase before showing modal:', sanitationSettings);
+            } else {
+                console.log('No Firebase settings found when refreshing');
+            }
+        } else {
+            console.log('Firebase not ready when showing settings, using current in-memory settings');
+        }
+    } catch (error) {
+        console.warn('Could not refresh from Firebase when showing settings:', error);
+    }
+    
     document.getElementById('settingsModal').style.display = 'block';
     loadSanitationSettings();
 }
