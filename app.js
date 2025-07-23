@@ -36,6 +36,18 @@ const supervisorCredentials = {
     password: '$ummer2025'
 };
 
+// Add this right after your global variables:
+
+// Error handling to catch JavaScript errors
+window.addEventListener('error', function(e) {
+    console.error('JavaScript Error:', e.error);
+    console.error('At line:', e.lineno);
+    console.error('In file:', e.filename);
+});
+
+// Add console log to verify script is loading
+console.log('🔥 Pool Chemistry App - Script Starting to Load 🔥');
+
 // ===================================================
 // SANITATION SETTINGS
 // ===================================================
@@ -872,41 +884,39 @@ function closeLoginModal() {
     document.getElementById('loginModal').style.display = 'none';
 }
 
-// Handle login form submission
-document.addEventListener('DOMContentLoaded', function() {
-    const loginForm = document.getElementById('loginForm');
-    if (loginForm) {
-        loginForm.addEventListener('submit', function(e) {
-            e.preventDefault();
-            
-            const username = document.getElementById('email').value;
-            const password = document.getElementById('password').value;
-            
-            // Simple authentication (you should use Firebase Auth for production)
-            if ((username === 'supervisor' && password === 'poolchem2025') || 
-                (username === 'capitalcity' && password === '$ummer2025')) {
-                isLoggedIn = true;
-                localStorage.setItem('isLoggedIn', 'true');
-                document.getElementById('mainForm').style.display = 'none';
-                document.getElementById('supervisorDashboard').style.display = 'block';
-                closeLoginModal();
-                loadDashboardData();
-            } else {
-                showFeedback('Invalid credentials', 'error');
-            }
-        });
-    }
-});
-
 // Logout function
+// Replace the existing logout function:
 function logout() {
-    document.getElementById('dropdownMenu').style.display = 'none';
+    isLoggedIn = false;
+    currentView = 'form';
+    
+    // Close any open menus
+    const dropdown = document.getElementById('dropdownMenu');
+    if (dropdown) dropdown.style.display = 'none';
+    
+    // Remove login token
     localStorage.removeItem('loginToken');
-    document.getElementById('supervisorDashboard').style.display = 'none';
-    document.getElementById('mainForm').style.display = 'block';
-    document.getElementById('poolFilter').value = '';
-    document.getElementById('dateFilter').value = '';
-    currentPage = 0;
+    
+    // Hide dashboard and show form
+    const dashboard = document.getElementById('supervisorDashboard');
+    const form = document.getElementById('mainForm');
+    
+    if (dashboard) dashboard.style.display = 'none';
+    if (form) form.style.display = 'block';
+    
+    // Clear any filters
+    const poolFilter = document.getElementById('poolFilter');
+    const dateFilter = document.getElementById('dateFilter');
+    if (poolFilter) poolFilter.value = '';
+    if (dateFilter) dateFilter.value = '';
+    
+    // Reset page
+    currentPage = 1;
+    
+    // Update header buttons
+    updateHeaderButtons();
+    
+    console.log('Logged out successfully');
 }
 
 // ===================================================
@@ -1887,12 +1897,23 @@ function removeOverlay() {
     }
 }
 
+// Replace the entire showRecipientSelectionInModal function (around lines 1890-1979) with this:
 function showRecipientSelectionInModal(modal) {
     modal.innerHTML = ''; // Clear existing modal content
 
     const closeBtn = document.createElement('button');
     closeBtn.className = 'close-btn';
     closeBtn.innerHTML = '×';
+    closeBtn.style.cssText = `
+        position: absolute;
+        top: 10px;
+        right: 15px;
+        background: none;
+        border: none;
+        font-size: 24px;
+        cursor: pointer;
+        color: #666;
+    `;
     closeBtn.onclick = () => {
         modal.remove();
         removeOverlay();
@@ -1901,26 +1922,61 @@ function showRecipientSelectionInModal(modal) {
 
     const feedbackContent = document.createElement('div');
     feedbackContent.className = 'feedback-content';
+    feedbackContent.style.cssText = `
+        margin-top: 30px;
+        padding: 10px;
+    `;
 
     const title = document.createElement('h2');
     title.textContent = 'Select recipient:';
+    title.style.cssText = `
+        margin: 0 0 20px 0;
+        color: #dc3545;
+        text-align: center;
+    `;
     feedbackContent.appendChild(title);
 
     const messageList = document.createElement('div');
+    messageList.style.cssText = `
+        margin: 20px 0;
+    `;
     
     // Sam Harmon checkbox
     const samCheckboxItem = document.createElement('div');
     samCheckboxItem.className = 'checkbox-item';
+    samCheckboxItem.style.cssText = `
+        display: flex;
+        align-items: flex-start;
+        margin: 15px 0;
+        padding: 10px;
+        border: 1px solid #e0e0e0;
+        border-radius: 4px;
+        background-color: #f9f9f9;
+    `;
     
     const samCheckbox = document.createElement('input');
     samCheckbox.type = 'checkbox';
     samCheckbox.className = 'feedback-checkbox';
     samCheckbox.id = 'samOption';
     samCheckbox.value = '+18644096231';
+    samCheckbox.style.cssText = `
+        margin-right: 10px;
+        margin-top: 4px;
+        transform: scale(1.2);
+    `;
     
     const samLabel = document.createElement('label');
     samLabel.textContent = 'Sam Harmon';
     samLabel.htmlFor = 'samOption';
+    samLabel.style.cssText = `
+        flex: 1;
+        font-size: 14px;
+        line-height: 1.4;
+        cursor: pointer;
+    `;
+    samLabel.onclick = () => {
+        samCheckbox.checked = !samCheckbox.checked;
+    };
     
     samCheckboxItem.appendChild(samCheckbox);
     samCheckboxItem.appendChild(samLabel);
@@ -1929,16 +1985,39 @@ function showRecipientSelectionInModal(modal) {
     // Haley Wilson checkbox
     const haleyCheckboxItem = document.createElement('div');
     haleyCheckboxItem.className = 'checkbox-item';
+    haleyCheckboxItem.style.cssText = `
+        display: flex;
+        align-items: flex-start;
+        margin: 15px 0;
+        padding: 10px;
+        border: 1px solid #e0e0e0;
+        border-radius: 4px;
+        background-color: #f9f9f9;
+    `;
     
     const haleyCheckbox = document.createElement('input');
     haleyCheckbox.type = 'checkbox';
     haleyCheckbox.className = 'feedback-checkbox';
     haleyCheckbox.id = 'haleyOption';
     haleyCheckbox.value = '+18036738396';
+    haleyCheckbox.style.cssText = `
+        margin-right: 10px;
+        margin-top: 4px;
+        transform: scale(1.2);
+    `;
     
     const haleyLabel = document.createElement('label');
     haleyLabel.textContent = 'Haley Wilson';
     haleyLabel.htmlFor = 'haleyOption';
+    haleyLabel.style.cssText = `
+        flex: 1;
+        font-size: 14px;
+        line-height: 1.4;
+        cursor: pointer;
+    `;
+    haleyLabel.onclick = () => {
+        haleyCheckbox.checked = !haleyCheckbox.checked;
+    };
     
     haleyCheckboxItem.appendChild(haleyCheckbox);
     haleyCheckboxItem.appendChild(haleyLabel);
@@ -1950,69 +2029,19 @@ function showRecipientSelectionInModal(modal) {
     const sendBtn = document.createElement('button');
     sendBtn.textContent = 'Send Message';
     sendBtn.className = 'notify-btn';
+    sendBtn.style.cssText = `
+        background-color: #dc3545;
+        color: white;
+        border: none;
+        padding: 10px 20px;
+        border-radius: 4px;
+        cursor: pointer;
+        font-size: 14px;
+        margin: 10px 5px;
+        font-family: 'Franklin Gothic Medium', Arial, sans-serif;
+    `;
     sendBtn.onclick = chooseAndSendSMS;
-    modal.appendChild(sendBtn);
-    
-    checkboxes.forEach(checkbox => {
-        if (checkbox.checked) {
-            selectedRecipients.push(checkbox.value);
-        }
-    });
-
-    if (selectedRecipients.length === 0) {
-        alert('Please select at least one supervisor to notify.');
-        return;
-    }
-
-    if (formSubmissions.length === 0) {
-        alert("No form submission found to share.");
-        return;
-    }
-    const latest = formSubmissions[formSubmissions.length - 1];
-
-    // Determine which values need highlighting
-    const mainPH = latest.mainPoolPH;
-    const secPH = latest.secondaryPoolPH;
-    const mainCl = latest.mainPoolCl;
-    const secCl = latest.secondaryPoolCl;
-    
-    // Create highlighted message parts
-    const mainPoolPHText = mainPH === '< 7.0' ? 
-        `⚠️ Main Pool pH: ${mainPH} - REQUIRES ATTENTION ⚠️` : 
-        `Main Pool pH: ${mainPH}`;
-        
-    const secPoolPHText = secPH === '< 7.0' ? 
-        `⚠️ Secondary Pool pH: ${secPH} - REQUIRES ATTENTION ⚠️` : 
-        `Secondary Pool pH: ${secPH}`;
-        
-    const mainPoolClText = (mainCl === '10' || mainCl === '> 10' || parseFloat(mainCl) > 10) ? 
-        `⚠️ Main Pool Cl: ${mainCl} - HIGH LEVEL ⚠️` : 
-        `Main Pool Cl: ${mainCl}`;
-        
-    const secPoolClText = (secCl === '10' || secCl === '> 10' || parseFloat(secCl) > 10) ? 
-        `⚠️ Secondary Pool Cl: ${secCl} - HIGH LEVEL ⚠️` : 
-        `Secondary Pool Cl: ${secCl}`;
-        
-    const message =
-        `Pool Chemistry Log\n\n` +
-        `Submitted by: ${latest.firstName} ${latest.lastName}\n` +
-        `Pool Location: ${latest.poolLocation}\n\n` +
-        `${mainPoolPHText}\n` +
-        `${mainPoolClText}\n` +
-        `${secPoolPHText}\n` +
-        `${secPoolClText}\n\n` +
-        `Time: ${latest.timestamp}`;
-
-    // Send to each selected recipient
-    selectedRecipients.forEach(recipient => {
-        window.location.href = `sms:${recipient}?body=${encodeURIComponent(message)}`;
-    });
-    
-    // Close modals and remove overlay
-    const feedbackModal = document.querySelector('.feedback-modal');
-    if (feedbackModal) feedbackModal.remove();
-    
-    removeOverlay();
+    feedbackContent.appendChild(sendBtn);
 }
 
 function toggleMenu() {
