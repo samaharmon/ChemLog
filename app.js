@@ -786,6 +786,15 @@ function checkLogin() {
     return false;
 }
 
+function openLoginModal() {
+    document.getElementById('loginModal').style.display = 'block';
+}
+
+function closeLoginModal() {
+    document.getElementById('loginModal').style.display = 'none';
+    document.getElementById('loginForm').reset();
+}
+
 function createOrShowOverlay() {
     let overlay = document.getElementById('modal-overlay');
     if (!overlay) {
@@ -2154,5 +2163,7 @@ window.displayData = displayData;
 window.filterAndDisplayData = filterAndDisplayData;
 window.useLocalDataOnly = useLocalDataOnly;
 window.initializeFormSubmissions = initializeFormSubmissions;
+window.openLoginModal = openLoginModal;
+window.closeLoginModal = closeLoginModal;
 
 console.log('🔥✅ Pool Chemistry Log App - All Functions Loaded! ✅🔥');
