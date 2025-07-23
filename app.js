@@ -2144,19 +2144,6 @@ function sendSMSNotification(message, phoneNumber) {
     showMessage('SMS notification sent successfully!', 'success');
 }
 
-function showDashboard() {
-    isLoggedIn = true;
-    currentView = 'dashboard';
-    
-    const form = document.querySelector('.container');
-    const dashboard = document.querySelector('.dashboard');
-    
-    if (form) form.style.display = 'none';
-    if (dashboard) dashboard.style.display = 'block';
-    
-    loadDashboardData();
-}
-
 function organizePaginatedData(data) {
     if (data.length === 0) return [];
 
