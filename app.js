@@ -674,6 +674,37 @@ function handlePoolLocationChange() {
 // DOM INITIALIZATION
 // ===================================================
 
+function handleLoginSubmit(e) {
+    e.preventDefault();
+    console.log('Login form submitted'); // Debug log
+    
+    const emailInput = document.querySelector('#loginForm input[name="email"]');
+    const passwordInput = document.querySelector('#loginForm input[name="password"]');
+    
+    if (!emailInput || !passwordInput) {
+        console.log('Login inputs not found'); // Debug log
+        showMessage('Login form inputs not found.', 'error');
+        return;
+    }
+    
+    const email = emailInput.value;
+    const password = passwordInput.value;
+    
+    console.log('Login attempt with email:', email); // Debug log (remove in production)
+    
+    if (email === supervisorCredentials.email && password === supervisorCredentials.password) {
+        // Set persistent login token for 1 month
+        const expires = Date.now() + 30 * 24 * 60 * 60 * 1000;
+        localStorage.setItem('loginToken', JSON.stringify({ username: email, expires }));
+        closeLoginModal();
+        showDashboard();
+        loadDashboardData();
+        showMessage('Login successful!', 'success');
+    } else {
+        showMessage('Invalid credentials. Please try again.', 'error');
+    }
+}
+
 document.addEventListener('DOMContentLoaded', async function () {
     console.log('🔥🔥🔥 UNIFIED APP.JS LOADED 🔥🔥🔥');
     
