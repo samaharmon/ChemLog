@@ -584,7 +584,7 @@
 
 .feedback-modal .checkbox-item input[type="checkbox"]:checked {
     background-color: #69140e; /* Header red color when checked */
-    border-color: #69140e; /* Header red border when checked */
+    border-color: black; /* Header red border when checked */
 }
 
 /* White checkmark for checked state */
@@ -731,7 +731,7 @@
 
 .sanitation-checkbox:checked {
     background-color: #69140e;
-    border-color: #69140e;
+    border-color: black;
 }
 
 .sanitation-checkbox:checked::after {
