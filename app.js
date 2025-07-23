@@ -313,13 +313,9 @@ document.addEventListener('DOMContentLoaded', async function () {
     console.log('🔥🔥🔥 UNIFIED APP.JS LOADED 🔥🔥🔥');
     
     // Initialize app FIRST
+    checkLogin();
+    
     initializeApp();
-    
-    // Load form submissions from localStorage
-    loadFormSubmissions();
-    
-    // Initialize location change handler
-    handlePoolLocationChange();
 
     // Attach form submission event listener
     const mainForm = document.getElementById('chemistryForm') || document.querySelector('form');
@@ -369,8 +365,6 @@ document.addEventListener('DOMContentLoaded', async function () {
         console.log('Firebase not available, using localStorage only');
     }
 
-    // Check login LAST - this will override our form display if logged in
-    checkLogin();
 });
 
 // Add this function to initialize the correct default view
@@ -457,25 +451,22 @@ function checkLogin() {
         try {
             const { username, expires } = JSON.parse(token);
             if (Date.now() < expires) {
+                // Token is valid but DON'T automatically show dashboard
                 isLoggedIn = true;
-                showDashboard();
+                updateHeaderButtons(); // Just update the UI state
                 return true;
             } else {
+                // Token expired, remove it
                 localStorage.removeItem('loginToken');
             }
         } catch (error) {
+            // Invalid token, remove it
             localStorage.removeItem('loginToken');
         }
     }
     
-    // If no valid login, ensure we show the form
+    // No valid login - ensure form is shown
     isLoggedIn = false;
-    const dashboard = document.getElementById('supervisorDashboard');
-    const form = document.getElementById('mainForm');
-    
-    if (dashboard) dashboard.style.display = 'none';
-    if (form) form.style.display = 'block';
-    
     updateHeaderButtons();
     return false;
 }
@@ -1367,7 +1358,7 @@ function evaluateFormFeedback(formData) {
                 } else if (secPH === '7.8') { 
                     // Handle 7.8 pH cases
                     if (poolLocation === 'CC of Lexington') {
-                        messages.push('<strong>Lower the pH of the Baby Pool.</strong><br>Add a small splash (~1.5 tablespoons) of acid below a skimmer basket. Always check for suction before pouring.');
+                        messages.push('<strong>Lower the pH of the Baby Pool.</strong><br>Add a small splash (~1.5 tablespoons
                     } else if (poolLocation === 'Columbia CC') {
                         messages.push('<strong>Lower the pH of the Baby Pool.</strong><br>Add 1/8 scoop of acid below a skimmer basket. Always check for suction before pouring.');
                     } else if (poolLocation === 'Quail Hollow') {
@@ -1442,6 +1433,12 @@ function evaluateFormFeedback(formData) {
                             messages.push('<strong>Raise the Cl level in the Baby Pool.</strong><br>Ensure that there is 1 total Cl tablet below a skimmer basket.');
                             break;
                         case 'Quail Hollow':
+                            messages.push('<strong>Raise the Cl level in the Baby Pool.</strong><br>Ensure that there are 1.5 total Cl tablets below a skimmer basket.');
+                            break;
+                        case 'Rockbridge':
+                            messages.push('<strong>Raise the Cl level in the Baby Pool.</strong><br>Ensure that there are 1.5 total Cl tablets below a skimmer basket.');
+                            break;
+                        case 'Wildewood':
                             messages.push('<strong>Raise the Cl level in the Baby Pool.</strong><br>Ensure that there are 1.5 total Cl tablets below a skimmer basket.');
                             break;
                         case 'Rockbridge':
