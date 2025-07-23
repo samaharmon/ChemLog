@@ -871,10 +871,46 @@ function handleLocationChange() {
 }
 
 // ===================================================
-// ADDITIONAL FUNCTIONS
+// ADDITIONAL GLOBAL FUNCTION ASSIGNMENTS
 // ===================================================
 
-// Replace the existing evaluateFormFeedback function with your original detailed version
+// Ensure all functions are globally accessible
+window.showMessage = showMessage;
+window.showFeedback = showFeedback;
+window.closeModal = closeModal;
+window.handleLocationChange = handleLocationChange;
+window.sendSMSNotification = sendSMSNotification;
+window.deleteSubmission = deleteSubmission;
+window.changePage = changePage;
+window.handleLoginSubmit = handleLoginSubmit;
+window.checkForCriticalAlerts = checkForCriticalAlerts;
+window.evaluateFormFeedback = evaluateFormFeedback; // Your detailed version is already there
+window.showFeedbackModal = showFeedbackModal; // Your detailed version is already there
+window.getClResponse = getClResponse; // Your detailed version is already there
+window.areAllCheckboxesChecked = areAllCheckboxesChecked; // Your detailed version is already there
+window.createOrShowOverlay = createOrShowOverlay; // Your detailed version is already there
+window.removeOverlay = removeOverlay; // Your detailed version is already there
+window.showRecipientSelectionInModal = showRecipientSelectionInModal; // Your detailed version is already there
+window.chooseAndSendSMS = chooseAndSendSMS; // Your detailed version is already there
+window.openLoginModal = openLoginModal;
+window.closeLoginModal = closeLoginModal;
+window.openSettings = openSettings;
+window.closeSettings = closeSettings;
+window.handleSanitationChange = handleSanitationChange;
+window.exportToCSV = exportToCSV;
+window.filterData = filterData;
+window.goToPreviousPage = goToPreviousPage;
+window.goToNextPage = goToNextPage;
+window.logout = logout;
+window.submitForm = submitForm;
+window.showDashboard = showDashboard;
+window.toggleMenu = toggleMenu;
+window.showSettings = showSettings;
+window.clearAllData = clearAllData;
+
+// ===================================================
+// FORM FEEDBACK EVALUATION SYSTEM
+// ===================================================
 
 function evaluateFormFeedback(formData) {
     const poolLocation = document.getElementById('poolLocation').value;
@@ -1099,462 +1135,89 @@ function evaluateFormFeedback(formData) {
     }
 }
 
-// Add the missing getClResponse function
 function getClResponse(poolLocation, isMainPool, clValue) {
     // Special handling for Forest Lake secondary pool (granular/bleach methods)
     if (poolLocation === 'Forest Lake' && !isMainPool) {
-        const sanitationMethod = sanitationSettings['Forest Lake Lap Pool'] || 'bleach';
-
+        const sanitationMethod = sanitationSettings['Forest Lake Lap Pool'];
         if (sanitationMethod === 'granular') {
-            if (clValue === '> 10') {
-                return `<strong>Notify a supervisor of the high Cl in the Lap Pool immediately. Lower the Cl level of the Lap Pool.</strong><br>Do not add any more shock to the pool. Ensure that the waterline is at normal height, and turn the fill line on if it is low. Always set a timer when turning on the fill line.`;
+            // Granular chlorine logic
+            if (clValue === '0') {
+                return '<strong>Raise the Cl level in the Lap Pool.</strong><br>Pour 1 bag of granular chlorine into the deep end of the pool.';
+            } else if (clValue === '1') {
+                return '<strong>Raise the Cl level in the Lap Pool.</strong><br>Pour 1/2 bag of granular chlorine into the deep end of the pool.';
+            } else if (clValue === '2') {
+                return '<strong>Raise the Cl level in the Lap Pool.</strong><br>Pour 1/4 bag of granular chlorine into the deep end of the pool.';
+            } else if (clValue === '10') {
+                return '<strong>Lower the Cl level of the Lap Pool.</strong><br>Stop adding granular chlorine. Wait for levels to decrease.';
+            } else if (clValue === '> 10') {
+                return '<strong>Notify a supervisor of the high Cl in the Lap Pool immediately. Lower the Cl level of the Lap Pool.</strong><br>Stop adding granular chlorine. Wait for levels to decrease.';
             }
-            if (clValue === '10') {
-                return `<strong>Lower the Cl level of the Lap Pool.</strong><br>Turn the Cl feeder off, and set a timer to turn it back on. Ensure that the waterline is at normal height, and turn the fill line on if it is low. Always set a timer when turning on the fill line.`;
-            }
-            if (['0', '1', '2'].includes(clValue)) {
-                return `<strong>Raise the Cl level in the Lap Pool.</strong><br>If not handled the previous hour, change the Cl feeder rate according to the setpoint chart.`;
-            }
-        }
-    }
-
-    // Default fallback for other cases
-    return null;
-}
-
-// Add the missing showFeedbackModal function from your original
-function showFeedbackModal(messages, isGood, setpointImgNeeded) {
-    const modal = document.createElement('div');
-    modal.className = 'feedback-modal ' + (isGood ? 'good' : 'warning');
-
-    const closeBtn = document.createElement('button');
-    closeBtn.className = 'close-btn';
-    closeBtn.innerHTML = '×';
-    closeBtn.onclick = () => {
-        if (isGood || areAllCheckboxesChecked()) {
-            modal.remove();
-            removeOverlay();
         } else {
-            showFeedback('Please complete all water chemistry changes and check them off the list before closing.', 'error');
-        }
-    };
-
-    const feedbackContent = document.createElement('div');
-    feedbackContent.className = 'feedback-content';
-
-    const title = document.createElement('h2');
-    title.textContent = isGood
-        ? '✅ Water chemistry looks good!'
-        : '🚨 You need to make immediate changes to the water chemistry:';
-    feedbackContent.appendChild(title);
-
-    if (!isGood) {
-        const messageList = document.createElement('div');
-        messages.forEach(msg => {
-            if (msg.includes('setpoint.jpeg')) {
-                const chartContainer = document.createElement('div');
-                chartContainer.className = 'setpoint-container';
-                chartContainer.style.textAlign = 'center';
-                chartContainer.style.margin = '20px 0';
-
-                const chart = document.createElement('img');
-                chart.src = 'setpoint.jpeg';
-                chart.alt = 'Setpoint Chart';
-                chart.className = 'setpoint-chart';
-                chart.style.maxWidth = '100%';
-                chart.style.height = 'auto';
-
-                chartContainer.appendChild(chart);
-                messageList.appendChild(chartContainer);
-            } else {
-                const checkboxItem = document.createElement('div');
-                checkboxItem.className = 'checkbox-item';
-
-                const checkbox = document.createElement('input');
-                checkbox.type = 'checkbox';
-                checkbox.className = 'feedback-checkbox';
-
-                const label = document.createElement('label');
-                label.innerHTML = msg;
-
-                checkboxItem.appendChild(checkbox);
-                checkboxItem.appendChild(label);
-                messageList.appendChild(checkboxItem);
+            // Bleach chlorine logic (default)
+            if (clValue === '0' || clValue === '1' || clValue === '2') {
+                return '<strong>Raise the Cl level in the Lap Pool.</strong><br>If not handled the previous hour, change the Cl feeder rate according to the setpoint chart.';
+            } else if (clValue === '10') {
+                return '<strong>Lower the Cl level of the lap pool.</strong><br>Turn the Cl feeder off, and set a timer to turn it back on. Ensure that the waterline is at normal height, and turn the fill line on if it is low. Always set a timer when turning on the fill line.';
+            } else if (clValue === '> 10') {
+                return '<strong>Notify a supervisor of the high Cl in the Lap Pool immediately. Lower the Cl level of the lap pool.</strong><br>Turn the Cl feeder off, and set a timer to turn it back on. Ensure that the waterline is at normal height, and turn the fill line on if it is low. Always set a timer when turning on the fill line.';
             }
-        });
-        feedbackContent.appendChild(messageList);
-    } else {
-        const message = document.createElement('p');
-        message.textContent = messages[0];
-        feedbackContent.appendChild(message);
-    }
-
-    // Add Notify a Supervisor button only if messages contain "notify a supervisor"
-    const shouldShowNotifyButton = messages.some(msg => 
-        msg.toLowerCase().includes('notify a supervisor')
-    );
-    
-    if (shouldShowNotifyButton) {
-        const notifyBtn = document.createElement('button');
-        notifyBtn.className = 'notify-btn';
-        notifyBtn.textContent = 'Notify a Supervisor';
-        notifyBtn.onclick = () => {
-            showRecipientSelectionInModal(modal);
-        };
-        modal.appendChild(notifyBtn);
-    }
-
-    modal.appendChild(closeBtn);
-    modal.appendChild(feedbackContent);
-    document.body.appendChild(modal);
-    
-    // Show overlay
-    createOrShowOverlay();
-}
-
-// Add other missing helper functions from your original
-function areAllCheckboxesChecked() {
-    const checkboxes = document.querySelectorAll('.feedback-checkbox');
-    return Array.from(checkboxes).every(checkbox => checkbox.checked);
-}
-
-function createOrShowOverlay() {
-    let overlay = document.getElementById('modal-overlay');
-    if (!overlay) {
-        overlay = document.createElement('div');
-        overlay.id = 'modal-overlay';
-        overlay.className = 'modal-overlay';
-        document.body.appendChild(overlay);
-    }
-    overlay.style.display = 'block';
-    return overlay;
-}
-
-function removeOverlay() {
-    const overlay = document.getElementById('modal-overlay');
-    if (overlay) {
-        overlay.style.display = 'none';
-    }
-}
-
-function showRecipientSelectionInModal(modal) {
-    modal.innerHTML = ''; // Clear existing modal content
-
-    const closeBtn = document.createElement('button');
-    closeBtn.className = 'close-btn';
-    closeBtn.innerHTML = '×';
-    closeBtn.onclick = () => {
-        modal.remove();
-        removeOverlay();
-    };
-    modal.appendChild(closeBtn);
-
-    const feedbackContent = document.createElement('div');
-    feedbackContent.className = 'feedback-content';
-
-    const title = document.createElement('h2');
-    title.textContent = 'Select recipient:';
-    feedbackContent.appendChild(title);
-
-    const messageList = document.createElement('div');
-    
-    // Sam Harmon checkbox
-    const samCheckboxItem = document.createElement('div');
-    samCheckboxItem.className = 'checkbox-item';
-    
-    const samCheckbox = document.createElement('input');
-    samCheckbox.type = 'checkbox';
-    samCheckbox.className = 'feedback-checkbox';
-    samCheckbox.id = 'samOption';
-    samCheckbox.value = '+18644096231';
-    
-    const samLabel = document.createElement('label');
-    samLabel.textContent = 'Sam Harmon';
-    samLabel.htmlFor = 'samOption';
-    
-    samCheckboxItem.appendChild(samCheckbox);
-    samCheckboxItem.appendChild(samLabel);
-    messageList.appendChild(samCheckboxItem);
-    
-    // Haley Wilson checkbox
-    const haleyCheckboxItem = document.createElement('div');
-    haleyCheckboxItem.className = 'checkbox-item';
-    
-    const haleyCheckbox = document.createElement('input');
-    haleyCheckbox.type = 'checkbox';
-    haleyCheckbox.className = 'feedback-checkbox';
-    haleyCheckbox.id = 'haleyOption';
-    haleyCheckbox.value = '+18036738396';
-    
-    const haleyLabel = document.createElement('label');
-    haleyLabel.textContent = 'Haley Wilson';
-    haleyLabel.htmlFor = 'haleyOption';
-    
-    haleyCheckboxItem.appendChild(haleyCheckbox);
-    haleyCheckboxItem.appendChild(haleyLabel);
-    messageList.appendChild(haleyCheckboxItem);
-    
-    feedbackContent.appendChild(messageList);
-    modal.appendChild(feedbackContent);
-
-    const sendBtn = document.createElement('button');
-    sendBtn.textContent = 'Send Message';
-    sendBtn.className = 'notify-btn';
-    sendBtn.onclick = chooseAndSendSMS;
-    modal.appendChild(sendBtn);
-}
-
-function chooseAndSendSMS() {
-    const checkboxes = document.querySelectorAll('#samOption, #haleyOption');
-    const selectedRecipients = [];
-    
-    checkboxes.forEach(checkbox => {
-        if (checkbox.checked) {
-            selectedRecipients.push(checkbox.value);
         }
-    });
-
-    if (selectedRecipients.length === 0) {
-        alert('Please select at least one supervisor to notify.');
-        return;
-    }
-
-    if (formSubmissions.length === 0) {
-        alert("No form submission found to share.");
-        return;
-    }
-    const latest = formSubmissions[formSubmissions.length - 1];
-
-    // Determine which values need highlighting
-    const mainPH = latest.mainPoolPH;
-    const secPH = latest.secondaryPoolPH;
-    const mainCl = latest.mainPoolCl;
-    const secCl = latest.secondaryPoolCl;
-    
-    // Create highlighted message parts
-    const mainPoolPHText = mainPH === '< 7.0' ? 
-        `⚠️ Main Pool pH: ${mainPH} - REQUIRES ATTENTION ⚠️` : 
-        `Main Pool pH: ${mainPH}`;
-        
-    const secPoolPHText = secPH === '< 7.0' ? 
-        `⚠️ Secondary Pool pH: ${secPH} - REQUIRES ATTENTION ⚠️` : 
-        `Secondary Pool pH: ${secPH}`;
-        
-    const mainPoolClText = (mainCl === '10' || mainCl === '> 10' || parseFloat(mainCl) > 10) ? 
-        `⚠️ Main Pool Cl: ${mainCl} - HIGH LEVEL ⚠️` : 
-        `Main Pool Cl: ${mainCl}`;
-        
-    const secPoolClText = (secCl === '10' || secCl === '> 10' || parseFloat(secCl) > 10) ? 
-        `⚠️ Secondary Pool Cl: ${secCl} - HIGH LEVEL ⚠️` : 
-        `Secondary Pool Cl: ${secCl}`;
-        
-    const message =
-        `Pool Chemistry Log\n\n` +
-        `Submitted by: ${latest.firstName} ${latest.lastName}\n` +
-        `Pool Location: ${latest.poolLocation}\n\n` +
-        `${mainPoolPHText}\n` +
-        `${mainPoolClText}\n` +
-        `${secPoolPHText}\n` +
-        `${secPoolClText}\n\n` +
-        `Time: ${latest.timestamp}`;
-
-    // Send to each selected recipient
-    selectedRecipients.forEach(recipient => {
-        window.location.href = `sms:${recipient}?body=${encodeURIComponent(message)}`;
-    });
-    
-    // Close modals and remove overlay
-    const feedbackModal = document.querySelector('.feedback-modal');
-    if (feedbackModal) feedbackModal.remove();
-    
-    removeOverlay();
-}
-
-// ===================================================
-// EXPORT FUNCTIONALITY
-// ===================================================
-
-function exportToCSV() {
-    if (filteredSubmissions.length === 0) {
-        showFeedback('No data to export', 'error');
-        return;
     }
     
-    const headers = ['Timestamp', 'Pool Location', 'Submitted By', 'Main Pool pH', 'Main Pool Cl', 'Secondary Pool pH', 'Secondary Pool Cl', 'Sanitation Method'];
-    const csvContent = [
-        headers.join(','),
-        ...filteredSubmissions.map(submission => [
-            submission.timestamp ? submission.timestamp.toLocaleString() : '',
-            submission.poolLocation || '',
-            submission.submittedBy || '',
-            submission.mainPoolPH || '',
-            submission.mainPoolCl || '',
-            submission.secondaryPoolPH || '',
-            submission.secondaryPoolCl || '',
-            submission.sanitationMethod || ''
-        ].join(','))
-    ].join('\n');
-    
-    const blob = new Blob([csvContent], { type: 'text/csv' });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = `pool-chemistry-log-${new Date().toISOString().split('T')[0]}.csv`;
-    a.click();
-    URL.revokeObjectURL(url);
-    
-    showFeedback('Data exported successfully!', 'success');
-}
-
-// ===================================================
-// SETTINGS & SANITATION MANAGEMENT
-// ===================================================
-
-function openSettings() {
-    document.getElementById('settingsModal').style.display = 'flex';
-    updateSanitationUI(); // Ensure UI reflects current settings
-}
-
-function closeSettings() {
-    document.getElementById('settingsModal').style.display = 'none';
-}
-
-// Handle sanitation method changes
-function handleSanitationChange(checkbox) {
-    const pool = checkbox.dataset.pool;
-    const method = checkbox.dataset.method;
-    
-    if (checkbox.checked) {
-        // Uncheck the other method for this pool
-        const otherMethod = method === 'bleach' ? 'granular' : 'bleach';
-        const otherCheckbox = document.querySelector(`input[data-pool="${pool}"][data-method="${otherMethod}"]`);
-        if (otherCheckbox) otherCheckbox.checked = false;
-        
-        // Update settings
-        sanitationSettings[pool] = method;
+    // Default behavior for other pools
+    if (isMainPool) {
+        // Main pool logic
+        if (clValue === '0' || clValue === '1' || clValue === '2') {
+            return '<strong>Raise the Cl level in the Main Pool.</strong><br>If not handled the previous hour, change the Cl feeder rate according to the setpoint chart to raise the Cl level.';
+        } else if (clValue === '10') {
+            return '<strong>Lower the Cl level of the Main Pool.</strong><br>Turn the Cl feeder off, and set a timer to turn it back on. Ensure that the waterline is at normal height, and turn the fill line on if it is low. Always set a timer when turning on the fill line.';
+        } else if (clValue === '> 10') {
+            return '<strong>Notify a supervisor of the high Cl in the Main Pool immediately. Lower the Cl level of the Main Pool.</strong><br>Turn the Cl feeder off, and set a timer to turn it back on. Ensure that the waterline is at normal height, and turn the fill line on if it is low. Always set a timer when turning on the fill line.';
+        }
     } else {
-        // If unchecking, default to bleach
-        sanitationSettings[pool] = 'bleach';
-        const bleachCheckbox = document.querySelector(`input[data-pool="${pool}"][data-method="bleach"]`);
-        if (bleachCheckbox) bleachCheckbox.checked = true;
-    }
-    
-    console.log('Sanitation method changed:', pool, method, checkbox.checked);
-    console.log('Current settings:', sanitationSettings);
-    
-    // Save settings
-    saveSanitationSettings();
-}
-
-// ===================================================
-// FEEDBACK & NOTIFICATIONS
-// ===================================================
-
-function showFeedback(message, type = 'info') {
-    console.log(`${type.toUpperCase()}: ${message}`);
-    
-    // Create or get existing message container
-    let messageContainer = document.getElementById('messageContainer');
-    if (!messageContainer) {
-        messageContainer = document.createElement('div');
-        messageContainer.id = 'messageContainer';
-        messageContainer.style.cssText = `
-            position: fixed;
-            top: 20px;
-            right: 20px;
-            z-index: 10000;
-            max-width: 400px;
-        `;
-        document.body.appendChild(messageContainer);
-    }
-    
-    // Create message element
-    const messageElement = document.createElement('div');
-    messageElement.style.cssText = `
-        padding: 15px 20px;
-        margin-bottom: 10px;
-        border-radius: 5px;
-        font-weight: bold;
-        box-shadow: 0 4px 6px rgba(0,0,0,0.1);
-        animation: slideIn 0.3s ease-out;
-        ${type === 'error' ? 'background-color: #ffebee; color: #c62828; border-left: 4px solid #c62828;' : ''}
-        ${type === 'success' ? 'background-color: #e8f5e8; color: #2e7d32; border-left: 4px solid #2e7d32;' : ''}
-        ${type === 'warning' ? 'background-color: #fff3e0; color: #f57c00; border-left: 4px solid #f57c00;' : ''}
-        ${type === 'info' ? 'background-color: #e3f2fd; color: #1976d2; border-left: 4px solid #1976d2;' : ''}
-    `;
-    messageElement.textContent = message;
-    
-    // Add animation keyframes
-    if (!document.getElementById('messageAnimations')) {
-        const style = document.createElement('style');
-        style.id = 'messageAnimations';
-        style.textContent = `
-            @keyframes slideIn {
-                from { transform: translateX(100%); opacity: 0; }
-                to { transform: translateX(0); opacity: 1; }
+        // Secondary pool logic (excluding Forest Lake)
+        if (clValue === '0') {
+            switch (poolLocation) {
+                case 'Columbia CC':
+                    return '<strong>Raise the Cl level in the Baby Pool.</strong><br>Ensure that there are 2 total Cl tablets below a skimmer basket.';
+                case 'CC of Lexington':
+                    return '<strong>Raise the Cl level in the Baby Pool.</strong><br>Ensure that there is 1 total Cl tablet below a skimmer basket.';
+                case 'Quail Hollow':
+                    return '<strong>Raise the Cl level in the Baby Pool.</strong><br>Ensure that there are 1.5 total Cl tablets below a skimmer basket.';
+                case 'Rockbridge':
+                    return '<strong>Raise the Cl level in the Baby Pool.</strong><br>Ensure that there are 1.5 total Cl tablets below a skimmer basket.';
+                case 'Wildewood':
+                    return '<strong>Raise the Cl level in the Splash Pad.</strong><br>Add 1/4 scoop of shock/granular Cl to an empty bucket, then fill it with water. Carefully swirl the water to dissolve the shock, then pour it into the splash pad tank.';
+                case 'Winchester':
+                    return '<strong>Raise the Cl level in the Baby Pool.</strong><br>Ensure that there are 4 total Cl tablets below a skimmer basket.';
             }
-        `;
-        document.head.appendChild(style);
-    }
-    
-    messageContainer.appendChild(messageElement);
-    
-    // Auto-remove after 5 seconds
-    setTimeout(() => {
-        if (messageElement.parentNode) {
-            messageElement.style.animation = 'slideIn 0.3s ease-out reverse';
-            setTimeout(() => {
-                if (messageElement.parentNode) {
-                    messageElement.remove();
-                }
-            }, 300);
+        } else if (clValue === '10') {
+            switch (poolLocation) {
+                case 'Columbia CC':
+                case 'CC of Lexington':
+                case 'Quail Hollow':
+                case 'Rockbridge':
+                case 'Winchester':
+                    return '<strong>Lower the Cl level in the Baby Pool.</strong><br>Remove all Cl tablets from the skimmers until Cl levels have subsided.';
+                case 'Wildewood':
+                    return '<strong>Do not add any more shock/granular to the Splash Pad tank.</strong><br>Cl levels should subside within two hours.';
+            }
+        } else if (clValue === '> 10') {
+            switch (poolLocation) {
+                case 'Columbia CC':
+                case 'CC of Lexington':
+                case 'Quail Hollow':
+                case 'Rockbridge':
+                case 'Winchester':
+                    return '<strong>Notify a supervisor of the high Cl in the Baby Pool immediately. Lower the Cl level in the Baby Pool.</strong><br>Remove all Cl tablets from the skimmers until Cl levels have subsided.';
+                case 'Wildewood':
+                    return '<strong>Notify a supervisor of the high Cl in the Splash Pad immediately. Do not add any more shock/granular to the Splash Pad tank.</strong><br>Cl levels should subside within two hours.';
+            }
         }
-    }, 5000);
-}
-
-// Generic modal close function
-function closeModal() {
-    const modals = document.querySelectorAll('.modal');
-    modals.forEach(modal => {
-        modal.style.display = 'none';
-    });
-}
-
-// Enhanced handleLocationChange function
-function handleLocationChange() {
-    const poolLocation = document.getElementById('poolLocation').value;
-    const secondarySection = document.getElementById('secondaryPoolSection');
-    
-    // Define which pools have secondary pools
-    const poolsWithSecondary = ['Forest Lake', 'Columbia CC', 'CC of Lexington', 'Wildewood'];
-    
-    if (poolsWithSecondary.includes(poolLocation)) {
-        secondarySection.style.display = 'block';
-        document.getElementById('secondaryPoolPH').required = true;
-        document.getElementById('secondaryPoolCl').required = true;
-    } else {
-        secondarySection.style.display = 'none';
-        document.getElementById('secondaryPoolPH').required = false;
-        document.getElementById('secondaryPoolCl').required = false;
-        // Clear values when hiding
-        document.getElementById('secondaryPoolPH').value = '';
-        document.getElementById('secondaryPoolCl').value = '';
     }
+    
+    return null; // Default return value
 }
-
-// ===================================================
-// ADDITIONAL GLOBAL FUNCTION ASSIGNMENTS
-// ===================================================
-
-// Ensure all functions are globally accessible
-window.showMessage = showMessage;
-window.closeModal = closeModal;
-window.handleLocationChange = handleLocationChange;
-window.sendSMSNotification = sendSMSNotification;
-window.deleteSub​mission = deleteSubmission;
-window.changePage = changePage;
-window.handleLoginSubmit = handleLoginSubmit;
-window.checkForCriticalAlerts = checkForCriticalAlerts;
 
 // ===================================================
 // APP INITIALIZATION COMPLETE
