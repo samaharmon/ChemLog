@@ -1,14 +1,15 @@
-// Firebase configuration - replace with your actual config
+// Firebase configuration
 import { initializeApp } from 'firebase/app';
-import { getFirestore, collection, addDoc, getDocs, orderBy, query } from 'firebase/firestore';
+import { getFirestore, collection, addDoc, getDocs, orderBy, query, doc, getDoc, setDoc, onSnapshot } from 'firebase/firestore';
 
 const firebaseConfig = {
-    apiKey: "your-api-key",
-    authDomain: "your-auth-domain",
-    projectId: "your-project-id",
-    storageBucket: "your-storage-bucket",
-    messagingSenderId: "your-messaging-sender-id",
-    appId: "your-app-id"
+    apiKey: "AIzaSyCRxSL2uuH6O5MFvbq0FS02zF2K_lXGvqI",
+    authDomain: "chemlog-43c08.firebaseapp.com",
+    projectId: "chemlog-43c08",
+    storageBucket: "chemlog-43c08.firebasestorage.app",
+    messagingSenderId: "554394202059",
+    appId: "1:554394202059:web:a8d5824a1d7ccdd871d04e",
+    measurementId: "G-QF5ZQ88VS2"
 };
 
 // Initialize Firebase
@@ -170,24 +171,7 @@ document.addEventListener('DOMContentLoaded', async function () {
 // ===================================================
 // FORM HANDLING
 // ===================================================
-function handlePoolLocationChange() {
-    const poolLocation = document.getElementById('poolLocation').value;
-    const secondaryPoolSection = document.getElementById('secondaryPoolSection');
-    const secondaryPH = document.getElementById('secondaryPoolPH');
-    const secondaryCl = document.getElementById('secondaryPoolCl');
-    
-    if (poolLocation === 'Camden CC') {
-        secondaryPoolSection.classList.add('hidden');
-        secondaryPH.removeAttribute('required');
-        secondaryCl.removeAttribute('required');
-        secondaryPH.value = '';
-        secondaryCl.value = '';
-    } else {
-        secondaryPoolSection.classList.remove('hidden');
-        secondaryPH.setAttribute('required', '');
-        secondaryCl.setAttribute('required', '');
-    }
-}
+// Note: handlePoolLocationChange is now in app.js
 
 async function submitForm(event) {
     event.preventDefault();
@@ -220,8 +204,8 @@ async function submitForm(event) {
         }
     });
     
-    const poolLocation = document.getElementById('poolLocation').value;
-    if (poolLocation !== 'Camden CC') {
+    const poolLocationValue = document.getElementById('poolLocation').value;
+    if (poolLocationValue !== 'Camden CC') {
         const secondaryPoolFields = ['secondaryPoolPH', 'secondaryPoolCl'];
         secondaryPoolFields.forEach(fieldName => {
             const field = document.getElementById(fieldName);
@@ -254,16 +238,16 @@ async function submitForm(event) {
     
     const firstName = document.getElementById('firstName').value;
     const lastName = document.getElementById('lastName').value;
-    const poolLocation = document.getElementById('poolLocation').value;
+    const submissionPoolLocation = document.getElementById('poolLocation').value;
     const mainPoolPH = document.getElementById('mainPoolPH').value;
     const mainPoolCl = document.getElementById('mainPoolCl').value;
-    const secondaryPoolPH = poolLocation === 'Camden CC' ? 'N/A' : document.getElementById('secondaryPoolPH').value;
-    const secondaryPoolCl = poolLocation === 'Camden CC' ? 'N/A' : document.getElementById('secondaryPoolCl').value;
+    const secondaryPoolPH = submissionPoolLocation === 'Camden CC' ? 'N/A' : document.getElementById('secondaryPoolPH').value;
+    const secondaryPoolCl = submissionPoolLocation === 'Camden CC' ? 'N/A' : document.getElementById('secondaryPoolCl').value;
     
     const submission = {
         firstName,
         lastName,
-        poolLocation,
+        poolLocation: submissionPoolLocation,
         mainPoolPH,
         mainPoolCl,
         secondaryPoolPH,
@@ -342,14 +326,7 @@ function handleLoginSubmit(e) {
     }
 }
 
-function openLoginModal() {
-    document.getElementById('loginModal').style.display = 'block';
-}
-
-function closeLoginModal() {
-    document.getElementById('loginModal').style.display = 'none';
-    document.getElementById('loginForm').reset();
-}
+// Note: openLoginModal and closeLoginModal are now in app.js
 
 function checkLogin() {
     const token = localStorage.getItem('loginToken');
@@ -512,13 +489,7 @@ async function loadAndDisplayData() {
     }
 }
 
-function loadDashboardData() {
-    filteredData = [...formSubmissions];
-    paginatedData = organizePaginatedData(filteredData);
-    currentPage = 0;
-    displayData();
-    updatePaginationControls();
-}
+// Note: loadDashboardData is now in app.js
 
 function organizePaginatedData(data) {
     if (data.length === 0) return [];
@@ -631,81 +602,7 @@ function getPoolWarningLevel(mainPH, mainCl, secondaryPH, secondaryCl) {
     return null;
 }
 
-function displayData() {
-    const tbody1 = document.getElementById('dataTableBody1');
-    const tbody2 = document.getElementById('dataTableBody2');
-    tbody1.innerHTML = '';
-    tbody2.innerHTML = '';
-    
-    if (paginatedData.length === 0 || !paginatedData[currentPage]) {
-        tbody1.innerHTML = '<tr><td colspan="4" style="text-align: center; padding: 30px; color: #666;">No data found</td></tr>';
-        tbody2.innerHTML = '<tr><td colspan="4" style="text-align: center; padding: 30px; color: #666;">No data found</td></tr>';
-        return;
-    }
-    
-    const data = paginatedData[currentPage];
-    let hasSecondaryData = false;
-    
-    data.forEach(submission => {
-        const mainPHColor = getHighlightColor(submission.mainPoolPH, 'pH');
-        const mainClColor = getHighlightColor(submission.mainPoolCl, 'cl');
-        const secondaryPHColor = getHighlightColor(submission.secondaryPoolPH, 'pH');
-        const secondaryClColor = getHighlightColor(submission.secondaryPoolCl, 'cl');
-        const warningLevel = getPoolWarningLevel(submission.mainPoolPH, submission.mainPoolCl, submission.secondaryPoolPH, submission.secondaryPoolCl);
-        
-        let poolNameDisplay = submission.poolLocation;
-        if (warningLevel === 'red') {
-            poolNameDisplay = `<u>${submission.poolLocation}</u><span style="color: red;">!!!</span>`;
-        } else if (warningLevel === 'yellow') {
-            poolNameDisplay = `<u>${submission.poolLocation}</u><span style="color: red;">!</span>`;
-        }
-        
-        let timestampDisplay = submission.timestamp;
-        if (currentPage === 0 && isMoreThan3HoursOld(submission.timestamp)) {
-            timestampDisplay = `<span style="color: red; font-weight: bold;">${submission.timestamp}</span>`;
-        }
-        
-        const createCell = (value, color) => {
-            if (color === 'red') {
-                return `<td style="background-color: #ffcccc; color: #cc0000; font-weight: bold;">${value}</td>`;
-            } else if (color === 'yellow') {
-                return `<td style="background-color: #fff2cc; color: #b8860b; font-weight: bold;">${value}</td>`;
-            } else {
-                return `<td>${value}</td>`;
-            }
-        };
-        
-        // Main Pool Table Row
-        const row1 = document.createElement('tr');
-        row1.innerHTML = `
-            <td>${timestampDisplay}</td>
-            <td>${poolNameDisplay}</td>
-            ${createCell(submission.mainPoolPH, mainPHColor)}
-            ${createCell(submission.mainPoolCl, mainClColor)}
-        `;
-        tbody1.appendChild(row1);
-        
-        // Secondary Pool Table Row (only if not Camden CC)
-        if (submission.poolLocation !== 'Camden CC') {
-            hasSecondaryData = true;
-            const row2 = document.createElement('tr');
-            row2.innerHTML = `
-                <td>${timestampDisplay}</td>
-                <td>${poolNameDisplay}</td>
-                ${createCell(submission.secondaryPoolPH, secondaryPHColor)}
-                ${createCell(submission.secondaryPoolCl, secondaryClColor)}
-            `;
-            tbody2.appendChild(row2);
-        }
-    });
-    
-    // If no secondary pool data, show a message
-    if (!hasSecondaryData) {
-        tbody2.innerHTML = '<tr><td colspan="4" style="text-align: center; padding: 30px; color: #666;">No secondary pool data for current selection</td></tr>';
-    }
-    
-    updateTimestampNote();
-}
+// Note: displayData is now in app.js
 
 function updateTimestampNote() {
     const existingNote = document.getElementById('timestampNote');
@@ -747,21 +644,7 @@ function updatePaginationControls() {
     pageInfo.textContent = pageDisplayText;
 }
 
-function goToPreviousPage() {
-    if (currentPage > 0) {
-        currentPage--;
-        displayData();
-        updatePaginationControls();
-    }
-}
-
-function goToNextPage() {
-    if (currentPage < paginatedData.length - 1) {
-        currentPage++;
-        displayData();
-        updatePaginationControls();
-    }
-}
+// Note: goToPreviousPage and goToNextPage are now in app.js
 
 function filterData() {
     const poolFilter = document.getElementById('poolFilter').value;
@@ -789,40 +672,7 @@ function filterData() {
     updatePaginationControls();
 }
 
-function exportToCSV() {
-    if (filteredData.length === 0) {
-        showMessage('No data to export.', 'error');
-        return;
-    }
-    
-    const headers = ['Timestamp', 'First Name', 'Last Name', 'Pool Location', 'Main pH', 'Main Cl', 'Secondary pH', 'Secondary Cl'];
-    const csvContent = [
-        headers.join(','),
-        ...filteredData.map(row => [
-            `"${row.timestamp}"`,
-            `"${row.firstName}"`,
-            `"${row.lastName}"`,
-            `"${row.poolLocation}"`,
-            `"${row.mainPoolPH}"`,
-            `"${row.mainPoolCl}"`,
-            `"${row.secondaryPoolPH}"`,
-            `"${row.secondaryPoolCl}"`
-        ].join(','))
-    ].join('\n');
-    
-    const blob = new Blob([csvContent], { type: 'text/csv' });
-    const url = window.URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = `pool-chemistry-data-${new Date().toISOString().split('T')[0]}.csv`;
-    document.body.appendChild(a);
-    a.click();
-    document.body.removeChild(a);
-    window.URL.revokeObjectURL(url);
-    
-    showMessage('Data exported successfully!', 'success');
-}
-
+// Note: exportToCSV is now in app.js
 
 // ===================================================
 // DATA PERSISTENCE
@@ -972,7 +822,7 @@ function evaluateFormFeedback(formData) {
                 } else if (secPH === '7.8') { 
                     // Handle 7.8 pH cases
                     if (poolLocation === 'CC of Lexington') {
-                        messages.push('<strong>Lower the pH of the Baby Pool.</strong><br>Add a small splash (~1.5 tablespoons
+                        messages.push('<strong>Lower the pH of the Baby Pool.</strong><br>Add a small splash (~1.5 tablespoons) of acid below a skimmer basket. Always check for suction before pouring.');
                     } else if (poolLocation === 'Quail Hollow') {
                         messages.push('<strong>Lower the pH of the Baby Pool.</strong><br>Add 1/4 scoop of acid below a skimmer basket. Always check for suction before pouring.');
                     } else if (poolLocation === 'Rockbridge') {
@@ -1214,15 +1064,7 @@ function areAllCheckboxesChecked() {
     return Array.from(checkboxes).every(checkbox => checkbox.checked);
 }
 
-function chooseAndSendSMS() {
-    const selectedRecipient = document.querySelector('input[name="smsRecipient"]:checked');
-    if (selectedRecipient) {
-        const recipientValue = selectedRecipient.value;
-        alert(`Message sent successfully to ${recipientValue}`);
-    } else {
-        alert('Please select a recipient.');
-    }
-}
+// Note: chooseAndSendSMS is now in app.js
 
 // ===================================================
 // RECIPIENT SELECTION & SMS
@@ -1294,83 +1136,7 @@ function showRecipientSelectionInModal(modal) {
     modal.appendChild(sendBtn);
 }
 
-function chooseAndSendSMS() {
-    const checkboxes = document.querySelectorAll('#samOption, #haleyOption');
-    const selectedRecipients = [];
-    
-    checkboxes.forEach(checkbox => {
-        if (checkbox.checked) {
-            selectedRecipients.push(checkbox.value);
-        }
-    });
-
-    if (selectedRecipients.length === 0) {
-        alert('Please select at least one supervisor to notify.');
-        return;
-    }
-
-    if (formSubmissions.length === 0) {
-        alert("No form submission found to share.");
-        return;
-    }
-    const latest = formSubmissions[formSubmissions.length - 1];
-
-    // Determine which values need highlighting
-    const mainPH = latest.mainPoolPH;
-    const secPH = latest.secondaryPoolPH;
-    const mainCl = latest.mainPoolCl;
-    const secCl = latest.secondaryPoolCl;
-    
-    // Create highlighted message parts
-    const mainPoolPHText = mainPH === '< 7.0' ? 
-        `⚠️ Main Pool pH: ${mainPH} - REQUIRES ATTENTION ⚠️` : 
-        `Main Pool pH: ${mainPH}`;
-        
-    const secPoolPHText = secPH === '< 7.0' ? 
-        `⚠️ Secondary Pool pH: ${secPH} - REQUIRES ATTENTION ⚠️` : 
-        `Secondary Pool pH: ${secPH}`;
-        
-    const mainPoolClText = (mainCl === '10' || mainCl === '> 10' || parseFloat(mainCl) > 10) ? 
-        `⚠️ Main Pool Cl: ${mainCl} - HIGH LEVEL ⚠️` : 
-        `Main Pool Cl: ${mainCl}`;
-        
-    const secPoolClText = (secCl === '10' || secCl === '> 10' || parseFloat(secCl) > 10) ? 
-        `⚠️ Secondary Pool Cl: ${secCl} - HIGH LEVEL ⚠️` : 
-        `Secondary Pool Cl: ${secCl}`;
-        
-    const message =
-        `Pool Chemistry Log\n\n` +
-        `Submitted by: ${latest.firstName} ${latest.lastName}\n` +
-        `Pool Location: ${latest.poolLocation}\n\n` +
-        `${mainPoolPHText}\n` +
-        `${mainPoolClText}\n` +
-        `${secPoolPHText}\n` +
-        `${secPoolClText}\n\n` +
-        `Time: ${latest.timestamp}`;
-
-    // Send to each selected recipient
-    selectedRecipients.forEach(recipient => {
-        window.location.href = `sms:${recipient}?body=${encodeURIComponent(message)}`;
-    });
-    
-    // Close modals and remove overlay
-    const menu = document.getElementById('dropdownMenu');
-    if (!menu) return;
-    
-    if (menu.style.display === 'none' || menu.style.display === '') {
-        menu.style.display = 'block';
-    } else {
-        menu.style.display = 'none';
-    }
-    
-    // Close menu when clicking outside
-    document.addEventListener('click', function closeMenu(e) {
-        if (!e.target.closest('.menu-container')) {
-            menu.style.display = 'none';
-            document.removeEventListener('click', closeMenu);
-        }
-    });
-}
+// Note: chooseAndSendSMS is now in app.js (duplicate removed)
 
 // Show settings modal
 async function showSettings() {
@@ -1401,10 +1167,7 @@ async function showSettings() {
     loadSanitationSettings();
 }
 
-// Close settings modal
-function closeSettings() {
-    document.getElementById('settingsModal').style.display = 'none';
-}
+// Note: closeSettings is now in app.js
 
 // Load sanitation settings into the checkboxes
 function loadSanitationSettings() {
