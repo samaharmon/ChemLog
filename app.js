@@ -899,6 +899,12 @@ function showFeedbackModal(message) {
     }
 }
 
+// Define the evaluateFormFeedback function
+function evaluateFormFeedback(formData) {
+    const feedbackMessage = 'Your form has been submitted successfully!';
+    showFeedbackModal(feedbackMessage);
+}
+
 // Now assign all functions to window
 window.showMessage = showMessage;
 window.showFeedback = showFeedback;
@@ -909,7 +915,7 @@ window.deleteSubmission = deleteSubmission;
 window.changePage = changePage;
 window.handleLoginSubmit = handleLoginSubmit;
 window.checkForCriticalAlerts = checkForCriticalAlerts;
-window.evaluateFormFeedback = evaluateFormFeedback;
+window.evaluateFormFeedback = evaluateFormFeedback; // Ensure this is defined before assignment
 window.showFeedbackModal = showFeedbackModal;
 window.getClResponse = getClResponse;
 window.areAllCheckboxesChecked = areAllCheckboxesChecked;
