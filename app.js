@@ -49,260 +49,157 @@ window.addEventListener('error', function(e) {
 console.log('🔥 Pool Chemistry App - Script Starting to Load 🔥');
 
 // ===================================================
-// DASHBOARD DATA TABLE
+// FIXED DASHBOARD DATA TABLE FUNCTIONS
 // ===================================================
 
+// Initialize form submissions on app start
+function initializeFormSubmissions() {
+    loadFormSubmissions(); // Load from localStorage
+    console.log(`Initialized with ${formSubmissions.length} form submissions`);
+}
+
+// Updated loadDashboardData to work with both Firebase and localStorage
 function loadDashboardData() {
-    if (!db) {
-        updateFirebaseStatus('Database not initialized', true);
-        return;
-    }
+    console.log('Loading dashboard data...');
     
-    try {
-        const q = window.firebase.query(
-            window.firebase.collection(db, 'poolSubmissions'), 
-            window.firebase.orderBy('timestamp', 'desc')
-        );
-        
-        // Set up real-time listener
-        window.firebase.onSnapshot(q, (querySnapshot) => {
-            allSubmissions = [];
-            querySnapshot.forEach((doc) => {
-                const data = doc.data();
-                data.id = doc.id;
-                // Convert Firestore timestamp to JavaScript Date
-                if (data.timestamp && data.timestamp.toDate) {
-                    data.timestamp = data.timestamp.toDate();
+    // First, ensure we have local data loaded
+    loadFormSubmissions();
+    
+    if (db) {
+        // Try to load from Firebase
+        try {
+            const q = window.firebase.query(
+                window.firebase.collection(db, 'poolSubmissions'), 
+                window.firebase.orderBy('timestamp', 'desc')
+            );
+            
+            // Set up real-time listener
+            window.firebase.onSnapshot(q, (querySnapshot) => {
+                const firebaseSubmissions = [];
+                querySnapshot.forEach((doc) => {
+                    const data = doc.data();
+                    data.id = doc.id;
+                    // Convert Firestore timestamp to JavaScript Date
+                    if (data.timestamp && data.timestamp.toDate) {
+                        data.timestamp = data.timestamp.toDate();
+                    }
+                    firebaseSubmissions.push(data);
+                });
+                
+                console.log('Loaded from Firebase:', firebaseSubmissions.length);
+                
+                // Combine Firebase data with local formSubmissions
+                allSubmissions = [...firebaseSubmissions];
+                
+                // Add local submissions that might not be in Firebase yet
+                formSubmissions.forEach(localSubmission => {
+                    const exists = allSubmissions.find(sub => sub.id === localSubmission.id);
+                    if (!exists) {
+                        // Convert timestamp string to Date object if needed
+                        if (typeof localSubmission.timestamp === 'string') {
+                            localSubmission.timestamp = new Date(localSubmission.timestamp);
+                        }
+                        allSubmissions.push(localSubmission);
+                    }
+                });
+                
+                updateFirebaseStatus(`Loaded ${allSubmissions.length} total submissions`);
+                
+                // Apply current filters and update display
+                if (isLoggedIn) {
+                    filterAndDisplayData();
                 }
-                allSubmissions.push(data);
+            }, (error) => {
+                console.error('Error loading from Firebase: ', error);
+                updateFirebaseStatus('Using local data only', true);
+                // Fall back to local data only
+                useLocalDataOnly();
             });
             
-            console.log('Loaded submissions:', allSubmissions.length);
-            updateFirebaseStatus(`Loaded ${allSubmissions.length} submissions`);
-            
-            // Apply current filters and update display
-            if (isLoggedIn) {
-                filterData();
-            }
-        }, (error) => {
-            console.error('Error loading data: ', error);
-            updateFirebaseStatus('Error loading data', true);
-        });
-        
-    } catch (error) {
-        console.error('Error setting up data listener: ', error);
-        updateFirebaseStatus('Error connecting to database', true);
-    }
-}
-
-function organizePaginatedData(data) {
-    if (data.length === 0) return [];
-
-    const sortedData = [...data].sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp));
-    const poolLocations = [...new Set(sortedData.map(item => item.poolLocation))];
-
-    // Page 0: Most recent per pool
-    const page0 = [];
-    const seenPools = new Set();
-    for (let item of sortedData) {
-        if (!seenPools.has(item.poolLocation)) {
-            page0.push(item);
-            seenPools.add(item.poolLocation);
+        } catch (error) {
+            console.error('Error setting up Firebase listener: ', error);
+            updateFirebaseStatus('Using local data only', true);
+            useLocalDataOnly();
         }
+    } else {
+        console.log('No Firebase connection, using local data only');
+        useLocalDataOnly();
     }
-
-    // Other pages: Group by pool + date (not full timestamp)
-    const grouped = {};
-
-    for (let item of sortedData) {
-        const dateOnly = new Date(item.timestamp).toLocaleDateString();
-        const key = `${item.poolLocation}__${dateOnly}`;
-
-        if (!grouped[key]) grouped[key] = [];
-        grouped[key].push(item);
-    }
-
-    const groupKeys = Object.keys(grouped).sort((a, b) => {
-        const [poolA, dateA] = a.split('__');
-        const [poolB, dateB] = b.split('__');
-        const dateObjA = new Date(dateA);
-        const dateObjB = new Date(dateB);
-        return dateObjB - dateObjA;
-    });
-
-    const pages = [page0];
-
-    for (let key of groupKeys) {
-        const submissions = grouped[key];
-        const submissionsSorted = submissions.sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp));
-        pages.push(submissionsSorted);
-    }
-
-    return pages;
 }
 
-// Display data in tables
-function displayData() {
-    const startIndex = (currentPage - 1) * itemsPerPage;
-    const endIndex = startIndex + itemsPerPage;
-    const pageData = filteredSubmissions.slice(startIndex, endIndex);
+// Fallback function for local data only
+function useLocalDataOnly() {
+    loadFormSubmissions();
+    allSubmissions = [...formSubmissions];
     
-    // Clear existing table data
+    // Convert timestamp strings to Date objects if needed
+    allSubmissions.forEach(submission => {
+        if (typeof submission.timestamp === 'string') {
+            submission.timestamp = new Date(submission.timestamp);
+        }
+    });
+    
+    console.log('Using local data:', allSubmissions.length, 'submissions');
+    updateFirebaseStatus(`Using local data: ${allSubmissions.length} submissions`);
+    
+    if (isLoggedIn) {
+        filterAndDisplayData();
+    }
+}
+
+// Updated filter and display function
+function filterAndDisplayData() {
+    console.log('Filtering and displaying data...');
+    
+    // Apply filters
+    const poolFilter = document.getElementById('poolFilter')?.value || '';
+    const dateFilter = document.getElementById('dateFilter')?.value || '';
+    
+    filteredSubmissions = allSubmissions.filter(submission => {
+        let passesFilter = true;
+        
+        // Pool filter
+        if (poolFilter && submission.poolLocation !== poolFilter) {
+            passesFilter = false;
+        }
+        
+        // Date filter
+        if (dateFilter) {
+            const filterDate = new Date(dateFilter);
+            const submissionDate = new Date(submission.timestamp);
+            if (submissionDate.toDateString() !== filterDate.toDateString()) {
+                passesFilter = false;
+            }
+        }
+        
+        return passesFilter;
+    });
+    
+    console.log('Filtered submissions:', filteredSubmissions.length);
+    
+    // Create paginated data
+    paginatedData = organizePaginatedData(filteredSubmissions);
+    currentPage = 0; // Start with page 0 (most recent)
+    
+    console.log('Paginated data pages:', paginatedData.length);
+    
+    // Display the data
+    displayData();
+    updatePaginationControls();
+}
+
+// Updated displayData function
+function displayData() {
+    console.log('Displaying data, current page:', currentPage);
+    
     const tbody1 = document.getElementById('dataTableBody1');
     const tbody2 = document.getElementById('dataTableBody2');
     
-    if (tbody1) tbody1.innerHTML = '';
-    if (tbody2) tbody2.innerHTML = '';
-    
-    pageData.forEach(submission => {
-        // Main pool table
-        if (tbody1) {
-            const row1 = document.createElement('tr');
-            const timeString = submission.timestamp ? submission.timestamp.toLocaleString() : 'N/A';
-            const isOld = submission.timestamp && (new Date() - submission.timestamp) > (3 * 60 * 60 * 1000); // 3 hours
-            
-            row1.innerHTML = `
-                <td>${isOld ? '!!! ' : ''}${timeString}</td>
-                <td>${submission.poolLocation || 'N/A'}</td>
-                <td>${submission.mainPoolPH || 'N/A'}</td>
-                <td>${submission.mainPoolCl || 'N/A'}</td>
-                <td>${submission.sanitationMethod || 'N/A'}</td>
-            `;
-            tbody1.appendChild(row1);
-        }
-        
-        // Secondary pool table (if data exists)
-        if ((submission.secondaryPoolPH || submission.secondaryPoolCl) && tbody2) {
-            const row2 = document.createElement('tr');
-            const timeString = submission.timestamp ? submission.timestamp.toLocaleString() : 'N/A';
-            const isOld = submission.timestamp && (new Date() - submission.timestamp) > (3 * 60 * 60 * 1000); // 3 hours
-            
-            row2.innerHTML = `
-                <td>${isOld ? '!!! ' : ''}${timeString}</td>
-                <td>${submission.poolLocation || 'N/A'}</td>
-                <td>${submission.secondaryPoolPH || 'N/A'}</td>
-                <td>${submission.secondaryPoolCl || 'N/A'}</td>
-                <td>${submission.sanitationMethod || 'N/A'}</td>
-            `;
-            tbody2.appendChild(row2);
-        }
-    });
-    
-    updatePagination();
-}
-
-function updatePaginationControls() {
-    const prevBtn = document.getElementById('prevBtn');
-    const nextBtn = document.getElementById('nextBtn');
-    const pageInfo = document.getElementById('pageInfo');
-    
-    if (!prevBtn || !nextBtn || !pageInfo) return;
-    
-    if (paginatedData.length <= 1) {
-        document.getElementById('pagination').style.display = 'none';
+    if (!tbody1 || !tbody2) {
+        console.error('Table bodies not found!');
         return;
     }
     
-    document.getElementById('pagination').style.display = 'flex';
-    
-    // Update button states
-    prevBtn.disabled = currentPage === 0;
-    prevBtn.style.opacity = currentPage === 0 ? '0.5' : '1';
-    prevBtn.style.cursor = currentPage === 0 ? 'not-allowed' : 'pointer';
-    
-    nextBtn.disabled = currentPage >= paginatedData.length - 1;
-    nextBtn.style.opacity = currentPage >= paginatedData.length - 1 ? '0.5' : '1';
-    nextBtn.style.cursor = currentPage >= paginatedData.length - 1 ? 'not-allowed' : 'pointer';
-    
-    // Update page info
-    const currentPageData = paginatedData[currentPage];
-    const pageDisplayText = currentPage === 0 
-        ? `Recent (${currentPageData.length})` 
-        : `${new Date(currentPageData[0].timestamp).toLocaleDateString()} (${currentPageData.length})`;
-    
-    pageInfo.textContent = pageDisplayText;
-}
-
-function loadAndDisplayData() {
-    try {
-        loadDashboardData();
-        if (isLoggedIn) {
-            filterData();
-        }
-    } catch (error) {
-        console.error('Error loading and displaying data:', error);
-        showMessage('Error loading data', 'error');
-    }
-}
-
-function getHighlightColor(value, type) {
-    if (!value || value === 'N/A' || value === '') return null;
-    
-    const valueStr = value.toString().trim();
-    
-    if (type === 'pH') {
-        if (valueStr.startsWith('< 7.0' || valueStr === '< 7.0' || 
-            valueStr.startsWith('> 8.0') || valueStr === '> 8.0' ||
-            valueStr === '7.8' || valueStr === '8.0')) {
-            return 'red';
-        }
-        const numValue = parseFloat(valueStr.replace(/[<>]/g, ''));
-        if (!isNaN(numValue)) {
-            if (numValue < 7.0 || numValue === 7.8 || numValue === 8.0 || numValue > 8.0) return 'red';
-            if (numValue === 7.0 || numValue === 7.6) return 'yellow';
-        }
-        return null;
-    }
-    
-    if (type === 'cl') {
-        if (valueStr.startsWith('> 10') || valueStr === '> 10' ||
-            valueStr.startsWith('>10') || valueStr === '>10' ||
-            valueStr === '0' || valueStr === '10') {
-            return 'red';
-        }
-        const numValue = parseFloat(valueStr.replace(/[<>]/g, ''));
-        if (!isNaN(numValue)) {
-            if (numValue === 0 || numValue === 10 || numValue > 10) return 'red';
-            if ((numValue > 0 && numValue < 3) || (numValue > 5 && numValue < 10)) return 'yellow';
-        }
-        return null;
-    }
-    
-    return null;
-}
-
-function getPoolWarningLevel(mainPH, mainCl, secondaryPH, secondaryCl) {
-    const values = [
-        { value: mainPH, type: 'pH' },
-        { value: mainCl, type: 'cl' },
-        { value: secondaryPH, type: 'pH' },
-        { value: secondaryCl, type: 'cl' }
-    ];
-    
-    let hasRed = false;
-    let hasYellow = false;
-    
-    values.forEach(item => {
-        const color = getHighlightColor(item.value, item.type);
-        if (color === 'red') hasRed = true;
-        if (color === 'yellow') hasYellow = true;
-    });
-    
-    if (hasRed) return 'red';
-    if (hasYellow) return 'yellow';
-    return null;
-}
-
-function isMoreThan3HoursOld(timestamp) {
-    const now = new Date();
-    const submissionTime = new Date(timestamp);
-    const threeHoursAgo = new Date(now.getTime() - (3 * 60 * 60 * 1000));
-    return submissionTime < threeHoursAgo;
-}
-
-function displayData() {
-    const tbody1 = document.getElementById('dataTableBody1');
-    const tbody2 = document.getElementById('dataTableBody2');
     tbody1.innerHTML = '';
     tbody2.innerHTML = '';
     
@@ -314,6 +211,8 @@ function displayData() {
     
     const data = paginatedData[currentPage];
     let hasSecondaryData = false;
+    
+    console.log('Displaying', data.length, 'items for page', currentPage);
     
     data.forEach(submission => {
         const mainPHColor = getHighlightColor(submission.mainPoolPH, 'pH');
@@ -329,18 +228,25 @@ function displayData() {
             poolNameDisplay = `<u>${submission.poolLocation}</u><span style="color: red;">!</span>`;
         }
         
+        // Format timestamp
         let timestampDisplay = submission.timestamp;
+        if (submission.timestamp instanceof Date) {
+            timestampDisplay = submission.timestamp.toLocaleString();
+        } else {
+            timestampDisplay = new Date(submission.timestamp).toLocaleString();
+        }
+        
         if (currentPage === 0 && isMoreThan3HoursOld(submission.timestamp)) {
-            timestampDisplay = `<span style="color: red; font-weight: bold;">${submission.timestamp}</span>`;
+            timestampDisplay = `<span style="color: red; font-weight: bold;">${timestampDisplay}</span>`;
         }
         
         const createCell = (value, color) => {
             if (color === 'red') {
-                return `<td style="background-color: #ffcccc; color: #cc0000; font-weight: bold;">${value}</td>`;
+                return `<td style="background-color: #ffcccc; color: #cc0000; font-weight: bold;">${value || 'N/A'}</td>`;
             } else if (color === 'yellow') {
-                return `<td style="background-color: #fff2cc; color: #b8860b; font-weight: bold;">${value}</td>`;
+                return `<td style="background-color: #fff2cc; color: #b8860b; font-weight: bold;">${value || 'N/A'}</td>`;
             } else {
-                return `<td>${value}</td>`;
+                return `<td>${value || 'N/A'}</td>`;
             }
         };
         
@@ -355,7 +261,7 @@ function displayData() {
         tbody1.appendChild(row1);
         
         // Secondary Pool Table Row (only if not Camden CC)
-        if (submission.poolLocation !== 'Camden CC') {
+        if (submission.poolLocation !== 'Camden CC' && (submission.secondaryPoolPH || submission.secondaryPoolCl)) {
             hasSecondaryData = true;
             const row2 = document.createElement('tr');
             row2.innerHTML = `
@@ -374,59 +280,68 @@ function displayData() {
     }
     
     updateTimestampNote();
+    console.log('Data display completed');
 }
 
-function updateTimestampNote() {
-    const existingNote = document.getElementById('timestampNote');
-    if (existingNote) {
-        // Show the note only on page 0 (most recent)
-        existingNote.style.display = currentPage === 0 ? 'block' : 'none';
+// Updated submitForm to save to both systems
+function submitFormAndSync() {
+    // ... existing form validation code ...
+    
+    const poolLocation = document.getElementById('poolLocation').value;
+    const submission = {
+        id: Date.now().toString(),
+        timestamp: new Date(),
+        firstName: document.getElementById('firstName').value,
+        lastName: document.getElementById('lastName').value,
+        poolLocation: poolLocation,
+        mainPoolPH: document.getElementById('mainPoolPH').value,
+        mainPoolCl: document.getElementById('mainPoolCl').value,
+        secondaryPoolPH: poolLocation === 'Camden CC' ? 'N/A' : document.getElementById('secondaryPoolPH').value,
+        secondaryPoolCl: poolLocation === 'Camden CC' ? 'N/A' : document.getElementById('secondaryPoolCl').value
+    };
+    
+    // Add to local array
+    formSubmissions.push(submission);
+    saveFormSubmissions();
+    
+    // Try to save to Firebase
+    if (db) {
+        try {
+            window.firebase.addDoc(window.firebase.collection(db, 'poolSubmissions'), {
+                ...submission,
+                timestamp: window.firebase.Timestamp.fromDate(submission.timestamp)
+            }).then(() => {
+                console.log('Submission saved to Firebase');
+            }).catch((error) => {
+                console.warn('Could not save to Firebase:', error);
+            });
+        } catch (error) {
+            console.warn('Firebase not available for saving:', error);
+        }
     }
-}
-
-// Add these functions before your global assignments section
-
-function deleteSubmission(submissionId) {
-    if (confirm('Are you sure you want to delete this submission?')) {
-        formSubmissions = formSubmissions.filter(submission => submission.id !== submissionId);
-        saveFormSubmissions();
+    
+    showMessage('Submission saved successfully!', 'success');
+    
+    // Refresh dashboard if visible
+    if (document.getElementById('supervisorDashboard').style.display === 'block') {
         loadDashboardData();
-        showMessage('Submission deleted successfully!', 'success');
     }
+    
+    resetForm();
 }
 
-function changePage(pageNumber) {
-    currentPage = pageNumber;
-    displayData();
-    updatePaginationControls();
-}
-
-function checkForCriticalAlerts() {
-    if (!formSubmissions || formSubmissions.length === 0) return;
+// Updated showDashboard function
+function showDashboard() {
+    console.log('Showing dashboard...');
     
-    const criticalAlerts = [];
-    const now = new Date();
+    document.getElementById('mainForm').style.display = 'none';
+    document.getElementById('supervisorDashboard').style.display = 'block';
     
-    formSubmissions.forEach(submission => {
-        const submissionTime = new Date(submission.timestamp);
-        const hoursOld = (now - submissionTime) / (1000 * 60 * 60);
-        
-        if (hoursOld > 3) {
-            criticalAlerts.push(`${submission.poolLocation}: Last reading is ${Math.floor(hoursOld)} hours old`);
-        }
-        
-        if (submission.mainPoolPH === '< 7.0' || submission.mainPoolPH === '> 8.0') {
-            criticalAlerts.push(`${submission.poolLocation}: Critical pH level (${submission.mainPoolPH})`);
-        }
-        
-        if (submission.mainPoolCl === '0' || submission.mainPoolCl === '> 10') {
-            criticalAlerts.push(`${submission.poolLocation}: Critical chlorine level (${submission.mainPoolCl})`);
-        }
-    });
+    // Update header buttons
+    updateHeaderButtons();
     
-    if (criticalAlerts.length > 0) {
-        showMessage(`${criticalAlerts.length} critical alert(s) found`, 'warning');
-    }
+    // Load and display data
+    loadDashboardData();
 }
 
 // ===================================================
@@ -756,63 +671,15 @@ function handlePoolLocationChange() {
 // DOM INITIALIZATION
 // ===================================================
 
-// Replace the DOMContentLoaded section:
 document.addEventListener('DOMContentLoaded', async function () {
     console.log('🔥🔥🔥 UNIFIED APP.JS LOADED 🔥🔥🔥');
     
     // Initialize app FIRST
     checkLogin();
-    
     initializeApp();
-
-    // Attach form submission event listener
-    const mainForm = document.getElementById('chemistryForm') || document.querySelector('form');
-    if (mainForm) {
-        mainForm.addEventListener('submit', function (e) {
-            e.preventDefault();
-            submitForm();
-        });
-        console.log('Form submit event listener attached');
-    }
-
-    // Pool location change handler
-    const poolLocationSelect = document.getElementById('poolLocation');
-    if (poolLocationSelect) {
-        poolLocationSelect.addEventListener('change', handlePoolLocationChange);
-    }
-
-    // Attach login form submission event listener
-    const loginForm = document.getElementById('loginForm');
-    if (loginForm) {
-        loginForm.addEventListener('submit', function(e) {
-            e.preventDefault();
-            const username = document.getElementById('email').value;
-            const password = document.getElementById('password').value;
-            
-            if ((username === 'supervisor' && password === 'poolchem2025') || 
-                (username === 'capitalcity' && password === '$ummer2025')) {
-                
-                const token = {
-                    username: username,
-                    expires: Date.now() + (24 * 60 * 60 * 1000)
-                };
-                localStorage.setItem('loginToken', JSON.stringify(token));
-                
-                closeLoginModal();
-                showDashboard();
-            } else {
-                showMessage('Invalid credentials', 'error');
-            }
-        });
-    }
-
-    // Initialize Firebase after DOM is ready
-    if (window.firebase) {
-        initializeFirebase();
-    } else {
-        console.log('Firebase not available, using localStorage only');
-    }
-
+    initializeFormSubmissions(); // ADD THIS LINE
+    
+    // ... rest of your existing code
 });
 
 // Add this function to initialize the correct default view
@@ -1031,7 +898,7 @@ function submitForm() {
     
     resetForm();
 }
-window.submitForm = submitForm;
+window.submitForm = submitFormAndSync;
 
 // ===================================================
 // DATA MANAGEMENT & DASHBOARD
@@ -2284,5 +2151,8 @@ window.evaluateFormFeedback = evaluateFormFeedback;
 window.showMessage = showMessage;
 window.closeModal = closeModal;
 window.displayData = displayData;
+window.filterAndDisplayData = filterAndDisplayData;
+window.useLocalDataOnly = useLocalDataOnly;
+window.initializeFormSubmissions = initializeFormSubmissions;
 
 console.log('🔥✅ Pool Chemistry Log App - All Functions Loaded! ✅🔥');
