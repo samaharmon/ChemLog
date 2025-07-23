@@ -27,6 +27,9 @@ let isLoggedIn = false;
 let sanitationSettings = {};
 let currentView = 'form';
 
+// Define pools with secondary pools ONCE
+const POOLS_WITH_SECONDARY = ['Forest Lake', 'Columbia CC', 'CC of Lexington', 'Wildewood', 'Quail Hollow', 'Rockbridge', 'Winchester'];
+
 // Default supervisor credentials
 const supervisorCredentials = {
     email: 'capitalcity',
@@ -366,7 +369,7 @@ async function submitForm(event) {
     const poolLocationValue = document.getElementById('poolLocation').value;
     const poolsWithSecondary = ['Forest Lake', 'Columbia CC', 'CC of Lexington', 'Wildewood'];
     
-    if (poolsWithSecondary.includes(poolLocationValue)) {
+    if (POOLS_WITH_SECONDARY.includes(poolLocationValue)) {
         const secondaryPoolFields = ['secondaryPoolPH', 'secondaryPoolCl'];
         secondaryPoolFields.forEach(fieldName => {
             const field = document.getElementById(fieldName);
@@ -395,9 +398,9 @@ async function submitForm(event) {
         const submissionPoolLocation = document.getElementById('poolLocation').value;
         const mainPoolPH = document.getElementById('mainPoolPH').value;
         const mainPoolCl = document.getElementById('mainPoolCl').value;
-        const secondaryPoolPH = poolsWithSecondary.includes(submissionPoolLocation) ? 
+        const secondaryPoolPH = POOLS_WITH_SECONDARY.includes(submissionPoolLocation) ? 
             document.getElementById('secondaryPoolPH').value : 'N/A';
-        const secondaryPoolCl = poolsWithSecondary.includes(submissionPoolLocation) ? 
+        const secondaryPoolCl = POOLS_WITH_SECONDARY.includes(submissionPoolLocation) ? 
             document.getElementById('secondaryPoolCl').value : 'N/A';
         
         const formData = {
@@ -481,10 +484,7 @@ function handlePoolLocationChange() {
     console.log('Pool location changed to:', poolLocation); // Debug log
     console.log('Secondary section element:', secondarySection); // Debug log
     
-    // Define pools that have secondary pools - CORRECTED LIST
-    const poolsWithSecondary = ['Forest Lake', 'Columbia CC', 'CC of Lexington', 'Wildewood', 'Quail Hollow', 'Rockbridge', 'Winchester'];
-    
-    if (poolsWithSecondary.includes(poolLocation)) {
+    if (POOLS_WITH_SECONDARY.includes(poolLocation)) {
         console.log('Showing secondary pool section'); // Debug log
         if (secondarySection) {
             secondarySection.style.display = 'block';
@@ -874,10 +874,7 @@ function handleLocationChange() {
     const poolLocation = document.getElementById('poolLocation').value;
     const secondarySection = document.getElementById('secondaryPoolSection');
     
-    // Define which pools have secondary pools
-    const poolsWithSecondary = ['Forest Lake', 'Columbia CC', 'CC of Lexington', 'Wildewood'];
-    
-    if (poolsWithSecondary.includes(poolLocation)) {
+    if (POOLS_WITH_SECONDARY.includes(poolLocation)) {
         secondarySection.style.display = 'block';
         document.getElementById('secondaryPoolPH').required = true;
         document.getElementById('secondaryPoolCl').required = true;
