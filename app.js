@@ -475,22 +475,43 @@ function resetForm() {
 
 // Handle pool location change
 function handlePoolLocationChange() {
-    const selectedPool = document.getElementById('poolLocation').value;
+    const poolLocation = document.getElementById('poolLocation').value;
     const secondarySection = document.getElementById('secondaryPoolSection');
     
-    // Hide secondary pool section for pools that don't have one
-    const poolsWithSecondary = ['Forest Lake', 'Columbia CC', 'Camden CC'];
-    if (poolsWithSecondary.includes(selectedPool)) {
-        secondarySection.style.display = 'block';
-        document.getElementById('secondaryPoolPH').required = true;
-        document.getElementById('secondaryPoolCl').required = true;
+    console.log('Pool location changed to:', poolLocation); // Debug log
+    console.log('Secondary section element:', secondarySection); // Debug log
+    
+    // Define pools that have secondary pools - CORRECTED LIST
+    const poolsWithSecondary = ['Forest Lake', 'Columbia CC', 'CC of Lexington', 'Wildewood', 'Quail Hollow', 'Rockbridge', 'Winchester'];
+    
+    if (poolsWithSecondary.includes(poolLocation)) {
+        console.log('Showing secondary pool section'); // Debug log
+        if (secondarySection) {
+            secondarySection.style.display = 'block';
+        }
+        
+        // Make secondary fields required
+        const secPH = document.getElementById('secondaryPoolPH');
+        const secCl = document.getElementById('secondaryPoolCl');
+        if (secPH) secPH.required = true;
+        if (secCl) secCl.required = true;
     } else {
-        secondarySection.style.display = 'none';
-        document.getElementById('secondaryPoolPH').required = false;
-        document.getElementById('secondaryPoolCl').required = false;
-        // Clear values when hiding
-        document.getElementById('secondaryPoolPH').value = '';
-        document.getElementById('secondaryPoolCl').value = '';
+        console.log('Hiding secondary pool section'); // Debug log
+        if (secondarySection) {
+            secondarySection.style.display = 'none';
+        }
+        
+        // Make secondary fields not required and clear values
+        const secPH = document.getElementById('secondaryPoolPH');
+        const secCl = document.getElementById('secondaryPoolCl');
+        if (secPH) {
+            secPH.required = false;
+            secPH.value = '';
+        }
+        if (secCl) {
+            secCl.required = false;
+            secCl.value = '';
+        }
     }
 }
 
