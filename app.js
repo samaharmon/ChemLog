@@ -57,15 +57,15 @@ function initializeFormSubmissions() {
     console.log(`Initialized with ${formSubmissions.length} form submissions`);
 }
 
+import { initializeApp } from 'firebase/app';
+import { getFirestore, collection, doc, addDoc, setDoc, getDoc, onSnapshot, orderBy, query, Timestamp } from 'firebase/firestore';
+
+let app, db;
+
 function initializeApp() {
     try {
-        if (!firebase) {
-            updateFirebaseStatus('Firebase SDK not loaded', true);
-            return;
-        }
-        
-        app = firebase.initializeApp(firebaseConfig);
-        db = firebase.firestore();
+        app = initializeApp(firebaseConfig);
+        db = getFirestore(app);
         updateFirebaseStatus('✅ Firebase connected successfully');
         
         initializeSanitationSettings();
@@ -84,18 +84,13 @@ function loadDashboardData() {
     }
     
     try {
-        // Fix: Use correct function names
-        const q = firebase.firestore.query(
-            firebase.firestore.collection(db, 'poolSubmissions'), 
-            firebase.firestore.orderBy('timestamp', 'desc')
-        );
-        
-        // Fix: Use correct onSnapshot function
-        firebase.firestore.onSnapshot(q, (querySnapshot) => {
+        const q = query(collection(db, 'poolSubmissions'), orderBy('timestamp', 'desc'));
+
+        onSnapshot(q, (querySnapshot) => {
             allSubmissions = [];
-            querySnapshot.forEach((doc) => {
-                const data = doc.data();
-                data.id = doc.id;
+            querySnapshot.forEach((docSnap) => {
+                const data = docSnap.data();
+                data.id = docSnap.id;
                 if (data.timestamp && data.timestamp.toDate) {
                     data.timestamp = data.timestamp.toDate();
                 }
@@ -106,7 +101,7 @@ function loadDashboardData() {
             updateFirebaseStatus(`Loaded ${allSubmissions.length} submissions`);
             
             if (isLoggedIn) {
-                filterAndDisplayData(); // Make sure this function exists
+                filterAndDisplayData();
             }
         }, (error) => {
             console.error('Error loading data: ', error);
@@ -310,45 +305,41 @@ function displayData() {
 }
 
 // Updated submitForm to save to both systems
-function submitFormAndSync() {
+// Try to save to Firebase
+async function submitFormAndSync() {
     // ... existing form validation code ...
     
-    const poolLocation = document.getElementById('poolLocation').value;
     const submission = {
-        id: Date.now().toString(),
+        id: Date.now(),
         timestamp: new Date(),
         firstName: document.getElementById('firstName').value,
         lastName: document.getElementById('lastName').value,
-        poolLocation: poolLocation,
+        poolLocation: document.getElementById('poolLocation').value,
         mainPoolPH: document.getElementById('mainPoolPH').value,
         mainPoolCl: document.getElementById('mainPoolCl').value,
         secondaryPoolPH: poolLocation === 'Camden CC' ? 'N/A' : document.getElementById('secondaryPoolPH').value,
         secondaryPoolCl: poolLocation === 'Camden CC' ? 'N/A' : document.getElementById('secondaryPoolCl').value
     };
     
-    // Add to local array
+    // Save to local storage first
     formSubmissions.push(submission);
     saveFormSubmissions();
     
     // Try to save to Firebase
     if (db) {
         try {
-            window.firebase.addDoc(window.firebase.collection(db, 'poolSubmissions'), {
+            await addDoc(collection(db, 'poolSubmissions'), {
                 ...submission,
-                timestamp: window.firebase.Timestamp.fromDate(submission.timestamp)
-            }).then(() => {
-                console.log('Submission saved to Firebase');
-            }).catch((error) => {
-                console.warn('Could not save to Firebase:', error);
+                timestamp: Timestamp.fromDate(submission.timestamp)
             });
+            console.log('Submission saved to Firebase');
         } catch (error) {
-            console.warn('Firebase not available for saving:', error);
+            console.warn('Could not save to Firebase:', error);
         }
     }
     
     showMessage('Submission saved successfully!', 'success');
     
-    // Refresh dashboard if visible
     if (document.getElementById('supervisorDashboard').style.display === 'block') {
         loadDashboardData();
     }
@@ -376,94 +367,48 @@ async function initializeSanitationSettings() {
     const statusDiv = document.getElementById('firebaseStatus');
     
     console.log('Initializing sanitation settings...');
+    updateFirebaseStatus('Loading settings from Firebase...');
     
     // Set defaults first
     pools.forEach(pool => {
-        sanitationSettings[pool] = 'bleach'; // Default to bleach
+        sanitationSettings[pool] = 'bleach';
     });
 
-    // Check if Firebase is ready, or wait for it
-    if (!window.firebase || !window.firebase.ready) {
-        console.log('Waiting for Firebase to be ready...');
-        await new Promise((resolve) => {
-            const checkFirebase = () => {
-                if (window.firebase && window.firebase.ready) {
-                    console.log('Firebase is now ready');
-                    resolve();
-                } else {
-                    setTimeout(checkFirebase, 100);
-                }
-            };
-            
-            // Also listen for the firebaseReady event
-            window.addEventListener('firebaseReady', resolve, { once: true });
-            
-            // Start checking
-            checkFirebase();
-            
-            // Timeout after 10 seconds
-            setTimeout(() => {
-                console.warn('Firebase initialization timeout, proceeding with localStorage');
-                resolve();
-            }, 10000);
-        });
-    }
-
-    // Try to load from Firebase if available
     try {
-        if (window.firebase && window.firebase.db && window.firebase.ready) {
-            console.log('Loading settings from Firebase...');
-            if (statusDiv) statusDiv.textContent = 'Loading settings from cloud...';
-            const { db, doc, getDoc } = window.firebase;
-            const settingsDoc = await getDoc(doc(db, 'settings', 'sanitationMethods'));
+        if (db) {
+            const settingsRef = doc(db, 'settings', 'sanitationMethods');
+            const settingsDoc = await getDoc(settingsRef);
             
             if (settingsDoc.exists()) {
                 const firebaseSettings = settingsDoc.data();
-                // Merge Firebase settings with defaults
                 Object.assign(sanitationSettings, firebaseSettings);
                 console.log('Successfully loaded sanitation settings from Firebase:', sanitationSettings);
-                if (statusDiv) statusDiv.textContent = 'Settings synced with cloud ✓';
+                updateFirebaseStatus('Settings synced with cloud ✓');
             } else {
-                console.log('No Firebase settings found, using defaults');
-                if (statusDiv) statusDiv.textContent = 'Using default settings';
-                
-                // Save default settings to Firebase for next time
-                const { setDoc } = window.firebase;
-                await setDoc(doc(db, 'settings', 'sanitationMethods'), sanitationSettings);
-                console.log('Saved default settings to Firebase');
+                console.log('No Firebase settings found, saving defaults');
+                await setDoc(settingsRef, sanitationSettings);
+                updateFirebaseStatus('Default settings saved to cloud');
             }
         } else {
-            console.log('Firebase not available, using localStorage');
-            // Fallback to localStorage if Firebase not available
-            if (statusDiv) statusDiv.textContent = 'Loading local settings...';
-            const saved = localStorage.getItem('sanitationSettings');
-            if (saved) {
-                sanitationSettings = JSON.parse(saved);
-                console.log('Loaded sanitation settings from localStorage:', sanitationSettings);
-                if (statusDiv) statusDiv.textContent = 'Using local settings';
-            } else {
-                console.log('No localStorage settings found, using defaults');
-                if (statusDiv) statusDiv.textContent = 'Using default settings';
-                // Save defaults to localStorage
-                localStorage.setItem('sanitationSettings', JSON.stringify(sanitationSettings));
-            }
+            throw new Error('Database not initialized');
         }
     } catch (error) {
         console.warn('Could not load settings from Firebase, using localStorage fallback:', error);
-        if (statusDiv) statusDiv.textContent = 'Using local settings (offline)';
+        updateFirebaseStatus('Using local settings (offline)');
+        
         // Fallback to localStorage
         const saved = localStorage.getItem('sanitationSettings');
         if (saved) {
             sanitationSettings = JSON.parse(saved);
             console.log('Loaded sanitation settings from localStorage fallback:', sanitationSettings);
         } else {
-            // Save defaults to localStorage
             localStorage.setItem('sanitationSettings', JSON.stringify(sanitationSettings));
             console.log('Saved default settings to localStorage');
         }
     }
     
     console.log('Final sanitationSettings after initialization:', sanitationSettings);
+    updateSanitationUI();
     
     // Hide status after 3 seconds
     setTimeout(() => {
@@ -480,10 +425,10 @@ function loadDashboardData() {
     if (db) {
         // Try to load from Firebase with CORRECT function names
         try {
-            const q = firebase.firestore().collection('poolSubmissions')
+            const q = db.collection('poolSubmissions')
                 .orderBy('timestamp', 'desc');
             
-            // Set up real-time listener with CORRECT function name
+            // Set up real-time listener
             q.onSnapshot((querySnapshot) => {
                 const firebaseSubmissions = [];
                 querySnapshot.forEach((doc) => {
@@ -569,29 +514,25 @@ async function initializeSanitationSettings() {
         sanitationSettings[pool] = 'bleach'; // Default to bleach
     });
 
-    try {
-        if (db) {
-            const settingsDocRef = window.firebase.collection(db, 'settings');
-            const settingsQuery = window.firebase.query(settingsDocRef);
-            const querySnapshot = await window.firebase.getDocs(settingsQuery);
-            
-            if (!querySnapshot.empty) {
-                querySnapshot.forEach((doc) => {
-                    if (doc.id === 'sanitationMethods') {
-                        const firebaseSettings = doc.data();
-                        Object.assign(sanitationSettings, firebaseSettings);
-                        console.log('Successfully loaded sanitation settings from Firebase:', sanitationSettings);
-                        updateFirebaseStatus('Settings synced with cloud ✓');
-                    }
-                });
-            } else {
-                console.log('No Firebase settings found, saving defaults');
-                await saveSanitationSettings();
-                updateFirebaseStatus('Default settings saved to cloud');
-            }
+   try {
+    if (db) {
+        // Correct way - use the db instance you already have
+        const settingsRef = db.collection('settings').doc('sanitationMethods');
+        const settingsDoc = await settingsRef.get();
+        
+        if (settingsDoc.exists) {
+            const firebaseSettings = settingsDoc.data();
+            Object.assign(sanitationSettings, firebaseSettings);
+            console.log('Successfully loaded sanitation settings from Firebase:', sanitationSettings);
+            updateFirebaseStatus('Settings synced with cloud ✓');
         } else {
-            throw new Error('Database not initialized');
+            console.log('No Firebase settings found, saving defaults');
+            await settingsRef.set(sanitationSettings);
+            updateFirebaseStatus('Default settings saved to cloud');
         }
+    } else {
+        throw new Error('Database not initialized');
+    }
     } catch (error) {
         console.warn('Could not load settings from Firebase, using localStorage fallback:', error);
         updateFirebaseStatus('Using local settings (offline)');
@@ -622,10 +563,7 @@ async function initializeSanitationSettings() {
 async function saveSanitationSettings() {
     try {
         if (db) {
-            await window.firebase.addDoc(window.firebase.collection(db, 'settings'), {
-                ...sanitationSettings,
-                id: 'sanitationMethods'
-            });
+            await setDoc(doc(db, 'settings', 'sanitationMethods'), sanitationSettings);
             console.log('Saved sanitation settings to Firebase');
         }
     } catch (error) {
@@ -1252,8 +1190,7 @@ async function handleSanitationChange(checkbox) {
     
     // Try to save to Firebase if available
     try {
-        if (window.firebase && window.firebase.db && window.firebase.ready) {
-            const { db, doc, setDoc } = window.firebase;
+        if (db) {
             await setDoc(doc(db, 'settings', 'sanitationMethods'), sanitationSettings);
             console.log('Successfully saved sanitation settings to Firebase');
         } else {
