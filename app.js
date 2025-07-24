@@ -218,21 +218,16 @@ function getHighlightColor(value, type) {
 
 // Updated displayData function
 function displayData() {
-    console.log('displayData called, paginatedData length:', paginatedData.length);
+    console.log('displayData called');
+    console.log('allSubmissions length:', allSubmissions.length);
+    console.log('paginatedData length:', paginatedData.length);
     console.log('currentPage:', currentPage);
-    console.log('Table bodies found:', !!document.getElementById('dataTableBody1'), !!document.getElementById('dataTableBody2'));
-    console.log('Displaying data, current page:', currentPage);
     
     const tbody1 = document.getElementById('dataTableBody1');
     const tbody2 = document.getElementById('dataTableBody2');
     
-    if (!tbody1 || !tbody2) {
-        console.error('Table bodies not found!');
-        return;
-    }
-    
-    tbody1.innerHTML = '';
-    tbody2.innerHTML = '';
+    console.log('tbody1 found:', !!tbody1);
+    console.log('tbody2 found:', !!tbody2);
     
     if (paginatedData.length === 0 || !paginatedData[currentPage]) {
         tbody1.innerHTML = '<tr><td colspan="4" style="text-align: center; padding: 30px; color: #666;">No data found</td></tr>';
@@ -363,15 +358,11 @@ function submitFormAndSync() {
 
 // Updated showDashboard function
 function showDashboard() {
-    console.log('Showing dashboard...');
-    
+    console.log('showDashboard called');
     document.getElementById('mainForm').style.display = 'none';
     document.getElementById('supervisorDashboard').style.display = 'block';
     
-    // Update header buttons
-    updateHeaderButtons();
-    
-    // Load and display data
+    console.log('Dashboard is now visible, calling loadDashboardData...');
     loadDashboardData();
 }
 
