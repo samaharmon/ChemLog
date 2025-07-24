@@ -3,73 +3,68 @@
 // (Corrected - Duplicates Removed)
 // ===================================================
 
-// ===== APP.JS FUNCTIONS (31 functions) =====
-function loadFormSubmissions() { /* implementation below */ }
-function saveFormSubmissions() { /* implementation below */ }
-function getHighlightColor(value, type) { /* implementation below */ }
-function getPoolWarningLevel(mainPH, mainCl, secPH, secCl) { /* implementation below */ }
-function isMoreThan3HoursOld(timestamp) { /* implementation below */ }
-function updateTimestampNote() { /* implementation below */ }
-function organizePaginatedData(data) { /* implementation below */ }
-function updatePaginationControls() { /* implementation below */ }
-function getClResponse(poolLocation, isMainPool, clValue) { /* implementation below */ }
-function initializeFormSubmissions() { /* implementation below */ }
-function evaluateFormFeedback() { /* implementation below */ }
-function displayData() { /* implementation below */ }
-function submitFormAndSync() { /* implementation below */ }
-function loadDashboardData() { /* implementation below */ }
-function useLocalDataOnly() { /* implementation below */ }
-function filterAndDisplayData() { /* implementation below */ }
-function initializeFirebase() { /* implementation below */ }
-function initializeSanitationSettings() { /* implementation below */ }
-function saveSanitationSettings() { /* implementation below */ }
-function loadSanitationSettings() { /* implementation below */ }
-function updateSanitationUI() { /* implementation below */ }
-function handlePoolLocationChange() { /* implementation below */ }
-function handleLoginSubmit(event) { /* implementation below */ }
-function setupEventHandlers() { /* implementation below */ }
-function updateHeaderButtons() { /* implementation below */ }
-function updateFirebaseStatus(message, isError) { /* implementation below */ }
-function checkLoginStatus() { /* implementation below */ }
-function checkLogin() { /* implementation below */ }
-function createOrShowOverlay() { /* implementation below */ }
-function validateFirebaseConfig() { /* implementation below */ }
-function debugLoginState() { /* implementation below */ }
-
-// ===== APPTWO.JS FUNCTIONS (17 functions) =====
-function showMessage(message, type) { /* implementation below */ }
-function showFeedback(message, type) { /* implementation below */ }
-function handleLocationChange() { /* implementation below */ }
-function areAllCheckboxesChecked() { /* implementation below */ }
-function closeModal() { /* implementation below */ }
-function notifySupervisor() { /* implementation below */ }
-function showRecipientSelectionInModal(modal) { /* implementation below */ }
-function showFeedbackModal(messages, isGood, setpointImgNeeded) { /* implementation below */ }
-function updatePagination() { /* implementation below */ }
-function goToPreviousPage() { /* implementation below */ }
-function goToNextPage() { /* implementation below */ }
-function logout() { /* implementation below */ }
-function exportToCSV() { /* implementation below */ }
-function handleSanitationChange(checkbox) { /* implementation below */ }
-function submitForm() { /* implementation below */ }
-function showDashboard() { /* implementation below */ }
-function filterData() { /* implementation below */ }
-
-// ===== APPTHREE.JS FUNCTIONS (14 functions) =====
-function clearAllData() { /* implementation below */ }
-function deleteSubmission(submissionId) { /* implementation below */ }
-function changePage(pageNumber) { /* implementation below */ }
-function checkForCriticalAlerts() { /* implementation below */ }
-function chooseAndSendSMS() { /* implementation below */ }
-function toggleMenu() { /* implementation below */ }
-function showSettings() { /* implementation below */ }
-function closeSettings() { /* implementation below */ }
-function sendSMSNotification(message, phoneNumber) { /* implementation below */ }
-function debugApp() { /* implementation below */ }
-function removeOverlay() { /* implementation below */ }
-function resetForm() { /* implementation below */ }
-function openLoginModal() { /* implementation below */ }
-function openSettings() { /* implementation below */ }
+var loadFormSubmissions; // Will be implemented below
+var saveFormSubmissions; // Will be implemented below
+var getHighlightColor; // Will be implemented below
+var getPoolWarningLevel; // Will be implemented below
+var isMoreThan3HoursOld; // Will be implemented below
+var updateTimestampNote; // Will be implemented below
+var organizePaginatedData; // Will be implemented below
+var updatePaginationControls; // Will be implemented below
+var getClResponse; // Will be implemented below
+var initializeFormSubmissions; // Will be implemented below
+var evaluateFormFeedback; // Will be implemented below
+var displayData; // Will be implemented below
+var submitFormAndSync; // Will be implemented below
+var loadDashboardData; // Will be implemented below
+var useLocalDataOnly; // Will be implemented below
+var filterAndDisplayData; // Will be implemented below
+var initializeFirebase; // Will be implemented below
+var initializeSanitationSettings; // Will be implemented below
+var saveSanitationSettings; // Will be implemented below
+var loadSanitationSettings; // Will be implemented below
+var updateSanitationUI; // Will be implemented below
+var handlePoolLocationChange; // Will be implemented below
+var handleLoginSubmit; // Will be implemented below
+var setupEventHandlers; // Will be implemented below
+var updateHeaderButtons; // Will be implemented below
+var updateFirebaseStatus; // Will be implemented below
+var checkLoginStatus; // Will be implemented below
+var checkLogin; // Will be implemented below
+var createOrShowOverlay; // Will be implemented below
+var validateFirebaseConfig; // Will be implemented below
+var debugLoginState; // Will be implemented below
+var showMessage; // Will be implemented below
+var showFeedback; // Will be implemented below
+var handleLocationChange; // Will be implemented below
+var areAllCheckboxesChecked; // Will be implemented below
+var closeModal; // Will be implemented below
+var notifySupervisor; // Will be implemented below
+var showRecipientSelectionInModal; // Will be implemented below
+var showFeedbackModal; // Will be implemented below
+var updatePagination; // Will be implemented below
+var goToPreviousPage; // Will be implemented below
+var goToNextPage; // Will be implemented below
+var logout; // Will be implemented below
+var exportToCSV; // Will be implemented below
+var handleSanitationChange; // Will be implemented below
+var submitForm; // Will be implemented below
+var showDashboard; // Will be implemented below
+var filterData; // Will be implemented below
+var clearAllData; // Will be implemented below
+var deleteSubmission; // Will be implemented below
+var changePage; // Will be implemented below
+var checkForCriticalAlerts; // Will be implemented below
+var chooseAndSendSMS; // Will be implemented below
+var toggleMenu; // Will be implemented below
+var showSettings; // Will be implemented below
+var closeSettings; // Will be implemented below
+var sendSMSNotification; // Will be implemented below
+var debugApp; // Will be implemented below
+var removeOverlay; // Will be implemented below
+var resetForm; // Will be implemented below
+var openLoginModal; // Will be implemented below
+var openSettings; // Will be implemented below
 
 // ===================================================
 // CORRECTED TOTALS:
@@ -77,110 +72,6 @@ function openSettings() { /* implementation below */ }
 // APPTWO.JS: 17 functions  
 // APPTHREE.JS: 14 functions
 // TOTAL: 62 unique functions
-// ===================================================
-
-// ===================================================
-// COMPREHENSIVE GLOBAL ASSIGNMENTS (62 Functions - Corrected)
-// ===================================================
-
-// Core form and submission functions (6)
-window.submitForm = submitFormAndSync;
-window.submitFormAndSync = submitFormAndSync;
-window.loadFormSubmissions = loadFormSubmissions;
-window.saveFormSubmissions = saveFormSubmissions;
-window.initializeFormSubmissions = initializeFormSubmissions;
-window.evaluateFormFeedback = evaluateFormFeedback;
-
-// Form handling (3)
-window.resetForm = resetForm;
-window.handlePoolLocationChange = handlePoolLocationChange;
-window.handleLocationChange = handleLocationChange;
-
-// Authentication and login (6)
-window.openLoginModal = openLoginModal;
-window.closeLoginModal = closeLoginModal;
-window.handleLoginSubmit = handleLoginSubmit;
-window.checkLogin = checkLogin;
-window.checkLoginStatus = checkLoginStatus;
-window.logout = logout;
-
-// Dashboard and data display (6)
-window.showDashboard = showDashboard;
-window.loadDashboardData = loadDashboardData;
-window.displayData = displayData;
-window.filterAndDisplayData = filterAndDisplayData;
-window.filterData = filterData;
-window.useLocalDataOnly = useLocalDataOnly;
-
-// Pagination (5)
-window.goToPreviousPage = goToPreviousPage;
-window.goToNextPage = goToNextPage;
-window.updatePagination = updatePagination;
-window.updatePaginationControls = updatePaginationControls;
-window.changePage = changePage;
-
-// Data management (4)
-window.deleteSubmission = deleteSubmission;
-window.clearAllData = clearAllData;
-window.exportToCSV = exportToCSV;
-window.organizePaginatedData = organizePaginatedData;
-
-// UI and utility functions (5)
-window.getHighlightColor = getHighlightColor;
-window.getPoolWarningLevel = getPoolWarningLevel;
-window.isMoreThan3HoursOld = isMoreThan3HoursOld;
-window.updateTimestampNote = updateTimestampNote;
-window.getClResponse = getClResponse;
-
-// Modals and overlays (5)
-window.createOrShowOverlay = createOrShowOverlay;
-window.removeOverlay = removeOverlay;
-window.closeModal = closeModal;
-window.showFeedbackModal = showFeedbackModal;
-window.showRecipientSelectionInModal = showRecipientSelectionInModal;
-
-// Messages and feedback (4)
-window.showMessage = showMessage;
-window.showFeedback = showFeedback;
-window.notifySupervisor = notifySupervisor;
-window.areAllCheckboxesChecked = areAllCheckboxesChecked;
-
-// Settings management (7)
-window.openSettings = openSettings;
-window.showSettings = showSettings;
-window.closeSettings = closeSettings;
-window.handleSanitationChange = handleSanitationChange;
-window.initializeSanitationSettings = initializeSanitationSettings;
-window.saveSanitationSettings = saveSanitationSettings;
-window.loadSanitationSettings = loadSanitationSettings;
-window.updateSanitationUI = updateSanitationUI;
-
-// SMS and notifications (3)
-window.sendSMSNotification = sendSMSNotification;
-window.chooseAndSendSMS = chooseAndSendSMS;
-window.checkForCriticalAlerts = checkForCriticalAlerts;
-
-// Menu and navigation (1)
-window.toggleMenu = toggleMenu;
-
-// Firebase functions (3)
-window.initializeFirebase = initializeFirebase;
-window.updateFirebaseStatus = updateFirebaseStatus;
-window.validateFirebaseConfig = validateFirebaseConfig;
-
-// Event handlers and setup (2)
-window.setupEventHandlers = setupEventHandlers;
-window.updateHeaderButtons = updateHeaderButtons;
-
-// Debug functions (2)
-window.debugApp = debugApp;
-window.debugLoginState = debugLoginState;
-
-console.log('✅ All 62 unique functions exposed globally');
-
-// ===================================================
-// FINAL COUNT VERIFICATION:
-// 6+3+6+6+5+4+5+5+4+7+3+1+3+2+2 = 62 functions total
 // ===================================================
 
 const firebaseConfig = {
@@ -714,6 +605,10 @@ async function submitFormAndSync() {
         return;
     }
 
+function submitForm() {
+    return submitFormAndSync();
+}
+
 function evaluateFormFeedback(formData) {
     const poolLocation = document.getElementById('poolLocation').value;
     const mainPH = document.getElementById('mainPoolPH').value;  // ADD THIS LINE
@@ -1234,32 +1129,27 @@ document.addEventListener('DOMContentLoaded', function() {
     console.log('🔥🔥🔥 UNIFIED APP.JS LOADED - Firebase v9 🔥🔥🔥');
     
     // Initialize Firebase v9 first
-    const firebaseInitialized = initializeFirebase(); // Changed from initializeApp()
+    const firebaseInitialized = initializeFirebase();
     
     // Initialize app components
     checkLogin();
     initializeFormSubmissions();
     
-    // Set up login form handler
+    // Set up login form handler - FIX: Use the function directly, not from window
     const loginForm = document.getElementById('loginForm');
     if (loginForm) {
         loginForm.addEventListener('submit', handleLoginSubmit);
         console.log('✅ Login form handler attached');
-    } else {
-        console.warn('⚠️ Login form not found during initialization');
     }
     
-    // Set up pool location change handler
+    // Set up pool location change handler - FIX: Use function directly
     const poolLocation = document.getElementById('poolLocation');
     if (poolLocation) {
         poolLocation.addEventListener('change', handlePoolLocationChange);
         console.log('✅ Pool location handler attached');
     }
     
-    // Set up other event handlers
     setupEventHandlers();
-    
-    // Initial header button setup
     updateHeaderButtons();
     
     console.log('🚀 App initialization complete');
@@ -2391,3 +2281,107 @@ function debugApp() {
 }
 
 window.debugApp = debugApp;
+
+// ===================================================
+// COMPREHENSIVE GLOBAL ASSIGNMENTS (62 Functions - Corrected)
+// ===================================================
+
+// Core form and submission functions (6)
+window.submitForm = submitFormAndSync;
+window.submitFormAndSync = submitFormAndSync;
+window.loadFormSubmissions = loadFormSubmissions;
+window.saveFormSubmissions = saveFormSubmissions;
+window.initializeFormSubmissions = initializeFormSubmissions;
+window.evaluateFormFeedback = evaluateFormFeedback;
+
+// Form handling (3)
+window.resetForm = resetForm;
+window.handlePoolLocationChange = handlePoolLocationChange;
+window.handleLocationChange = handleLocationChange;
+
+// Authentication and login (6)
+window.openLoginModal = openLoginModal;
+window.closeLoginModal = closeLoginModal;
+window.handleLoginSubmit = handleLoginSubmit;
+window.checkLogin = checkLogin;
+window.checkLoginStatus = checkLoginStatus;
+window.logout = logout;
+
+// Dashboard and data display (6)
+window.showDashboard = showDashboard;
+window.loadDashboardData = loadDashboardData;
+window.displayData = displayData;
+window.filterAndDisplayData = filterAndDisplayData;
+window.filterData = filterData;
+window.useLocalDataOnly = useLocalDataOnly;
+
+// Pagination (5)
+window.goToPreviousPage = goToPreviousPage;
+window.goToNextPage = goToNextPage;
+window.updatePagination = updatePagination;
+window.updatePaginationControls = updatePaginationControls;
+window.changePage = changePage;
+
+// Data management (4)
+window.deleteSubmission = deleteSubmission;
+window.clearAllData = clearAllData;
+window.exportToCSV = exportToCSV;
+window.organizePaginatedData = organizePaginatedData;
+
+// UI and utility functions (5)
+window.getHighlightColor = getHighlightColor;
+window.getPoolWarningLevel = getPoolWarningLevel;
+window.isMoreThan3HoursOld = isMoreThan3HoursOld;
+window.updateTimestampNote = updateTimestampNote;
+window.getClResponse = getClResponse;
+
+// Modals and overlays (5)
+window.createOrShowOverlay = createOrShowOverlay;
+window.removeOverlay = removeOverlay;
+window.closeModal = closeModal;
+window.showFeedbackModal = showFeedbackModal;
+window.showRecipientSelectionInModal = showRecipientSelectionInModal;
+
+// Messages and feedback (4)
+window.showMessage = showMessage;
+window.showFeedback = showFeedback;
+window.notifySupervisor = notifySupervisor;
+window.areAllCheckboxesChecked = areAllCheckboxesChecked;
+
+// Settings management (7)
+window.openSettings = openSettings;
+window.showSettings = showSettings;
+window.closeSettings = closeSettings;
+window.handleSanitationChange = handleSanitationChange;
+window.initializeSanitationSettings = initializeSanitationSettings;
+window.saveSanitationSettings = saveSanitationSettings;
+window.loadSanitationSettings = loadSanitationSettings;
+window.updateSanitationUI = updateSanitationUI;
+
+// SMS and notifications (3)
+window.sendSMSNotification = sendSMSNotification;
+window.chooseAndSendSMS = chooseAndSendSMS;
+window.checkForCriticalAlerts = checkForCriticalAlerts;
+
+// Menu and navigation (1)
+window.toggleMenu = toggleMenu;
+
+// Firebase functions (3)
+window.initializeFirebase = initializeFirebase;
+window.updateFirebaseStatus = updateFirebaseStatus;
+window.validateFirebaseConfig = validateFirebaseConfig;
+
+// Event handlers and setup (2)
+window.setupEventHandlers = setupEventHandlers;
+window.updateHeaderButtons = updateHeaderButtons;
+
+// Debug functions (2)
+window.debugApp = debugApp;
+window.debugLoginState = debugLoginState;
+
+console.log('✅ All 62 unique functions exposed globally');
+
+// ===================================================
+// FINAL COUNT VERIFICATION:
+// 6+3+6+6+5+4+5+5+4+7+3+1+3+2+2 = 62 functions total
+// ===================================================
