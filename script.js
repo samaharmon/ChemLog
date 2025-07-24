@@ -1732,6 +1732,34 @@ function updateFirebaseStatus(message, isError = false) {
     }
 }
 
+function showForm() {
+    console.log('Showing Form View');
+    currentView = 'form';
+
+    const mainForm = document.getElementById('mainForm'); // Corrected ID from 'mainFormContainer'
+    const supervisorDashboard = document.getElementById('supervisorDashboard');
+
+    // Modals (added checks for existence)
+    const loginModal = document.getElementById('loginModal');
+    const feedbackModal = document.getElementById('feedbackModal');
+    const settingsModal = document.getElementById('settingsModal');
+    const exportModal = document.getElementById('exportModal'); // No ID exists in HTML for this
+    const emailSelectionModal = document.getElementById('emailSelectionModal'); // No ID exists in HTML for this
+    
+    // Apply display styles with checks
+    if (mainForm) mainForm.style.display = 'block'; else console.error("Main form element (id='mainForm') not found!");
+    if (supervisorDashboard) supervisorDashboard.style.display = 'none'; else console.warn("Supervisor dashboard element (id='supervisorDashboard') not found when showing form!");
+
+    if (loginModal) loginModal.style.display = 'none';
+    if (feedbackModal) feedbackModal.style.display = 'none';
+    if (settingsModal) settingsModal.style.display = 'none';
+    if (exportModal) exportModal.style.display = 'none'; // Only hide if element exists
+    if (emailSelectionModal) emailSelectionModal.style.display = 'none'; // Only hide if element exists
+    
+    removeOverlay();
+    updateHeaderButtons();
+}
+
 // Check login status
 function checkLoginStatus() {
     const token = localStorage.getItem('loginToken');
