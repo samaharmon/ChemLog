@@ -630,56 +630,119 @@ function handlePoolLocationChange() {
 
 function handleLoginSubmit(e) {
     e.preventDefault();
-    console.log('Login form submitted'); // Debug log
+    console.log('Login form submitted');
     
     const emailInput = document.querySelector('#loginForm input[name="email"]');
     const passwordInput = document.querySelector('#loginForm input[name="password"]');
     
     if (!emailInput || !passwordInput) {
-        console.log('Login inputs not found'); // Debug log
+        console.error('Login inputs not found');
         showMessage('Login form inputs not found.', 'error');
         return;
     }
     
-    const email = emailInput.value;
-    const password = passwordInput.value;
+    const email = emailInput.value.trim();
+    const password = passwordInput.value.trim();
     
-    console.log('Login attempt with email:', email); // Debug log (remove in production)
+    console.log('Login attempt with email:', email);
     
     if (email === supervisorCredentials.email && password === supervisorCredentials.password) {
+        console.log('Login successful');
+        
+        // Set login state
+        isLoggedIn = true;
+        
         // Set persistent login token for 1 month
         const expires = Date.now() + 30 * 24 * 60 * 60 * 1000;
         localStorage.setItem('loginToken', JSON.stringify({ username: email, expires }));
+        
+        // Close modal and show dashboard
         closeLoginModal();
         showDashboard();
-        loadDashboardData();
+        
+        // Update header buttons
+        updateHeaderButtons();
+        
         showMessage('Login successful!', 'success');
     } else {
+        console.log('Invalid credentials provided');
         showMessage('Invalid credentials. Please try again.', 'error');
     }
 }
 
-document.addEventListener('DOMContentLoaded', async function () {
+function setupEventHandlers() {
+    // Pool location change handler
+    const poolLocation = document.getElementById('poolLocation');
+    if (poolLocation) {
+        poolLocation.addEventListener('change', handlePoolLocationChange);
+    }
+    
+    // Form submission (if you have a submit button)
+    const submitBtn = document.getElementById('submitBtn');
+    if (submitBtn) {
+        submitBtn.addEventListener('click', (e) => {
+            e.preventDefault();
+            submitForm();
+        });
+    }
+    
+    // Close modal when clicking outside
+    document.addEventListener('click', (e) => {
+        const modal = document.getElementById('loginModal');
+        if (modal && e.target === modal) {
+            closeLoginModal();
+        }
+    });
+    
+    // Close modal with Escape key
+    document.addEventListener('keydown', (e) => {
+        if (e.key === 'Escape') {
+            const modal = document.getElementById('loginModal');
+            if (modal && modal.style.display === 'block') {
+                closeLoginModal();
+            }
+        }
+    });
+    
+    console.log('Event handlers set up');
+}
+
+document.addEventListener('DOMContentLoaded', function() {
     console.log('🔥🔥🔥 UNIFIED APP.JS LOADED 🔥🔥🔥');
     
     // Initialize app FIRST
     checkLogin();
     initializeApp();
-    initializeFormSubmissions(); // ADD THIS LINE
+    initializeFormSubmissions();
     
-    // ... rest of your existing code
+    // CRITICAL: Set up login form handler
+    const loginForm = document.getElementById('loginForm');
+    if (loginForm) {
+        loginForm.addEventListener('submit', handleLoginSubmit);
+        console.log('Login form handler attached');
+    } else {
+        console.warn('Login form not found during initialization');
+    }
+    
+    // Set up other event handlers
+    setupEventHandlers();
 });
 
 
 // Replace the existing updateHeaderButtons function:
 function updateHeaderButtons() {
+    console.log('updateHeaderButtons called, isLoggedIn:', isLoggedIn);
+    
     // Remove any existing header buttons first
     document.querySelectorAll('.supervisor-login-btn, .logout-btn, .menu-container').forEach(btn => {
         btn.remove();
     });
     
     const headerRight = document.querySelector('.header-right');
-    if (!headerRight) return;
+    if (!headerRight) {
+        console.error('Header right element not found');
+        return;
+    }
     
     if (isLoggedIn) {
         // Show menu and logout buttons for dashboard
@@ -693,11 +756,13 @@ function updateHeaderButtons() {
                 </div>
             </div>
         `;
+        console.log('Header updated for logged in state');
     } else {
-        // Show only one supervisor login button for form view
+        // Show only supervisor login button for form view
         headerRight.innerHTML = `
             <button class="supervisor-login-btn" onclick="openLoginModal()">Supervisor Login</button>
         `;
+        console.log('Header updated for logged out state');
     }
 }
 
@@ -729,15 +794,27 @@ function checkLoginStatus() {
 function checkLogin() {
     const token = localStorage.getItem('loginToken');
     if (token) {
-        const { username, expires } = JSON.parse(token);
-        if (Date.now() < expires) {
-            showDashboard();
-            return true;
-        } else {
+        try {
+            const { username, expires } = JSON.parse(token);
+            if (Date.now() < expires) {
+                console.log('Valid login token found');
+                isLoggedIn = true;
+                showDashboard();
+                updateHeaderButtons();
+                return true;
+            } else {
+                console.log('Login token expired');
+                localStorage.removeItem('loginToken');
+            }
+        } catch (error) {
+            console.error('Error parsing login token:', error);
             localStorage.removeItem('loginToken');
         }
     }
-    // Don't automatically show login form - let user click supervisor login button
+    
+    // Ensure we're in logged out state
+    isLoggedIn = false;
+    updateHeaderButtons();
     return false;
 }
 
@@ -745,21 +822,39 @@ function openLoginModal() {
     console.log('openLoginModal called');
     
     const modal = document.getElementById('loginModal');
-    console.log('Modal element found:', !!modal);
+    if (!modal) {
+        console.error('Login modal not found in DOM');
+        return;
+    }
     
+    // Create overlay
     createOrShowOverlay();
     
-    if (modal) {
-        modal.style.display = 'block';
-        console.log('Modal display set to block');
-        console.log('Modal computed style:', window.getComputedStyle(modal).display);
+    // Show modal
+    modal.style.display = 'block';
+    
+    // Focus on first input
+    const firstInput = modal.querySelector('input[name="email"]');
+    if (firstInput) {
+        setTimeout(() => firstInput.focus(), 100);
     }
+    
+    console.log('Login modal opened');
 }
 
 function closeLoginModal() {
-    document.getElementById('loginModal').style.display = 'none';
-    document.getElementById('loginForm').reset();
+    const modal = document.getElementById('loginModal');
+    if (modal) {
+        modal.style.display = 'none';
+    }
+    
+    const loginForm = document.getElementById('loginForm');
+    if (loginForm) {
+        loginForm.reset();
+    }
+    
     removeOverlay();
+    console.log('Login modal closed');
 }
 
 function createOrShowOverlay() {
@@ -780,6 +875,22 @@ function removeOverlay() {
         overlay.style.display = 'none'; // Hide the overlay
     }
 }
+
+function debugLoginState() {
+    console.log('=== LOGIN DEBUG INFO ===');
+    console.log('isLoggedIn:', isLoggedIn);
+    console.log('currentView:', currentView);
+    console.log('Login modal exists:', !!document.getElementById('loginModal'));
+    console.log('Login form exists:', !!document.getElementById('loginForm'));
+    console.log('Header right exists:', !!document.querySelector('.header-right'));
+    console.log('Supervisor login button exists:', !!document.querySelector('.supervisor-login-btn'));
+    console.log('Login token:', localStorage.getItem('loginToken'));
+    console.log('========================');
+}
+
+window.debugLoginState = debugLoginState;
+
+console.log('🔧 Login functionality fixes applied');
 
 // ===================================================
 // FORM SUBMISSION
@@ -882,103 +993,28 @@ window.submitForm = submitFormAndSync;
 
 // Load dashboard data with real-time updates
 function showDashboard() {
-    document.getElementById('mainForm').style.display = 'none';
-    document.getElementById('supervisorDashboard').style.display = 'block';
+    console.log('showDashboard called');
     
-    // Ensure the menu button is visible in the dashboard
-    const dashboardHeader = document.querySelector('.dashboard .header-left');
-    if (dashboardHeader) {
-        // Remove supervisor login button if it exists
-        const loginBtn = document.querySelector('.supervisor-login-btn');
-        if (loginBtn) {
-            loginBtn.style.display = 'none';
-        }
-        
-        // Check if menu container already exists
-        let menuContainer = dashboardHeader.querySelector('.menu-container');
-        if (!menuContainer) {
-            // Create new menu container
-            menuContainer = document.createElement('div');
-            menuContainer.className = 'menu-container';
-            menuContainer.style.cssText = `
-                display: flex;
-                align-items: center;
-                gap: 10px;
-                margin-top: 5px;
-            `;
-            
-            // Create menu button (3 bars)
-            const menuButton = document.createElement('button');
-            menuButton.className = 'menu-btn';
-            menuButton.innerHTML = '☰';
-            menuButton.style.cssText = `
-                background-color: rgba(255, 255, 255, 0.2);
-                color: white;
-                border: 2px solid white;
-                border-radius: 0;
-                padding: 10px 15px;
-                cursor: pointer;
-                font-size: 18px;
-                font-family: 'Franklin Gothic Medium', Arial, sans-serif;
-                transition: background-color 0.3s;
-            `;
-            menuButton.onclick = toggleMenu;
-            
-            // Create dropdown menu
-            const dropdownMenu = document.createElement('div');
-            dropdownMenu.id = 'dropdownMenu';
-            dropdownMenu.className = 'dropdown-menu';
-            dropdownMenu.style.cssText = `
-                position: absolute;
-                top: 100%;
-                left: 0;
-                background-color: white;
-                border: 1px solid #ccc;
-                border-radius: 0px;
-                box-shadow: 0 4px 12px rgba(0,0,0,0.15);
-                display: none;
-                min-width: 150px;
-                z-index: 10000;
-                overflow: hidden;
-            `;
-            
-            const menuItems = [
-                { text: 'Settings', onclick: 'showSettings()' },
-                { text: 'Clear All Data', onclick: 'clearAllData()' },
-                { text: 'Logout', onclick: 'logout()' }
-            ];
-            
-            menuItems.forEach((item, index) => {
-                const menuItem = document.createElement('div');
-                menuItem.style.cssText = `
-                    padding: 12px 16px;
-                    cursor: pointer;
-                    font-family: 'Franklin Gothic Medium', Arial, sans-serif;
-                    color: #333;
-                    font-size: 14px;
-                    border-bottom: ${index < menuItems.length - 1 ? '1px solid #eee' : 'none'};
-                    background-color: white;
-                    transition: background-color 0.2s;
-                `;
-                menuItem.textContent = item.text;
-                menuItem.onclick = () => {
-                    eval(item.onclick);
-                    dropdownMenu.style.display = 'none';
-                };
-                menuItem.onmouseover = () => menuItem.style.backgroundColor = '#f5f5f5';
-                menuItem.onmouseout = () => menuItem.style.backgroundColor = 'white';
-                
-                dropdownMenu.appendChild(menuItem);
-            });
-            
-            menuContainer.appendChild(menuButton);
-            menuContainer.appendChild(dropdownMenu);
-            dashboardHeader.appendChild(menuContainer);
-        }
-    }
+    // Set login state
+    isLoggedIn = true;
+    currentView = 'dashboard';
     
-    loadDashboardData(); // This will now show all saved data
+    // Hide form, show dashboard
+    const mainForm = document.getElementById('mainForm');
+    const dashboard = document.getElementById('supervisorDashboard');
+    
+    if (mainForm) mainForm.style.display = 'none';
+    if (dashboard) dashboard.style.display = 'block';
+    
+    // Update header buttons
+    updateHeaderButtons();
+    
+    // Load dashboard data
+    loadDashboardData();
+    
+    console.log('Dashboard shown, isLoggedIn set to true');
 }
+
 
 // Filter dashboard data
 function filterData() {
@@ -1073,6 +1109,9 @@ function closeLoginModal() {
 // Logout function
 // Replace the existing logout function:
 function logout() {
+    console.log('logout called');
+    
+    // Reset state
     isLoggedIn = false;
     currentView = 'form';
     
@@ -1099,10 +1138,10 @@ function logout() {
     // Reset page
     currentPage = 1;
     
-    // Update header buttons
+    // Update header buttons AFTER setting isLoggedIn to false
     updateHeaderButtons();
     
-    console.log('Logged out successfully');
+    console.log('Logged out successfully, isLoggedIn set to false');
 }
 
 // ===================================================
@@ -2132,5 +2171,9 @@ window.initializeFormSubmissions = initializeFormSubmissions;
 window.openLoginModal = openLoginModal;
 window.closeLoginModal = closeLoginModal;
 window.handleLoginSubmit = handleLoginSubmit;
+window.checkLogin = checkLogin;
+window.logout = logout;
+window.updateHeaderButtons = updateHeaderButtons;
+
 
 console.log('🔥✅ Pool Chemistry Log App - All Functions Loaded! ✅🔥');
