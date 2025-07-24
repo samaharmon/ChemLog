@@ -1614,67 +1614,87 @@ document.addEventListener('DOMContentLoaded', function() {
 // Add all other functions you're calling in onclick attributes
 
 function updateHeaderButtons() {
-    console.log('updateHeaderButtons called, isLoggedIn:', isLoggedIn);
+    console.log('updateHeaderButtons called, isLoggedIn:', isLoggedIn, 'currentView:', currentView);
 
-    const headerRight = document.querySelector('.header-right');
-    if (!headerRight) {
-        console.error('Header right element not found');
+    const headerRight = document.querySelector('.header-right'); // For supervisor login button (when not logged in)
+    const headerLeft = document.querySelector('.header-left'); // Assuming 'Capital City Aquatics' is here
+    const dashboardMenuContainer = document.getElementById('dashboardMenuContainer'); // A new specific container for the dashboard menu
+
+    if (!headerRight || !headerLeft) {
+        console.error('Header elements (header-right or header-left) not found.');
         return;
     }
 
-    // Clear existing children to avoid duplicates and ensure clean state
-    headerRight.innerHTML = '';
+    // Clear specific header sections to avoid duplicates
+    headerRight.innerHTML = ''; // Always clear right side
+    if (dashboardMenuContainer) {
+        dashboardMenuContainer.innerHTML = ''; // Clear dashboard-specific menu container
+    }
 
     if (isLoggedIn) {
-        // Create menu container
-        const menuContainer = document.createElement('div');
-        menuContainer.className = 'menu-container';
+        // When logged in, the supervisor login button should NOT be there.
+        // The menu button should appear on the dashboard.
 
-        // Create menu button
-        const menuBtn = document.createElement('button');
-        menuBtn.className = 'menu-btn';
-        menuBtn.innerHTML = '☰';
-        // ATTACH EVENT LISTENER DIRECTLY HERE
-        menuBtn.addEventListener('click', toggleMenu);
-        menuContainer.appendChild(menuBtn);
+        if (currentView === 'dashboard') {
+            // ONLY show the menu button when on the dashboard and logged in
+            if (!dashboardMenuContainer) {
+                console.error('dashboardMenuContainer not found for menu button placement.');
+                // Fallback to headerRight if specific container not found (less ideal placement)
+                // console.warn('Falling back to headerRight for menu button.');
+                // createAndAppendMenu(headerRight); // If you must put it here.
+                return; // Exit if the designated spot for the menu button doesn't exist on dashboard
+            }
+            createAndAppendMenu(dashboardMenuContainer); // Append to the new, specific dashboard container
+        } else {
+            // If logged in but on the form page, ensure no menu button is shown.
+            // (The headerRight is already cleared above, good).
+            console.log("Logged in, but not on dashboard. Menu button suppressed.");
+        }
 
-        // Create dropdown menu
-        const dropdownMenu = document.createElement('div');
-        dropdownMenu.id = 'dropdownMenu';
-        dropdownMenu.className = 'dropdown-menu';
-        dropdownMenu.style.display = 'none'; // Initially hidden
-
-        // Add dropdown items
-        const settingsDiv = document.createElement('div');
-        settingsDiv.textContent = 'Settings';
-        settingsDiv.addEventListener('click', showSettings); // Attach listener
-        dropdownMenu.appendChild(settingsDiv);
-
-        const clearDataDiv = document.createElement('div');
-        clearDataDiv.textContent = 'Clear All Data';
-        clearDataDiv.addEventListener('click', clearAllData); // Attach listener
-        dropdownMenu.appendChild(clearDataDiv);
-
-        const logoutDiv = document.createElement('div');
-        logoutDiv.textContent = 'Logout';
-        logoutDiv.addEventListener('click', logout); // Attach listener
-        dropdownMenu.appendChild(logoutDiv);
-
-        menuContainer.appendChild(dropdownMenu);
-        headerRight.appendChild(menuContainer);
-
-        // Ensure toggleMenu has logic to close on outside click.
-        // The existing toggleMenu function already has this, but ensure it's robust.
     } else {
-        // Show supervisor login button
+        // When NOT logged in, show the supervisor login button on the right side.
         const supervisorLoginBtn = document.createElement('button');
         supervisorLoginBtn.className = 'supervisor-login-btn';
         supervisorLoginBtn.textContent = 'Supervisor Login';
-        // ATTACH EVENT LISTENER DIRECTLY HERE
         supervisorLoginBtn.addEventListener('click', openLoginModal);
         headerRight.appendChild(supervisorLoginBtn);
     }
 }
+
+function createAndAppendMenu(parentElement) {
+    const menuContainer = document.createElement('div');
+    menuContainer.className = 'menu-container'; // Keep this class for styling
+
+    const menuBtn = document.createElement('button');
+    menuBtn.className = 'menu-btn';
+    menuBtn.innerHTML = '☰';
+    menuBtn.addEventListener('click', toggleMenu);
+    menuContainer.appendChild(menuBtn);
+
+    const dropdownMenu = document.createElement('div');
+    dropdownMenu.id = 'dropdownMenu';
+    dropdownMenu.className = 'dropdown-menu';
+    dropdownMenu.style.display = 'none'; // Initially hidden
+
+    const settingsDiv = document.createElement('div');
+    settingsDiv.textContent = 'Settings';
+    settingsDiv.addEventListener('click', showSettings);
+    dropdownMenu.appendChild(settingsDiv);
+
+    const clearDataDiv = document.createElement('div');
+    clearDataDiv.textContent = 'Clear All Data';
+    clearDataDiv.addEventListener('click', clearAllData);
+    dropdownMenu.appendChild(clearDataDiv);
+
+    const logoutDiv = document.createElement('div');
+    logoutDiv.textContent = 'Logout';
+    logoutDiv.addEventListener('click', logout);
+    dropdownMenu.appendChild(logoutDiv);
+
+    menuContainer.appendChild(dropdownMenu);
+    parentElement.appendChild(menuContainer); // Append to the designated parent
+}
+
 
 // ===================================================
 // UTILITY FUNCTIONS
@@ -1691,13 +1711,26 @@ function updateFirebaseStatus(message, isError = false) {
 
 // Check login status
 function checkLoginStatus() {
-    const loginStatus = localStorage.getItem('isLoggedIn');
-    if (loginStatus === 'true') {
-        isLoggedIn = true;
-        document.getElementById('mainForm').style.display = 'none';
-        document.getElementById('supervisorDashboard').style.display = 'block';
-        loadDashboardData();
+    const token = localStorage.getItem('loginToken');
+    if (token) {
+        try {
+            const { username, expires } = JSON.parse(token);
+            if (Date.now() < expires) {
+                isLoggedIn = true;
+                console.log('User previously logged in:', username);
+                showDashboard(); // Directly show dashboard if logged in and token valid
+                return;
+            } else {
+                console.log('Login token expired.');
+                localStorage.removeItem('loginToken');
+            }
+        } catch (e) {
+            console.warn('Error parsing login token:', e);
+            localStorage.removeItem('loginToken');
+        }
     }
+    isLoggedIn = false; // Ensure it's false if no valid token
+    showForm(); // Always show form if not logged in
 }
 
 // Replace the existing checkLogin function:
@@ -1749,28 +1782,33 @@ console.log('🔧 Login functionality fixes applied');
 // DATA MANAGEMENT & DASHBOARD
 // ===================================================
 
-// Load dashboard data with real-time updates
+function showForm() {
+    console.log('Showing Form View');
+    currentView = 'form'; // Update current view
+    document.getElementById('mainFormContainer').style.display = 'block';
+    document.getElementById('supervisorDashboard').style.display = 'none';
+    document.getElementById('feedbackModal').style.display = 'none';
+    document.getElementById('settingsModal').style.display = 'none';
+    document.getElementById('exportModal').style.display = 'none';
+    document.getElementById('splashScreen').style.display = 'none';
+    document.getElementById('emailSelectionModal').style.display = 'none';
+    removeOverlay(); // Ensure overlay is removed when switching to main form
+    updateHeaderButtons(); // Update header based on view and login state
+}
+
 function showDashboard() {
-    console.log('showDashboard called');
-    
-    // Set login state
-    isLoggedIn = true;
-    currentView = 'dashboard';
-    
-    // Hide form, show dashboard
-    const mainForm = document.getElementById('mainForm');
-    const dashboard = document.getElementById('supervisorDashboard');
-    
-    if (mainForm) mainForm.style.display = 'none';
-    if (dashboard) dashboard.style.display = 'block';
-    
-    // Update header buttons
-    updateHeaderButtons();
-    
-    // Load dashboard data
-    loadDashboardData();
-    
-    console.log('Dashboard shown, isLoggedIn set to true');
+    console.log('Showing Dashboard View');
+    currentView = 'dashboard'; // Update current view
+    document.getElementById('mainFormContainer').style.display = 'none';
+    document.getElementById('supervisorDashboard').style.display = 'block';
+    document.getElementById('feedbackModal').style.display = 'none';
+    document.getElementById('settingsModal').style.display = 'none';
+    document.getElementById('exportModal').style.display = 'none';
+    document.getElementById('splashScreen').style.display = 'none';
+    document.getElementById('emailSelectionModal').style.display = 'none';
+    removeOverlay(); // Ensure overlay is removed when switching to dashboard
+    loadDashboardData(); // Load dashboard data when showing dashboard
+    updateHeaderButtons(); // Update header based on view and login state
 }
 
 // ===================================================
