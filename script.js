@@ -1540,14 +1540,14 @@ document.addEventListener('DOMContentLoaded', function() {
         console.log('✅ Pool location handler attached');
     }
 
-    const loginButton = document.querySelector('button[onclick="openLoginModal()"]');
+    const loginButton = document.querySelector('.supervisor-login-btn');
     if (loginButton) {
         loginButton.removeAttribute('onclick');
         loginButton.addEventListener('click', openLoginModal);
     }
     
     // Find the submit button and add event listener
-    const submitButton = document.querySelector('button[onclick="submitForm()"]');
+    const submitButton = document.querySelector('.submit-btn');
     if (submitButton) {
         submitButton.removeAttribute('onclick');
         submitButton.addEventListener('click', submitForm);
