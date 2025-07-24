@@ -1578,6 +1578,12 @@ console.log('✅ All 62 unique functions exposed globally');
 document.addEventListener('DOMContentLoaded', function() {
     console.log('🔥🔥🔥 UNIFIED APP.JS LOADED - Firebase v9 🔥🔥🔥');
     
+    const dashboard = document.getElementById('supervisorDashboard');
+    if (dashboard) {
+        dashboard.style.display = 'none';
+        console.log('Dashboard force hidden on load');
+    }
+
     // Initialize Firebase v9 first
     const firebaseInitialized = initializeFirebase();
     
@@ -2300,5 +2306,23 @@ function debugApp() {
     console.log('submitForm function exists:', typeof submitForm);
     console.log('=====================');
 }
+
+function debugViews() {
+    console.log('=== VIEW DEBUG ===');
+    console.log('currentView:', currentView);
+    console.log('isLoggedIn:', isLoggedIn);
+    
+    const mainForm = document.getElementById('mainForm');
+    const dashboard = document.getElementById('supervisorDashboard');
+    
+    console.log('mainForm element:', !!mainForm);
+    console.log('mainForm display:', mainForm ? mainForm.style.display : 'not found');
+    console.log('mainForm computed display:', mainForm ? getComputedStyle(mainForm).display : 'not found');
+    
+    console.log('dashboard element:', !!dashboard);
+    console.log('dashboard display:', dashboard ? dashboard.style.display : 'not found');
+    console.log('dashboard computed display:', dashboard ? getComputedStyle(dashboard).display : 'not found');
+}
+window.debugViews = debugViews;
 
 window.debugApp = debugApp;
