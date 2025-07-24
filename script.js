@@ -1566,6 +1566,51 @@ console.log('✅ All 62 unique functions exposed globally');
 // 6+3+6+6+5+4+5+5+4+7+3+1+3+2+2 = 62 functions total
 // ===================================================
 
+document.addEventListener('DOMContentLoaded', function() {
+    console.log('🔥🔥🔥 UNIFIED APP.JS LOADED - Firebase v9 🔥🔥🔥');
+    
+    // Initialize Firebase v9 first
+    const firebaseInitialized = initializeFirebase();
+    
+    // Initialize app components
+    checkLogin();
+    initializeFormSubmissions();
+    
+    // Set up login form handler - FIX: Use the function directly, not from window
+    const loginForm = document.getElementById('loginForm');
+    if (loginForm) {
+        loginForm.addEventListener('submit', handleLoginSubmit);
+        console.log('✅ Login form handler attached');
+    }
+    
+    // Set up pool location change handler - FIX: Use function directly
+    const poolLocation = document.getElementById('poolLocation');
+    if (poolLocation) {
+        poolLocation.addEventListener('change', handlePoolLocationChange);
+        console.log('✅ Pool location handler attached');
+    }
+
+    const loginButton = document.querySelector('.supervisor-login-btn');
+    if (loginButton) {
+        loginButton.removeAttribute('onclick');
+        loginButton.addEventListener('click', openLoginModal);
+    }
+    
+    // Find the submit button and add event listener
+    const submitButton = document.querySelector('.submit-btn');
+    if (submitButton) {
+        submitButton.removeAttribute('onclick');
+        submitButton.addEventListener('click', submitForm);
+    }
+    
+    // Continue with other initialization...
+    
+    setupEventHandlers();
+    updateHeaderButtons();
+    
+    console.log('🚀 App initialization complete');
+});
+
 // Add all other functions you're calling in onclick attributes
 
 function createAndAppendMenu(parentElement) {
@@ -1621,26 +1666,23 @@ function updateHeaderButtons() {
     // Get the static supervisor-login-btn which is in the #mainForm .header-left
     const staticFormLoginBtn = document.querySelector('#mainForm .supervisor-login-btn');
 
-    if (isLoggedIn) {
-        // User is logged in
-        if (currentView === 'dashboard') {
-            // Logged in and viewing dashboard
+if (isLoggedIn) {
+        // Change 'dashboard' to 'supervisorDashboard'
+        if (currentView === 'supervisorDashboard') {
             if (staticFormLoginBtn) {
                 staticFormLoginBtn.style.display = 'none'; // Hide the static login button
             }
 
-            // Append menu button to dashboard header
             if (dashboardMenuContainer) {
-                createAndAppendMenu(dashboardMenuContainer); // Assumes createAndAppendMenu is defined elsewhere
+                createAndAppendMenu(dashboardMenuContainer);
                 console.log('Menu button appended to dashboard.');
             }
 
-            // Add logout button to dashboard header right
             if (dashboardHeaderRight && !dashboardHeaderRight.querySelector('.logout-btn')) {
                 const logoutBtn = document.createElement('button');
                 logoutBtn.className = 'logout-btn';
                 logoutBtn.textContent = 'Logout';
-                logoutBtn.addEventListener('click', handleLogout); // Assumes handleLogout is defined elsewhere
+                logoutBtn.addEventListener('click', logout); // Assumes logout is defined elsewhere
                 dashboardHeaderRight.appendChild(logoutBtn);
                 console.log('Logout button appended to dashboard.');
             }
@@ -1653,12 +1695,10 @@ function updateHeaderButtons() {
     } else {
         // User is NOT logged in
         if (currentView === 'form') {
-            // Not logged in and viewing form
             if (staticFormLoginBtn) {
                 staticFormLoginBtn.style.display = 'block'; // Show the static login button
                 console.log('Supervisor login button made visible on form.');
             }
-            // Ensure no dashboard buttons are visible
             if (dashboardMenuContainer) dashboardMenuContainer.innerHTML = '';
             if (dashboardHeaderRight) dashboardHeaderRight.innerHTML = '';
         } else {
@@ -1671,51 +1711,6 @@ function updateHeaderButtons() {
         }
     }
 }
-
-document.addEventListener('DOMContentLoaded', function() {
-    console.log('🔥🔥🔥 UNIFIED APP.JS LOADED - Firebase v9 🔥🔥🔥');
-    
-    // Initialize Firebase v9 first
-    const firebaseInitialized = initializeFirebase();
-    
-    // Initialize app components
-    checkLogin();
-    initializeFormSubmissions();
-    
-    // Set up login form handler - FIX: Use the function directly, not from window
-    const loginForm = document.getElementById('loginForm');
-    if (loginForm) {
-        loginForm.addEventListener('submit', handleLoginSubmit);
-        console.log('✅ Login form handler attached');
-    }
-    
-    // Set up pool location change handler - FIX: Use function directly
-    const poolLocation = document.getElementById('poolLocation');
-    if (poolLocation) {
-        poolLocation.addEventListener('change', handlePoolLocationChange);
-        console.log('✅ Pool location handler attached');
-    }
-
-    const loginButton = document.querySelector('.supervisor-login-btn');
-    if (loginButton) {
-        loginButton.removeAttribute('onclick');
-        loginButton.addEventListener('click', openLoginModal);
-    }
-    
-    // Find the submit button and add event listener
-    const submitButton = document.querySelector('.submit-btn');
-    if (submitButton) {
-        submitButton.removeAttribute('onclick');
-        submitButton.addEventListener('click', submitForm);
-    }
-    
-    // Continue with other initialization...
-    
-    setupEventHandlers();
-    updateHeaderButtons();
-    
-    console.log('🚀 App initialization complete');
-});
 
 // ===================================================
 // UTILITY FUNCTIONS
@@ -1755,6 +1750,7 @@ function checkLoginStatus() {
 }
 
 // Replace the existing checkLogin function:
+// In your script.js
 function checkLogin() {
     const token = localStorage.getItem('loginToken');
     if (token) {
@@ -1763,9 +1759,7 @@ function checkLogin() {
             if (Date.now() < expires) {
                 console.log('Valid login token found');
                 isLoggedIn = true;
-                // Remove these lines:
-                // showDashboard();
-                updateHeaderButtons();
+                showDashboard(); // If valid token, show dashboard
                 return true;
             } else {
                 console.log('Login token expired');
@@ -1776,10 +1770,10 @@ function checkLogin() {
             localStorage.removeItem('loginToken');
         }
     }
-    
-    // Ensure we're in logged out state
+
+    // Ensure we're in logged out state and show form
     isLoggedIn = false;
-    updateHeaderButtons();
+    showForm(); // Crucial: ensure form is shown and buttons updated
     return false;
 }
 
