@@ -64,9 +64,19 @@ let app, db;
 
 function initializeApp() {
     try {
-        app = initializeApp(firebaseConfig);
-        db = getFirestore(app);
+        // Check if Firebase is loaded
+        if (typeof firebase === 'undefined') {
+            updateFirebaseStatus('Firebase SDK not loaded', true);
+            console.error('Firebase not loaded - check script tags');
+            return;
+        }
+        
+        // Initialize Firebase v8 style
+        app = firebase.initializeApp(firebaseConfig);
+        db = firebase.firestore();
+        
         updateFirebaseStatus('✅ Firebase connected successfully');
+        console.log('Firebase initialized successfully');
         
         initializeSanitationSettings();
         loadDashboardData();
@@ -78,39 +88,68 @@ function initializeApp() {
 
 // Updated loadDashboardData to work with both Firebase and localStorage
 function loadDashboardData() {
-    if (!db) {
-        updateFirebaseStatus('Database not initialized', true);
-        return;
-    }
+    console.log('Loading dashboard data...');
     
-    try {
-        const q = query(collection(db, 'poolSubmissions'), orderBy('timestamp', 'desc'));
-
-        onSnapshot(q, (querySnapshot) => {
-            allSubmissions = [];
-            querySnapshot.forEach((docSnap) => {
-                const data = docSnap.data();
-                data.id = docSnap.id;
-                if (data.timestamp && data.timestamp.toDate) {
-                    data.timestamp = data.timestamp.toDate();
+    // First, ensure we have local data loaded
+    loadFormSubmissions();
+    
+    if (db) {
+        // Try to load from Firebase using v8 syntax
+        try {
+            const q = db.collection('poolSubmissions')
+                .orderBy('timestamp', 'desc');
+            
+            // Set up real-time listener
+            q.onSnapshot((querySnapshot) => {
+                const firebaseSubmissions = [];
+                querySnapshot.forEach((doc) => {
+                    const data = doc.data();
+                    data.id = doc.id;
+                    // Convert Firestore timestamp to JavaScript Date
+                    if (data.timestamp && data.timestamp.toDate) {
+                        data.timestamp = data.timestamp.toDate();
+                    }
+                    firebaseSubmissions.push(data);
+                });
+                
+                console.log('Loaded from Firebase:', firebaseSubmissions.length);
+                
+                // Combine Firebase data with local formSubmissions
+                allSubmissions = [...firebaseSubmissions];
+                
+                // Add local submissions that might not be in Firebase yet
+                formSubmissions.forEach(localSubmission => {
+                    const exists = allSubmissions.find(sub => sub.id === localSubmission.id);
+                    if (!exists) {
+                        // Convert timestamp string to Date object if needed
+                        if (typeof localSubmission.timestamp === 'string') {
+                            localSubmission.timestamp = new Date(localSubmission.timestamp);
+                        }
+                        allSubmissions.push(localSubmission);
+                    }
+                });
+                
+                updateFirebaseStatus(`Loaded ${allSubmissions.length} total submissions`);
+                
+                // Apply current filters and update display
+                if (isLoggedIn) {
+                    filterAndDisplayData();
                 }
-                allSubmissions.push(data);
+            }, (error) => {
+                console.error('Error loading from Firebase: ', error);
+                updateFirebaseStatus('Using local data only', true);
+                // Fall back to local data only
+                useLocalDataOnly();
             });
             
-            console.log('Loaded submissions:', allSubmissions.length);
-            updateFirebaseStatus(`Loaded ${allSubmissions.length} submissions`);
-            
-            if (isLoggedIn) {
-                filterAndDisplayData();
-            }
-        }, (error) => {
-            console.error('Error loading data: ', error);
-            updateFirebaseStatus('Error loading data', true);
-        });
-        
-    } catch (error) {
-        console.error('Error setting up data listener: ', error);
-        updateFirebaseStatus('Error connecting to database', true);
+        } catch (error) {
+            console.error('Error setting up Firebase listener: ', error);
+            updateFirebaseStatus('Using local data only', true);
+            useLocalDataOnly();
+        }
+    } else {
+        console.log('No Firebase connection, using local data only');
+        useLocalDataOnly();
     }
 }
 
@@ -307,8 +346,72 @@ function displayData() {
 // Updated submitForm to save to both systems
 // Try to save to Firebase
 async function submitFormAndSync() {
-    // ... existing form validation code ...
+    console.log('Submit button clicked');
     
+    // Clear any previous error highlighting
+    document.querySelectorAll('.form-group.error').forEach(group => {
+        group.classList.remove('error');
+    });
+
+    // Validate required fields
+    const basicRequiredFields = ['firstName', 'lastName', 'poolLocation'];
+    let hasErrors = false;
+    
+    basicRequiredFields.forEach(fieldName => {
+        const field = document.getElementById(fieldName);
+        const formGroup = field.closest('.form-group');
+        
+        if (!field.value || field.value.trim() === '') {
+            formGroup.classList.add('error');
+            hasErrors = true;
+        }
+    });
+    
+    const mainPoolFields = ['mainPoolPH', 'mainPoolCl'];
+    mainPoolFields.forEach(fieldName => {
+        const field = document.getElementById(fieldName);
+        const formGroup = field.closest('.form-group');
+        
+        if (!field.value || field.value.trim() === '') {
+            formGroup.classList.add('error');
+            hasErrors = true;
+        }
+    });
+    
+    const poolLocation = document.getElementById('poolLocation').value;
+    if (poolLocation !== 'Camden CC') {
+        const secondaryPoolFields = ['secondaryPoolPH', 'secondaryPoolCl'];
+        secondaryPoolFields.forEach(fieldName => {
+            const field = document.getElementById(fieldName);
+            const formGroup = field.closest('.form-group');
+            
+            if (!field.value || field.value.trim() === '') {
+                formGroup.classList.add('error');
+                hasErrors = true;
+            }
+        });
+    }
+    
+    if (hasErrors) {
+        showMessage('Please fill in all required fields (highlighted in yellow).', 'error');
+        const firstError = document.querySelector('.form-group.error');
+        if (firstError) {
+            firstError.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        }
+        return;
+    }
+
+    // Create form data for feedback evaluation
+    const formData = new FormData();
+    formData.append('mainPoolPH', document.getElementById('mainPoolPH').value);
+    formData.append('mainPoolCl', document.getElementById('mainPoolCl').value);
+    formData.append('secondaryPoolPH', document.getElementById('secondaryPoolPH').value);
+    formData.append('secondaryPoolCl', document.getElementById('secondaryPoolCl').value);
+    
+    // Process form submission
+    evaluateFormFeedback(formData);
+    
+    // Create submission object
     const submission = {
         id: Date.now(),
         timestamp: new Date(),
@@ -325,12 +428,12 @@ async function submitFormAndSync() {
     formSubmissions.push(submission);
     saveFormSubmissions();
     
-    // Try to save to Firebase
+    // Try to save to Firebase using v8 syntax
     if (db) {
         try {
-            await addDoc(collection(db, 'poolSubmissions'), {
+            await db.collection('poolSubmissions').add({
                 ...submission,
-                timestamp: Timestamp.fromDate(submission.timestamp)
+                timestamp: firebase.firestore.Timestamp.fromDate(submission.timestamp)
             });
             console.log('Submission saved to Firebase');
         } catch (error) {
@@ -376,17 +479,18 @@ async function initializeSanitationSettings() {
 
     try {
         if (db) {
-            const settingsRef = doc(db, 'settings', 'sanitationMethods');
-            const settingsDoc = await getDoc(settingsRef);
+            // Use Firebase v8 syntax
+            const settingsRef = db.collection('settings').doc('sanitationMethods');
+            const settingsDoc = await settingsRef.get();
             
-            if (settingsDoc.exists()) {
+            if (settingsDoc.exists) {
                 const firebaseSettings = settingsDoc.data();
                 Object.assign(sanitationSettings, firebaseSettings);
                 console.log('Successfully loaded sanitation settings from Firebase:', sanitationSettings);
                 updateFirebaseStatus('Settings synced with cloud ✓');
             } else {
                 console.log('No Firebase settings found, saving defaults');
-                await setDoc(settingsRef, sanitationSettings);
+                await settingsRef.set(sanitationSettings);
                 updateFirebaseStatus('Default settings saved to cloud');
             }
         } else {
@@ -710,22 +814,34 @@ function setupEventHandlers() {
 document.addEventListener('DOMContentLoaded', function() {
     console.log('🔥🔥🔥 UNIFIED APP.JS LOADED 🔥🔥🔥');
     
-    // Initialize app FIRST
+    // Initialize app components
     checkLogin();
-    initializeApp();
+    initializeApp(); // This will handle Firebase initialization
     initializeFormSubmissions();
     
-    // CRITICAL: Set up login form handler
+    // Set up login form handler
     const loginForm = document.getElementById('loginForm');
     if (loginForm) {
         loginForm.addEventListener('submit', handleLoginSubmit);
-        console.log('Login form handler attached');
+        console.log('✅ Login form handler attached');
     } else {
-        console.warn('Login form not found during initialization');
+        console.warn('⚠️ Login form not found during initialization');
+    }
+    
+    // Set up pool location change handler
+    const poolLocation = document.getElementById('poolLocation');
+    if (poolLocation) {
+        poolLocation.addEventListener('change', handlePoolLocationChange);
+        console.log('✅ Pool location handler attached');
     }
     
     // Set up other event handlers
     setupEventHandlers();
+    
+    // Initial header button setup
+    updateHeaderButtons();
+    
+    console.log('🚀 App initialization complete');
 });
 
 
@@ -824,22 +940,25 @@ function openLoginModal() {
     const modal = document.getElementById('loginModal');
     if (!modal) {
         console.error('Login modal not found in DOM');
+        showMessage('Login modal not found. Please refresh the page.', 'error');
         return;
     }
     
-    // Create overlay
+    // Create or show overlay
     createOrShowOverlay();
     
     // Show modal
     modal.style.display = 'block';
     
-    // Focus on first input
-    const firstInput = modal.querySelector('input[name="email"]');
-    if (firstInput) {
-        setTimeout(() => firstInput.focus(), 100);
-    }
+    // Focus on first input after a short delay
+    setTimeout(() => {
+        const firstInput = modal.querySelector('input[name="email"]');
+        if (firstInput) {
+            firstInput.focus();
+        }
+    }, 100);
     
-    console.log('Login modal opened');
+    console.log('Login modal opened successfully');
 }
 
 function closeLoginModal() {
@@ -2129,6 +2248,23 @@ function sendSMSNotification(message, phoneNumber) {
     console.log(`SMS would be sent to ${phoneNumber}: ${message}`);
     showMessage('SMS notification sent successfully!', 'success');
 }
+
+function debugApp() {
+    console.log('=== APP DEBUG INFO ===');
+    console.log('Firebase app:', !!app);
+    console.log('Firebase db:', !!db);
+    console.log('isLoggedIn:', isLoggedIn);
+    console.log('currentView:', currentView);
+    console.log('formSubmissions length:', formSubmissions.length);
+    console.log('allSubmissions length:', allSubmissions.length);
+    console.log('Login modal exists:', !!document.getElementById('loginModal'));
+    console.log('Login form exists:', !!document.getElementById('loginForm'));
+    console.log('openLoginModal function exists:', typeof openLoginModal);
+    console.log('submitForm function exists:', typeof submitForm);
+    console.log('=====================');
+}
+
+window.debugApp = debugApp;
 
 // ===================================================
 // GLOBAL ASSIGNMENTS
