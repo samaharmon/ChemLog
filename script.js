@@ -1854,7 +1854,6 @@ function showDashboard() {
     // Apply display styles with checks
     if (mainForm) mainForm.style.display = 'none'; else console.warn("Main form element (id='mainForm') not found when showing dashboard!");
     if (supervisorDashboard) supervisorDashboard.style.display = 'block'; else console.error("Supervisor dashboard element (id='supervisorDashboard') not found!"); // This was the specific one causing your last error!
-    if (splashScreen) splashScreen.style.display = 'none'; else console.warn("Splash screen element (id='splashScreen') not found when showing dashboard!");
 
     if (loginModal) loginModal.style.display = 'none';
     if (feedbackModal) feedbackModal.style.display = 'none';
