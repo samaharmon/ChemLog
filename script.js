@@ -535,12 +535,14 @@ function submitForm() {
 }
 
 
-function evaluateFormFeedback(formData) {
+function evaluateFormFeedback() { // Remove formData parameter
     const poolLocation = document.getElementById('poolLocation').value;
-    const mainPH = document.getElementById('mainPoolPH').value;  // ADD THIS LINE
-    const mainCl = document.getElementById('mainPoolCl').value;  // ADD THIS LINE
+    const mainPH = document.getElementById('mainPoolPH').value;
+    const mainCl = document.getElementById('mainPoolCl').value;
     const secPH = document.getElementById('secondaryPoolPH').value;
-    const secCl = document.getElementById('secondaryPoolCl').value;  // ADD THIS LINE
+    const secCl = document.getElementById('secondaryPoolCl').value;
+    
+    // Rest of function remains the same...
     
     // DEBUG LOGS - Remove after testing
     console.log('=== DEBUG INFO ===');
@@ -759,17 +761,6 @@ function evaluateFormFeedback(formData) {
         // If all values are good, show the modal without checkboxes
         showFeedbackModal(['All water chemistry values are within acceptable ranges.'], true);
     }
-
-
-    // Create form data for feedback evaluation
-    const formData = new FormData();
-    formData.append('mainPoolPH', document.getElementById('mainPoolPH').value);
-    formData.append('mainPoolCl', document.getElementById('mainPoolCl').value);
-    formData.append('secondaryPoolPH', document.getElementById('secondaryPoolPH').value);
-    formData.append('secondaryPoolCl', document.getElementById('secondaryPoolCl').value);
-    
-    // Process form submission
-    evaluateFormFeedback(formData);
     
     // Create submission object
     const submission = {
@@ -1231,74 +1222,21 @@ console.log('🔧 Login functionality fixes applied');
 // ===================================================
 
 // Form submission function
-async function submitForm() {
-    console.log('Submit button clicked'); // Debug log
+function submitForm() {
+    console.log('Submit button clicked');
     
+    // Clear any previous error highlighting
     document.querySelectorAll('.form-group.error').forEach(group => {
         group.classList.remove('error');
     });
 
+   
+    evaluateFormFeedback(); // Remove formData parameter
     
-    const basicRequiredFields = ['firstName', 'lastName', 'poolLocation'];
-    let hasErrors = false;
-    
-    basicRequiredFields.forEach(fieldName => {
-        const field = document.getElementById(fieldName);
-        const formGroup = field.closest('.form-group');
-        
-        if (!field.value || field.value.trim() === '') {
-            formGroup.classList.add('error');
-            hasErrors = true;
-        }
-    });
-    
-    const mainPoolFields = ['mainPoolPH', 'mainPoolCl'];
-    mainPoolFields.forEach(fieldName => {
-        const field = document.getElementById(fieldName);
-        const formGroup = field.closest('.form-group');
-        
-        if (!field.value || field.value.trim() === '') {
-            formGroup.classList.add('error');
-            hasErrors = true;
-        }
-    });
-    
-    const poolLocation = document.getElementById('poolLocation').value;
-    if (poolLocation !== 'Camden CC') {
-        const secondaryPoolFields = ['secondaryPoolPH', 'secondaryPoolCl'];
-        secondaryPoolFields.forEach(fieldName => {
-            const field = document.getElementById(fieldName);
-            const formGroup = field.closest('.form-group');
-            
-            if (!field.value || field.value.trim() === '') {
-                formGroup.classList.add('error');
-                hasErrors = true;
-            }
-        });
-    }
-    
-    if (hasErrors) {
-        showMessage('Please fill in all required fields (highlighted in yellow).', 'error');
-        const firstError = document.querySelector('.form-group.error');
-        if (firstError) {
-            firstError.scrollIntoView({ behavior: 'smooth', block: 'center' });
-        }
-        return;
-    }
-
-    const formData = new FormData();
-    formData.append('mainPoolPH', document.getElementById('mainPoolPH').value);
-    formData.append('mainPoolCl', document.getElementById('mainPoolCl').value);
-    formData.append('secondaryPoolPH', document.getElementById('secondaryPoolPH').value);
-    formData.append('secondaryPoolCl', document.getElementById('secondaryPoolCl').value);
-    
-    // Process form submission
-    evaluateFormFeedback(formData);
-    
-    // Save data
+    // Create submission object
     const submission = {
         id: Date.now(),
-        timestamp: new Date(), // Change this from string to Date object
+        timestamp: new Date(),
         firstName: document.getElementById('firstName').value,
         lastName: document.getElementById('lastName').value,
         poolLocation: document.getElementById('poolLocation').value,
@@ -1308,33 +1246,7 @@ async function submitForm() {
         secondaryPoolCl: poolLocation === 'Camden CC' ? 'N/A' : document.getElementById('secondaryPoolCl').value
     };
     
-    // Save to localStorage first
-    formSubmissions.push(submission);
-    saveFormSubmissions();
-    
-    // ADD THIS: Try to save to Firebase v9
-    if (db && window.firebaseModules) {
-        try {
-            await window.firebaseModules.addDoc(
-                window.firebaseModules.collection(db, 'poolSubmissions'), 
-                {
-                    ...submission,
-                    timestamp: window.firebaseModules.Timestamp.fromDate(submission.timestamp)
-                }
-            );
-            console.log('Submission saved to Firebase v9');
-        } catch (error) {
-            console.warn('Could not save to Firebase v9:', error);
-        }
-    }
-    
-    showMessage('Submission saved successfully!', 'success');
-    
-    if (document.getElementById('supervisorDashboard').style.display === 'block') {
-        loadDashboardData();
-    }
-    
-    resetForm();
+    // Rest of function remains the same...
 }
 
 // ===================================================
