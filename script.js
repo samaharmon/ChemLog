@@ -29,6 +29,55 @@ function submitForm() {
     // Rest of function remains the same...
 }
 window.submitForm = submitForm;
+function validateForm() {
+    let isValid = true;
+    const requiredInputs = document.querySelectorAll('#mainForm input[required], #mainForm select[required]');
+
+    requiredInputs.forEach(input => {
+        // Handle select elements specifically
+        if (input.tagName === 'SELECT') {
+            if (input.value === '' || input.value === 'default') { // Assuming 'default' is your placeholder value
+                input.closest('.form-group')?.classList.add('error');
+                isValid = false;
+            } else {
+                input.closest('.form-group')?.classList.remove('error');
+            }
+        } else {
+            // Handle text/number inputs
+            if (input.value.trim() === '') {
+                input.closest('.form-group')?.classList.add('error');
+                isValid = false;
+            } else {
+                input.closest('.form-group')?.classList.remove('error');
+            }
+        }
+    });
+
+    // Special handling for secondary pool inputs if visible
+    const poolLocationSelect = document.getElementById('poolLocation');
+    const secondaryPoolSection = document.getElementById('secondaryPoolSection');
+
+    if (poolLocationSelect && POOLS_WITH_SECONDARY.includes(poolLocationSelect.value) && secondaryPoolSection && !secondaryPoolSection.classList.contains('hidden')) {
+        const secondaryPHInput = document.getElementById('secondaryPoolPH');
+        const secondaryClInput = document.getElementById('secondaryPoolCl');
+
+        if (secondaryPHInput && secondaryPHInput.value.trim() === '') {
+            secondaryPHInput.closest('.form-group')?.classList.add('error');
+            isValid = false;
+        } else {
+            secondaryPHInput.closest('.form-group')?.classList.remove('error');
+        }
+
+        if (secondaryClInput && secondaryClInput.value.trim() === '') {
+            secondaryClInput.closest('.form-group')?.classList.add('error');
+            isValid = false;
+        } else {
+            secondaryClInput.closest('.form-group')?.classList.remove('error');
+        }
+    }
+
+    return isValid;
+}
 function openLoginModal() {
     console.log('openLoginModal called');
     
@@ -1424,6 +1473,7 @@ window.loadFormSubmissions = loadFormSubmissions;
 window.saveFormSubmissions = saveFormSubmissions;
 window.initializeFormSubmissions = initializeFormSubmissions;
 window.evaluateFormFeedback = evaluateFormFeedback;
+window.validateForm = validateForm; // Expose new validation function
 
 // Form handling (3)
 window.resetForm = resetForm;
@@ -1565,30 +1615,64 @@ document.addEventListener('DOMContentLoaded', function() {
 
 function updateHeaderButtons() {
     console.log('updateHeaderButtons called, isLoggedIn:', isLoggedIn);
-    
+
     const headerRight = document.querySelector('.header-right');
     if (!headerRight) {
         console.error('Header right element not found');
         return;
     }
-    
+
+    // Clear existing children to avoid duplicates and ensure clean state
+    headerRight.innerHTML = '';
+
     if (isLoggedIn) {
-        // Show menu and logout buttons for dashboard
-        headerRight.innerHTML = `
-            <div class="menu-container">
-                <button class="menu-btn" onclick="toggleMenu()">☰</button>
-                <div id="dropdownMenu" class="dropdown-menu" style="display: none;">
-                    <div onclick="showSettings()">Settings</div>
-                    <div onclick="clearAllData()">Clear All Data</div>
-                    <div onclick="logout()">Logout</div>
-                </div>
-            </div>
-        `;
+        // Create menu container
+        const menuContainer = document.createElement('div');
+        menuContainer.className = 'menu-container';
+
+        // Create menu button
+        const menuBtn = document.createElement('button');
+        menuBtn.className = 'menu-btn';
+        menuBtn.innerHTML = '☰';
+        // ATTACH EVENT LISTENER DIRECTLY HERE
+        menuBtn.addEventListener('click', toggleMenu);
+        menuContainer.appendChild(menuBtn);
+
+        // Create dropdown menu
+        const dropdownMenu = document.createElement('div');
+        dropdownMenu.id = 'dropdownMenu';
+        dropdownMenu.className = 'dropdown-menu';
+        dropdownMenu.style.display = 'none'; // Initially hidden
+
+        // Add dropdown items
+        const settingsDiv = document.createElement('div');
+        settingsDiv.textContent = 'Settings';
+        settingsDiv.addEventListener('click', showSettings); // Attach listener
+        dropdownMenu.appendChild(settingsDiv);
+
+        const clearDataDiv = document.createElement('div');
+        clearDataDiv.textContent = 'Clear All Data';
+        clearDataDiv.addEventListener('click', clearAllData); // Attach listener
+        dropdownMenu.appendChild(clearDataDiv);
+
+        const logoutDiv = document.createElement('div');
+        logoutDiv.textContent = 'Logout';
+        logoutDiv.addEventListener('click', logout); // Attach listener
+        dropdownMenu.appendChild(logoutDiv);
+
+        menuContainer.appendChild(dropdownMenu);
+        headerRight.appendChild(menuContainer);
+
+        // Ensure toggleMenu has logic to close on outside click.
+        // The existing toggleMenu function already has this, but ensure it's robust.
     } else {
         // Show supervisor login button
-        headerRight.innerHTML = `
-            <button class="supervisor-login-btn" onclick="openLoginModal()">Supervisor Login</button>
-        `;
+        const supervisorLoginBtn = document.createElement('button');
+        supervisorLoginBtn.className = 'supervisor-login-btn';
+        supervisorLoginBtn.textContent = 'Supervisor Login';
+        // ATTACH EVENT LISTENER DIRECTLY HERE
+        supervisorLoginBtn.addEventListener('click', openLoginModal);
+        headerRight.appendChild(supervisorLoginBtn);
     }
 }
 
