@@ -87,6 +87,12 @@ function validateForm() {
 function openLoginModal() {
     console.log('openLoginModal called');
     
+    if (isLoggedIn) {
+        console.log('User already logged in, showing dashboard');
+        showDashboard();
+        return;
+    }
+
     const modal = document.getElementById('loginModal');
     if (!modal) {
         console.error('Login modal not found in DOM');
@@ -1680,6 +1686,8 @@ function updateHeaderButtons() {
         if (staticFormLoginBtn) {
             staticFormLoginBtn.style.display = 'block';
             staticFormLoginBtn.style.visibility = 'visible';
+            // Change button text based on login status
+            staticFormLoginBtn.textContent = isLoggedIn ? 'View Dashboard' : 'Supervisor Login';
             console.log('Login button shown on form page');
         }
         // Clear dashboard elements when on form
@@ -1799,18 +1807,30 @@ console.log('🔧 Login functionality fixes applied');
 // --- View Management Functions ---
 // These are responsible for showing/hiding the main content areas
 
-function showForm() {
-    console.log('Showing Form View');
-    currentView = 'form';  // ✅ Set this first
-    
-    const mainForm = document.getElementById('mainForm');
-    const supervisorDashboard = document.getElementById('supervisorDashboard');
-    
-    if (mainForm) mainForm.classList.add('show');
-    if (supervisorDashboard) supervisorDashboard.classList.remove('show');
-    
-    removeOverlay();
-    updateHeaderButtons();
+function checkLogin() {
+    const token = localStorage.getItem('loginToken');
+    if (token) {
+        try {
+            const { username, expires } = JSON.parse(token);
+            if (Date.now() < expires) {
+                console.log('Valid login token found');
+                isLoggedIn = true;
+                showForm(); // ✅ Always show form first, even if logged in
+                return true;
+            } else {
+                console.log('Login token expired');
+                localStorage.removeItem('loginToken');
+            }
+        } catch (error) {
+            console.error('Error parsing login token:', error);
+            localStorage.removeItem('loginToken');
+        }
+    }
+
+    // Ensure we're in logged out state and show form
+    isLoggedIn = false;
+    showForm();
+    return false;
 }
 
 function showDashboard() {
