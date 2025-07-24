@@ -87,12 +87,6 @@ function validateForm() {
 function openLoginModal() {
     console.log('openLoginModal called');
     
-    if (isLoggedIn) {
-        console.log('User already logged in, showing dashboard');
-        showDashboard();
-        return;
-    }
-
     const modal = document.getElementById('loginModal');
     if (!modal) {
         console.error('Login modal not found in DOM');
@@ -1686,8 +1680,6 @@ function updateHeaderButtons() {
         if (staticFormLoginBtn) {
             staticFormLoginBtn.style.display = 'block';
             staticFormLoginBtn.style.visibility = 'visible';
-            // Change button text based on login status
-            staticFormLoginBtn.textContent = isLoggedIn ? 'View Dashboard' : 'Supervisor Login';
             console.log('Login button shown on form page');
         }
         // Clear dashboard elements when on form
