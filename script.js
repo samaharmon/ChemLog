@@ -528,11 +528,12 @@ async function submitFormAndSync() {
         }
         return;
     }
+}
 
 function submitForm() {
     submitFormAndSync();
 }
-}
+
 
 function evaluateFormFeedback(formData) {
     const poolLocation = document.getElementById('poolLocation').value;
@@ -758,7 +759,7 @@ function evaluateFormFeedback(formData) {
         // If all values are good, show the modal without checkboxes
         showFeedbackModal(['All water chemistry values are within acceptable ranges.'], true);
     }
-}
+
 
     // Create form data for feedback evaluation
     const formData = new FormData();
@@ -790,14 +791,17 @@ function evaluateFormFeedback(formData) {
     // Try to save to Firebase v9
     if (db) {
         try {
-            await window.firebaseModules.addDoc(
-                window.firebaseModules.collection(db, 'poolSubmissions'), 
-                {
-                    ...submission,
-                    timestamp: window.firebaseModules.Timestamp.fromDate(submission.timestamp)
-                }
-            );
-            console.log('Submission saved to Firebase v9');
+            window.firebaseModules.addDoc(
+            window.firebaseModules.collection(db, 'poolSubmissions'), 
+            {
+             ...submission,
+              timestamp: window.firebaseModules.Timestamp.fromDate(submission.timestamp)
+            }
+            ).then(() => {
+    console.log('Submission saved to Firebase v9');
+}).catch((error) => {
+    console.warn('Could not save to Firebase v9:', error);
+});
         } catch (error) {
             console.warn('Could not save to Firebase v9:', error);
         }
