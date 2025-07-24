@@ -1669,27 +1669,44 @@ function createAndAppendMenu(parentElement) {
 }
 
 function updateHeaderButtons() {
-    console.log('=== UPDATING HEADER BUTTONS ===');
-    console.log('isLoggedIn:', isLoggedIn);
-    console.log('currentView:', currentView);
+    console.log('Updating header buttons. isLoggedIn:', isLoggedIn, 'currentView:', currentView);
 
     const staticFormLoginBtn = document.querySelector('.supervisor-login-btn');
-    console.log('Login button found:', !!staticFormLoginBtn);
+    const dashboardMenuContainer = document.getElementById('dashboardMenuContainer');
+    const dashboardHeaderRight = document.querySelector('#supervisorDashboard .header-right');
 
-    if (!isLoggedIn) {
-        console.log('User NOT logged in - should show login button');
+    // Always show login button when on form page
+    if (currentView === 'form') {
         if (staticFormLoginBtn) {
             staticFormLoginBtn.style.display = 'block';
             staticFormLoginBtn.style.visibility = 'visible';
-            console.log('✅ Login button set to visible');
-        } else {
-            console.error('❌ Login button not found!');
+            console.log('Login button shown on form page');
         }
-    } else {
-        console.log('User logged in - should hide login button');
+        // Clear dashboard elements when on form
+        if (dashboardMenuContainer) dashboardMenuContainer.innerHTML = '';
+        if (dashboardHeaderRight) dashboardHeaderRight.innerHTML = '';
+        
+    } else if (currentView === 'dashboard') {
+        // Hide login button when on dashboard
         if (staticFormLoginBtn) {
             staticFormLoginBtn.style.display = 'none';
-            console.log('✅ Login button hidden');
+            console.log('Login button hidden on dashboard');
+        }
+        
+        // Show dashboard menu and logout button if logged in
+        if (isLoggedIn) {
+            if (dashboardMenuContainer) {
+                createAndAppendMenu(dashboardMenuContainer);
+                console.log('Menu button appended to dashboard.');
+            }
+            if (dashboardHeaderRight && !dashboardHeaderRight.querySelector('.logout-btn')) {
+                const logoutBtn = document.createElement('button');
+                logoutBtn.className = 'logout-btn';
+                logoutBtn.textContent = 'Logout';
+                logoutBtn.addEventListener('click', logout);
+                dashboardHeaderRight.appendChild(logoutBtn);
+                console.log('Logout button appended to dashboard.');
+            }
         }
     }
 }
@@ -1784,7 +1801,7 @@ console.log('🔧 Login functionality fixes applied');
 
 function showForm() {
     console.log('Showing Form View');
-    currentView = 'form';
+    currentView = 'form';  // ✅ Set this first
     
     const mainForm = document.getElementById('mainForm');
     const supervisorDashboard = document.getElementById('supervisorDashboard');
