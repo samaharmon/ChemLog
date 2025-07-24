@@ -979,12 +979,6 @@ function displayData() {
     console.log('Data display completed');
 }
 
-// Save form submissions to localStorage
-function saveFormSubmissions() {
-    localStorage.setItem('formSubmissions', JSON.stringify(formSubmissions));
-    console.log(`Saved ${formSubmissions.length} submissions to localStorage`);
-}
-
 function evaluateFormFeedback() { // Remove formData parameter
     const poolLocation = document.getElementById('poolLocation').value;
     const mainPH = document.getElementById('mainPoolPH').value;
@@ -1424,7 +1418,7 @@ function setupEventHandlers() {
 // ===================================================
 
 // Core form and submission functions (6)
-window.submitFormAndSync = submitFormAndSync;
+window.submitForm = submitForm;
 window.loadFormSubmissions = loadFormSubmissions;
 window.saveFormSubmissions = saveFormSubmissions;
 window.initializeFormSubmissions = initializeFormSubmissions;
@@ -1551,20 +1545,6 @@ document.addEventListener('DOMContentLoaded', function() {
     
     console.log('🚀 App initialization complete');
 });
-
-// In your JS/script.js file, add these to make them globally accessible:
-window.openLoginModal = function() {
-    document.getElementById('loginModal').style.display = 'block';
-};
-
-window.closeLoginModal = function() {
-    document.getElementById('loginModal').style.display = 'none';
-};
-
-window.submitForm = function() {
-    // Your form submission logic here
-    console.log('Form submitted');
-};
 
 // Add all other functions you're calling in onclick attributes
 
