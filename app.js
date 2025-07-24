@@ -3,14 +3,6 @@
 // Capital City Aquatics - 2025
 // ===================================================
 
-// Import the functions you need from the SDKs you need
-import { initializeApp } from "firebase/app";
-import { getAnalytics } from "firebase/analytics";
-// TODO: Add SDKs for Firebase products that you want to use
-// https://firebase.google.com/docs/web/setup#available-libraries
-
-// Your web app's Firebase configuration
-// For Firebase JS SDK v7.20.0 and later, measurementId is optional
 const firebaseConfig = {
   apiKey: "AIzaSyCRxSL2uuH6O5MFvbq0FS02zF2K_lXGvqI",
   authDomain: "chemlog-43c08.firebaseapp.com",
@@ -20,10 +12,6 @@ const firebaseConfig = {
   appId: "1:554394202059:web:a8d5824a1d7ccdd871d04e",
   measurementId: "G-QF5ZQ88VS2"
 };
-
-// Initialize Firebase
-const app = initializeApp(firebaseConfig);
-const analytics = getAnalytics(app);
 
 // Global variables
 let app, db;
@@ -809,8 +797,18 @@ function checkLogin() {
 }
 
 function openLoginModal() {
+    console.log('openLoginModal called');
+    
+    const modal = document.getElementById('loginModal');
+    console.log('Modal element found:', !!modal);
+    
     createOrShowOverlay();
-    document.getElementById('loginModal').style.display = 'block';
+    
+    if (modal) {
+        modal.style.display = 'block';
+        console.log('Modal display set to block');
+        console.log('Modal computed style:', window.getComputedStyle(modal).display);
+    }
 }
 
 function closeLoginModal() {
