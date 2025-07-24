@@ -1842,8 +1842,16 @@ function showDashboard() {
     const mainForm = document.getElementById('mainForm');
     const supervisorDashboard = document.getElementById('supervisorDashboard');
     
-    if (mainForm) mainForm.classList.remove('show');
-    if (supervisorDashboard) supervisorDashboard.classList.add('show');
+    // Hide main form
+    if (mainForm) {
+        mainForm.style.display = 'none';
+    }
+    
+    // Show dashboard
+    if (supervisorDashboard) {
+        supervisorDashboard.classList.add('show');
+        supervisorDashboard.style.display = 'block'; // Force display as backup
+    }
     
     removeOverlay();
     loadDashboardData();
