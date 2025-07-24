@@ -472,45 +472,68 @@ async function initializeSanitationSettings() {
 }
 
 function loadDashboardData() {
-    if (!db) {
-        updateFirebaseStatus('Database not initialized', true);
-        return;
-    }
+    console.log('Loading dashboard data...');
     
-    try {
-        const q = window.firebase.query(
-            window.firebase.collection(db, 'poolSubmissions'), 
-            window.firebase.orderBy('timestamp', 'desc')
-        );
-        
-        // Set up real-time listener
-        window.firebase.onSnapshot(q, (querySnapshot) => {
-            allSubmissions = [];
-            querySnapshot.forEach((doc) => {
-                const data = doc.data();
-                data.id = doc.id;
-                // Convert Firestore timestamp to JavaScript Date
-                if (data.timestamp && data.timestamp.toDate) {
-                    data.timestamp = data.timestamp.toDate();
+    // First, ensure we have local data loaded
+    loadFormSubmissions();
+    
+    if (db) {
+        // Try to load from Firebase with CORRECT function names
+        try {
+            const q = firebase.firestore().collection('poolSubmissions')
+                .orderBy('timestamp', 'desc');
+            
+            // Set up real-time listener with CORRECT function name
+            q.onSnapshot((querySnapshot) => {
+                const firebaseSubmissions = [];
+                querySnapshot.forEach((doc) => {
+                    const data = doc.data();
+                    data.id = doc.id;
+                    // Convert Firestore timestamp to JavaScript Date
+                    if (data.timestamp && data.timestamp.toDate) {
+                        data.timestamp = data.timestamp.toDate();
+                    }
+                    firebaseSubmissions.push(data);
+                });
+                
+                console.log('Loaded from Firebase:', firebaseSubmissions.length);
+                
+                // Combine Firebase data with local formSubmissions
+                allSubmissions = [...firebaseSubmissions];
+                
+                // Add local submissions that might not be in Firebase yet
+                formSubmissions.forEach(localSubmission => {
+                    const exists = allSubmissions.find(sub => sub.id === localSubmission.id);
+                    if (!exists) {
+                        // Convert timestamp string to Date object if needed
+                        if (typeof localSubmission.timestamp === 'string') {
+                            localSubmission.timestamp = new Date(localSubmission.timestamp);
+                        }
+                        allSubmissions.push(localSubmission);
+                    }
+                });
+                
+                updateFirebaseStatus(`Loaded ${allSubmissions.length} total submissions`);
+                
+                // Apply current filters and update display
+                if (isLoggedIn) {
+                    filterAndDisplayData();
                 }
-                allSubmissions.push(data);
+            }, (error) => {
+                console.error('Error loading from Firebase: ', error);
+                updateFirebaseStatus('Using local data only', true);
+                // Fall back to local data only
+                useLocalDataOnly();
             });
             
-            console.log('Loaded submissions:', allSubmissions.length);
-            updateFirebaseStatus(`Loaded ${allSubmissions.length} submissions`);
-            
-            // Apply current filters and update display
-            if (isLoggedIn) {
-                filterData();
-            }
-        }, (error) => {
-            console.error('Error loading data: ', error);
-            updateFirebaseStatus('Error loading data', true);
-        });
-        
-    } catch (error) {
-        console.error('Error setting up data listener: ', error);
-        updateFirebaseStatus('Error connecting to database', true);
+        } catch (error) {
+            console.error('Error setting up Firebase listener: ', error);
+            updateFirebaseStatus('Using local data only', true);
+            useLocalDataOnly();
+        }
+    } else {
+        console.log('No Firebase connection, using local data only');
+        useLocalDataOnly();
     }
 }
 
