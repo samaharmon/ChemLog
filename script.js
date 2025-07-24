@@ -1782,33 +1782,68 @@ console.log('🔧 Login functionality fixes applied');
 // DATA MANAGEMENT & DASHBOARD
 // ===================================================
 
+// --- View Management Functions ---
+// These are responsible for showing/hiding the main content areas
+
 function showForm() {
     console.log('Showing Form View');
-    currentView = 'form'; // Update current view
-    document.getElementById('mainFormContainer').style.display = 'block';
-    document.getElementById('supervisorDashboard').style.display = 'none';
-    document.getElementById('feedbackModal').style.display = 'none';
-    document.getElementById('settingsModal').style.display = 'none';
-    document.getElementById('exportModal').style.display = 'none';
-    document.getElementById('splashScreen').style.display = 'none';
-    document.getElementById('emailSelectionModal').style.display = 'none';
-    removeOverlay(); // Ensure overlay is removed when switching to main form
-    updateHeaderButtons(); // Update header based on view and login state
+    currentView = 'form';
+
+    const mainForm = document.getElementById('mainForm'); // Corrected ID from 'mainFormContainer'
+    const supervisorDashboard = document.getElementById('supervisorDashboard');
+    const splashScreen = document.getElementById('splashScreen'); // No ID exists in HTML for this
+
+    // Modals (added checks for existence)
+    const loginModal = document.getElementById('loginModal');
+    const feedbackModal = document.getElementById('feedbackModal');
+    const settingsModal = document.getElementById('settingsModal');
+    const exportModal = document.getElementById('exportModal'); // No ID exists in HTML for this
+    const emailSelectionModal = document.getElementById('emailSelectionModal'); // No ID exists in HTML for this
+    
+    // Apply display styles with checks
+    if (mainForm) mainForm.style.display = 'block'; else console.error("Main form element (id='mainForm') not found!");
+    if (supervisorDashboard) supervisorDashboard.style.display = 'none'; else console.warn("Supervisor dashboard element (id='supervisorDashboard') not found when showing form!");
+    if (splashScreen) splashScreen.style.display = 'none'; else console.warn("Splash screen element (id='splashScreen') not found when showing form!");
+
+    if (loginModal) loginModal.style.display = 'none';
+    if (feedbackModal) feedbackModal.style.display = 'none';
+    if (settingsModal) settingsModal.style.display = 'none';
+    if (exportModal) exportModal.style.display = 'none'; // Only hide if element exists
+    if (emailSelectionModal) emailSelectionModal.style.display = 'none'; // Only hide if element exists
+    
+    removeOverlay();
+    updateHeaderButtons();
 }
 
 function showDashboard() {
     console.log('Showing Dashboard View');
-    currentView = 'dashboard'; // Update current view
-    document.getElementById('mainFormContainer').style.display = 'none';
-    document.getElementById('supervisorDashboard').style.display = 'block';
-    document.getElementById('feedbackModal').style.display = 'none';
-    document.getElementById('settingsModal').style.display = 'none';
-    document.getElementById('exportModal').style.display = 'none';
-    document.getElementById('splashScreen').style.display = 'none';
-    document.getElementById('emailSelectionModal').style.display = 'none';
-    removeOverlay(); // Ensure overlay is removed when switching to dashboard
-    loadDashboardData(); // Load dashboard data when showing dashboard
-    updateHeaderButtons(); // Update header based on view and login state
+    currentView = 'dashboard';
+
+    const mainForm = document.getElementById('mainForm'); // Corrected ID from 'mainFormContainer'
+    const supervisorDashboard = document.getElementById('supervisorDashboard');
+    const splashScreen = document.getElementById('splashScreen'); // No ID exists in HTML for this
+
+    // Modals (added checks for existence)
+    const loginModal = document.getElementById('loginModal');
+    const feedbackModal = document.getElementById('feedbackModal');
+    const settingsModal = document.getElementById('settingsModal');
+    const exportModal = document.getElementById('exportModal'); // No ID exists in HTML for this
+    const emailSelectionModal = document.getElementById('emailSelectionModal'); // No ID exists in HTML for this
+    
+    // Apply display styles with checks
+    if (mainForm) mainForm.style.display = 'none'; else console.warn("Main form element (id='mainForm') not found when showing dashboard!");
+    if (supervisorDashboard) supervisorDashboard.style.display = 'block'; else console.error("Supervisor dashboard element (id='supervisorDashboard') not found!"); // This was the specific one causing your last error!
+    if (splashScreen) splashScreen.style.display = 'none'; else console.warn("Splash screen element (id='splashScreen') not found when showing dashboard!");
+
+    if (loginModal) loginModal.style.display = 'none';
+    if (feedbackModal) feedbackModal.style.display = 'none';
+    if (settingsModal) settingsModal.style.display = 'none';
+    if (exportModal) exportModal.style.display = 'none'; // Only hide if element exists
+    if (emailSelectionModal) emailSelectionModal.style.display = 'none'; // Only hide if element exists
+    
+    removeOverlay();
+    loadDashboardData();
+    updateHeaderButtons();
 }
 
 // ===================================================
