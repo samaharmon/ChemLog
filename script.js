@@ -1614,50 +1614,72 @@ document.addEventListener('DOMContentLoaded', function() {
 // Add all other functions you're calling in onclick attributes
 
 function updateHeaderButtons() {
-    console.log('updateHeaderButtons called, isLoggedIn:', isLoggedIn, 'currentView:', currentView);
+    console.log('Updating header buttons. isLoggedIn:', isLoggedIn, 'currentView:', currentView);
 
-    const headerRight = document.querySelector('.header-right'); // For supervisor login button (when not logged in)
-    const headerLeft = document.querySelector('.header-left'); // Assuming 'Capital City Aquatics' is here
-    const dashboardMenuContainer = document.getElementById('dashboardMenuContainer'); // A new specific container for the dashboard menu
+    // Get references to the header areas for the FORM view
+    const formHeaderRight = document.querySelector('#mainForm .header-right');
+    const formHeaderLeft = document.querySelector('#mainForm .header-left');
 
-    if (!headerRight || !headerLeft) {
-        console.error('Header elements (header-right or header-left) not found.');
-        return;
-    }
+    // Get references to the header areas for the DASHBOARD view
+    const dashboardHeaderRight = document.querySelector('#supervisorDashboard .header-right');
+    const dashboardMenuContainer = document.getElementById('dashboardMenuContainer');
 
-    // Clear specific header sections to avoid duplicates
-    headerRight.innerHTML = ''; // Always clear right side
-    if (dashboardMenuContainer) {
-        dashboardMenuContainer.innerHTML = ''; // Clear dashboard-specific menu container
-    }
+    // Ensure initial state for dynamic containers is clear
+    if (formHeaderRight) formHeaderRight.innerHTML = '';
+    if (dashboardHeaderRight) dashboardHeaderRight.innerHTML = '';
+    if (dashboardMenuContainer) dashboardMenuContainer.innerHTML = '';
+
+    // Get the static supervisor-login-btn which is in the #mainForm .header-left
+    const staticFormLoginBtn = document.querySelector('#mainForm .supervisor-login-btn');
 
     if (isLoggedIn) {
-        // When logged in, the supervisor login button should NOT be there.
-        // The menu button should appear on the dashboard.
-
-        if (currentView === 'supervisorDashboard') {
-            // ONLY show the menu button when on the dashboard and logged in
-            if (!dashboardMenuContainer) {
-                console.error('dashboardMenuContainer not found for menu button placement.');
-                // Fallback to headerRight if specific container not found (less ideal placement)
-                // console.warn('Falling back to headerRight for menu button.');
-                // createAndAppendMenu(headerRight); // If you must put it here.
-                return; // Exit if the designated spot for the menu button doesn't exist on dashboard
+        // User is logged in
+        if (currentView === 'dashboard') {
+            // Logged in and viewing dashboard
+            if (staticFormLoginBtn) {
+                staticFormLoginBtn.style.display = 'none'; // Hide the static login button
             }
-            createAndAppendMenu(dashboardMenuContainer); // Append to the new, specific dashboard container
-        } else {
-            // If logged in but on the form page, ensure no menu button is shown.
-            // (The headerRight is already cleared above, good).
-            console.log("Logged in, but not on dashboard. Menu button suppressed.");
-        }
 
+            // Append menu button to dashboard header
+            if (dashboardMenuContainer) {
+                createAndAppendMenu(dashboardMenuContainer); // Assumes createAndAppendMenu is defined elsewhere
+                console.log('Menu button appended to dashboard.');
+            }
+
+            // Add logout button to dashboard header right
+            if (dashboardHeaderRight && !dashboardHeaderRight.querySelector('.logout-btn')) {
+                const logoutBtn = document.createElement('button');
+                logoutBtn.className = 'logout-btn';
+                logoutBtn.textContent = 'Logout';
+                logoutBtn.addEventListener('click', handleLogout); // Assumes handleLogout is defined elsewhere
+                dashboardHeaderRight.appendChild(logoutBtn);
+                console.log('Logout button appended to dashboard.');
+            }
+        } else {
+            // Logged in but viewing form (should generally not happen, but hide login button)
+            if (staticFormLoginBtn) {
+                staticFormLoginBtn.style.display = 'none';
+            }
+        }
     } else {
-        // When NOT logged in, show the supervisor login button on the right side.
-        const supervisorLoginBtn = document.createElement('button');
-        supervisorLoginBtn.className = 'supervisor-login-btn';
-        supervisorLoginBtn.textContent = 'Supervisor Login';
-        supervisorLoginBtn.addEventListener('click', openLoginModal);
-        headerRight.appendChild(supervisorLoginBtn);
+        // User is NOT logged in
+        if (currentView === 'form') {
+            // Not logged in and viewing form
+            if (staticFormLoginBtn) {
+                staticFormLoginBtn.style.display = 'block'; // Show the static login button
+                console.log('Supervisor login button made visible on form.');
+            }
+            // Ensure no dashboard buttons are visible
+            if (dashboardMenuContainer) dashboardMenuContainer.innerHTML = '';
+            if (dashboardHeaderRight) dashboardHeaderRight.innerHTML = '';
+        } else {
+            // Not logged in and viewing dashboard (error state, hide all buttons)
+            if (staticFormLoginBtn) {
+                staticFormLoginBtn.style.display = 'none';
+            }
+            if (dashboardMenuContainer) dashboardMenuContainer.innerHTML = '';
+            if (dashboardHeaderRight) dashboardHeaderRight.innerHTML = '';
+        }
     }
 }
 
