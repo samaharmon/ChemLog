@@ -1566,52 +1566,41 @@ console.log('✅ All 62 unique functions exposed globally');
 // 6+3+6+6+5+4+5+5+4+7+3+1+3+2+2 = 62 functions total
 // ===================================================
 
-document.addEventListener('DOMContentLoaded', function() {
-    console.log('🔥🔥🔥 UNIFIED APP.JS LOADED - Firebase v9 🔥🔥🔥');
-    
-    // Initialize Firebase v9 first
-    const firebaseInitialized = initializeFirebase();
-    
-    // Initialize app components
-    checkLogin();
-    initializeFormSubmissions();
-    
-    // Set up login form handler - FIX: Use the function directly, not from window
-    const loginForm = document.getElementById('loginForm');
-    if (loginForm) {
-        loginForm.addEventListener('submit', handleLoginSubmit);
-        console.log('✅ Login form handler attached');
-    }
-    
-    // Set up pool location change handler - FIX: Use function directly
-    const poolLocation = document.getElementById('poolLocation');
-    if (poolLocation) {
-        poolLocation.addEventListener('change', handlePoolLocationChange);
-        console.log('✅ Pool location handler attached');
-    }
-
-    const loginButton = document.querySelector('.supervisor-login-btn');
-    if (loginButton) {
-        loginButton.removeAttribute('onclick');
-        loginButton.addEventListener('click', openLoginModal);
-    }
-    
-    // Find the submit button and add event listener
-    const submitButton = document.querySelector('.submit-btn');
-    if (submitButton) {
-        submitButton.removeAttribute('onclick');
-        submitButton.addEventListener('click', submitForm);
-    }
-    
-    // Continue with other initialization...
-    
-    setupEventHandlers();
-    updateHeaderButtons();
-    
-    console.log('🚀 App initialization complete');
-});
-
 // Add all other functions you're calling in onclick attributes
+
+function createAndAppendMenu(parentElement) {
+    const menuContainer = document.createElement('div');
+    menuContainer.className = 'menu-container'; // Keep this class for styling
+
+    const menuBtn = document.createElement('button');
+    menuBtn.className = 'menu-btn';
+    menuBtn.innerHTML = '☰';
+    menuBtn.addEventListener('click', toggleMenu);
+    menuContainer.appendChild(menuBtn);
+
+    const dropdownMenu = document.createElement('div');
+    dropdownMenu.id = 'dropdownMenu';
+    dropdownMenu.className = 'dropdown-menu';
+    dropdownMenu.style.display = 'none'; // Initially hidden
+
+    const settingsDiv = document.createElement('div');
+    settingsDiv.textContent = 'Settings';
+    settingsDiv.addEventListener('click', showSettings);
+    dropdownMenu.appendChild(settingsDiv);
+
+    const clearDataDiv = document.createElement('div');
+    clearDataDiv.textContent = 'Clear All Data';
+    clearDataDiv.addEventListener('click', clearAllData);
+    dropdownMenu.appendChild(clearDataDiv);
+
+    const logoutDiv = document.createElement('div');
+    logoutDiv.textContent = 'Logout';
+    logoutDiv.addEventListener('click', logout);
+    dropdownMenu.appendChild(logoutDiv);
+
+    menuContainer.appendChild(dropdownMenu);
+    parentElement.appendChild(menuContainer); // Append to the designated parent
+}
 
 function updateHeaderButtons() {
     console.log('Updating header buttons. isLoggedIn:', isLoggedIn, 'currentView:', currentView);
@@ -1683,39 +1672,50 @@ function updateHeaderButtons() {
     }
 }
 
-function createAndAppendMenu(parentElement) {
-    const menuContainer = document.createElement('div');
-    menuContainer.className = 'menu-container'; // Keep this class for styling
+document.addEventListener('DOMContentLoaded', function() {
+    console.log('🔥🔥🔥 UNIFIED APP.JS LOADED - Firebase v9 🔥🔥🔥');
+    
+    // Initialize Firebase v9 first
+    const firebaseInitialized = initializeFirebase();
+    
+    // Initialize app components
+    checkLogin();
+    initializeFormSubmissions();
+    
+    // Set up login form handler - FIX: Use the function directly, not from window
+    const loginForm = document.getElementById('loginForm');
+    if (loginForm) {
+        loginForm.addEventListener('submit', handleLoginSubmit);
+        console.log('✅ Login form handler attached');
+    }
+    
+    // Set up pool location change handler - FIX: Use function directly
+    const poolLocation = document.getElementById('poolLocation');
+    if (poolLocation) {
+        poolLocation.addEventListener('change', handlePoolLocationChange);
+        console.log('✅ Pool location handler attached');
+    }
 
-    const menuBtn = document.createElement('button');
-    menuBtn.className = 'menu-btn';
-    menuBtn.innerHTML = '☰';
-    menuBtn.addEventListener('click', toggleMenu);
-    menuContainer.appendChild(menuBtn);
-
-    const dropdownMenu = document.createElement('div');
-    dropdownMenu.id = 'dropdownMenu';
-    dropdownMenu.className = 'dropdown-menu';
-    dropdownMenu.style.display = 'none'; // Initially hidden
-
-    const settingsDiv = document.createElement('div');
-    settingsDiv.textContent = 'Settings';
-    settingsDiv.addEventListener('click', showSettings);
-    dropdownMenu.appendChild(settingsDiv);
-
-    const clearDataDiv = document.createElement('div');
-    clearDataDiv.textContent = 'Clear All Data';
-    clearDataDiv.addEventListener('click', clearAllData);
-    dropdownMenu.appendChild(clearDataDiv);
-
-    const logoutDiv = document.createElement('div');
-    logoutDiv.textContent = 'Logout';
-    logoutDiv.addEventListener('click', logout);
-    dropdownMenu.appendChild(logoutDiv);
-
-    menuContainer.appendChild(dropdownMenu);
-    parentElement.appendChild(menuContainer); // Append to the designated parent
-}
+    const loginButton = document.querySelector('.supervisor-login-btn');
+    if (loginButton) {
+        loginButton.removeAttribute('onclick');
+        loginButton.addEventListener('click', openLoginModal);
+    }
+    
+    // Find the submit button and add event listener
+    const submitButton = document.querySelector('.submit-btn');
+    if (submitButton) {
+        submitButton.removeAttribute('onclick');
+        submitButton.addEventListener('click', submitForm);
+    }
+    
+    // Continue with other initialization...
+    
+    setupEventHandlers();
+    updateHeaderButtons();
+    
+    console.log('🚀 App initialization complete');
+});
 
 // ===================================================
 // UTILITY FUNCTIONS
