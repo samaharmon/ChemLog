@@ -530,7 +530,7 @@ async function submitFormAndSync() {
     }
 
 function submitForm() {
-    return submitFormAndSync();
+    submitFormAndSync();
 }
 
 function evaluateFormFeedback(formData) {
@@ -809,16 +809,6 @@ function evaluateFormFeedback(formData) {
     }
     
     resetForm();
-}
-
-// Updated showDashboard function
-function showDashboard() {
-    console.log('showDashboard called');
-    document.getElementById('mainForm').style.display = 'none';
-    document.getElementById('supervisorDashboard').style.display = 'block';
-    
-    console.log('Dashboard is now visible, calling loadDashboardData...');
-    loadDashboardData();
 }
 
 // ===================================================
@@ -2211,7 +2201,7 @@ window.debugApp = debugApp;
 // ===================================================
 
 // Core form and submission functions (6)
-window.submitForm = submitFormAndSync;
+window.submitForm = submitForm;
 window.submitFormAndSync = submitFormAndSync;
 window.loadFormSubmissions = loadFormSubmissions;
 window.saveFormSubmissions = saveFormSubmissions;
