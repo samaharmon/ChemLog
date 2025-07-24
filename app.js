@@ -3,7 +3,14 @@
 // Capital City Aquatics - 2025
 // ===================================================
 
-// Firebase Configuration
+// Import the functions you need from the SDKs you need
+import { initializeApp } from "firebase/app";
+import { getAnalytics } from "firebase/analytics";
+// TODO: Add SDKs for Firebase products that you want to use
+// https://firebase.google.com/docs/web/setup#available-libraries
+
+// Your web app's Firebase configuration
+// For Firebase JS SDK v7.20.0 and later, measurementId is optional
 const firebaseConfig = {
   apiKey: "AIzaSyCRxSL2uuH6O5MFvbq0FS02zF2K_lXGvqI",
   authDomain: "chemlog-43c08.firebaseapp.com",
@@ -13,6 +20,10 @@ const firebaseConfig = {
   appId: "1:554394202059:web:a8d5824a1d7ccdd871d04e",
   measurementId: "G-QF5ZQ88VS2"
 };
+
+// Initialize Firebase
+const app = initializeApp(firebaseConfig);
+const analytics = getAnalytics(app);
 
 // Global variables
 let app, db;
@@ -186,6 +197,42 @@ function filterAndDisplayData() {
     // Display the data
     displayData();
     updatePaginationControls();
+}
+
+function getHighlightColor(value, type) {
+    if (!value || value === 'N/A' || value === '') return null;
+    
+    const valueStr = value.toString().trim();
+    
+    if (type === 'pH') {
+        if (valueStr.startsWith('< 7.0' || valueStr === '< 7.0' || 
+            valueStr.startsWith('> 8.0') || valueStr === '> 8.0' ||
+            valueStr === '7.8' || valueStr === '8.0')) {
+            return 'red';
+        }
+        const numValue = parseFloat(valueStr.replace(/[<>]/g, ''));
+        if (!isNaN(numValue)) {
+            if (numValue < 7.0 || numValue === 7.8 || numValue === 8.0 || numValue > 8.0) return 'red';
+            if (numValue === 7.0 || numValue === 7.6) return 'yellow';
+        }
+        return null;
+    }
+    
+    if (type === 'cl') {
+        if (valueStr.startsWith('> 10') || valueStr === '> 10' ||
+            valueStr.startsWith('>10') || valueStr === '>10' ||
+            valueStr === '0' || valueStr === '10') {
+            return 'red';
+        }
+        const numValue = parseFloat(valueStr.replace(/[<>]/g, ''));
+        if (!isNaN(numValue)) {
+            if (numValue === 0 || numValue === 10 || numValue > 10) return 'red';
+            if ((numValue > 0 && numValue < 3) || (numValue > 5 && numValue < 10)) return 'yellow';
+        }
+        return null;
+    }
+    
+    return null;
 }
 
 // Updated displayData function
@@ -510,32 +557,6 @@ function validateFirebaseConfig() {
     return true;
 }
 
-// Initialize Firebase
-function initializeFirebase() {
-    try {
-        if (!validateFirebaseConfig()) {
-            updateFirebaseStatus('⚠️ Firebase config not set - update app.js with your project credentials', true);
-            return;
-        }
-        
-        if (!window.firebase) {
-            updateFirebaseStatus('Firebase SDK not loaded', true);
-            return;
-        }
-        
-        app = window.firebase.initializeApp(firebaseConfig);
-        db = window.firebase.getFirestore(app);
-        updateFirebaseStatus('✅ Firebase connected successfully');
-        
-        // Initialize sanitation settings and load data
-        initializeSanitationSettings();
-        loadDashboardData();
-    } catch (error) {
-        console.error('Firebase initialization error:', error);
-        updateFirebaseStatus(`❌ Firebase error: ${error.message}`, true);
-    }
-}
-
 // ===================================================
 // SANITATION SETTINGS MANAGEMENT
 // ===================================================
@@ -712,33 +733,10 @@ document.addEventListener('DOMContentLoaded', async function () {
     checkLogin();
     initializeApp();
     initializeFormSubmissions(); // ADD THIS LINE
-    initializeFirebase();
     
     // ... rest of your existing code
 });
 
-// Add this function to initialize the correct default view
-// Replace the existing initializeApp function with this:
-function initializeApp() {
-    // Ensure we start with the form view
-    currentView = 'form';
-    isLoggedIn = false;
-    
-    // Hide dashboard and show form
-    const dashboard = document.getElementById('supervisorDashboard');
-    const form = document.getElementById('mainForm');
-    
-    if (dashboard) {
-        dashboard.style.display = 'none';
-    }
-    
-    if (form) {
-        form.style.display = 'block';
-    }
-    
-    // Ensure the header shows only one login button
-    updateHeaderButtons();
-}
 
 // Replace the existing updateHeaderButtons function:
 function updateHeaderButtons() {
