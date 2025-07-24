@@ -96,7 +96,8 @@ function openLoginModal() {
     
     // Focus on first input after a short delay
     setTimeout(() => {
-        const firstInput = modal.querySelector('input[name="email"]');
+        const firstInput = document.getElementById('inputEmail'); // This line is now correct
+        // The 'if' statement needs to be on its own line, after the declaration and any comments
         if (firstInput) {
             firstInput.focus();
         }
@@ -123,25 +124,33 @@ function handlePoolLocationChange() {
         secondaryCl.setAttribute('required', '');
     }
 }
+// In your script.js file
+
 function closeLoginModal() {
+    console.log('closeLoginModal called');
     const modal = document.getElementById('loginModal');
     if (modal) {
         modal.style.display = 'none';
     }
-    
-    const loginForm = document.getElementById('loginForm');
-    if (loginForm) {
-        loginForm.reset();
+
+    // Clear the input fields when the modal is closed
+    const emailInput = document.getElementById('inputEmail'); // Use the new ID here
+    const passwordInput = document.getElementById('password');
+
+    if (emailInput) {
+        emailInput.value = '';
     }
-    
-    removeOverlay();
-    console.log('Login modal closed');
+    if (passwordInput) {
+        passwordInput.value = '';
+    }
+
+    removeOverlay(); // Assuming this function is defined elsewhere to remove a dimming overlay
 }
 function handleLoginSubmit(event) {
     event.preventDefault();
     console.log('Login form submitted');
     
-    const emailInput = document.querySelector('#loginForm input[name="email"]');
+    const emailInput = document.getElementById('inputEmail');
     const passwordInput = document.querySelector('#loginForm input[name="password"]');
     
     if (!emailInput || !passwordInput) {
