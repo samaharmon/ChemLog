@@ -1635,7 +1635,7 @@ function updateHeaderButtons() {
         // When logged in, the supervisor login button should NOT be there.
         // The menu button should appear on the dashboard.
 
-        if (currentView === 'dashboard') {
+        if (currentView === 'supervisorDashboard') {
             // ONLY show the menu button when on the dashboard and logged in
             if (!dashboardMenuContainer) {
                 console.error('dashboardMenuContainer not found for menu button placement.');
@@ -1815,7 +1815,7 @@ function showForm() {
 
 function showDashboard() {
     console.log('Showing Dashboard View');
-    currentView = 'dashboard';
+    currentView = 'supervisorDashboard';
 
     const mainForm = document.getElementById('mainForm'); // Corrected ID from 'mainFormContainer'
     const supervisorDashboard = document.getElementById('supervisorDashboard');
