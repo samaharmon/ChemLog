@@ -1069,14 +1069,8 @@ document.addEventListener('DOMContentLoaded', function() {
     console.log('🚀 App initialization complete');
 });
 
-// Replace the existing updateHeaderButtons function:
 function updateHeaderButtons() {
     console.log('updateHeaderButtons called, isLoggedIn:', isLoggedIn);
-    
-    // Remove any existing header buttons first
-    document.querySelectorAll('.supervisor-login-btn, .logout-btn, .menu-container').forEach(btn => {
-        btn.remove();
-    });
     
     const headerRight = document.querySelector('.header-right');
     if (!headerRight) {
@@ -1096,13 +1090,11 @@ function updateHeaderButtons() {
                 </div>
             </div>
         `;
-        console.log('Header updated for logged in state');
     } else {
-        // Show only supervisor login button for form view
+        // Show supervisor login button
         headerRight.innerHTML = `
             <button class="supervisor-login-btn" onclick="openLoginModal()">Supervisor Login</button>
         `;
-        console.log('Header updated for logged out state');
     }
 }
 
@@ -1139,7 +1131,8 @@ function checkLogin() {
             if (Date.now() < expires) {
                 console.log('Valid login token found');
                 isLoggedIn = true;
-                showDashboard();
+                // Remove these lines:
+                // showDashboard();
                 updateHeaderButtons();
                 return true;
             } else {
