@@ -471,69 +471,6 @@ function displayData() {
     console.log('Data display completed');
 }
 
-// Updated submitForm to save to both systems
-// Try to save to Firebase
-async function submitFormAndSync() {
-    console.log('Submit button clicked');
-    
-    // Clear any previous error highlighting
-    document.querySelectorAll('.form-group.error').forEach(group => {
-        group.classList.remove('error');
-    });
-
-    // Validate required fields
-    const basicRequiredFields = ['firstName', 'lastName', 'poolLocation'];
-    let hasErrors = false;
-    
-    basicRequiredFields.forEach(fieldName => {
-        const field = document.getElementById(fieldName);
-        const formGroup = field.closest('.form-group');
-        
-        if (!field.value || field.value.trim() === '') {
-            formGroup.classList.add('error');
-            hasErrors = true;
-        }
-    });
-    
-    const mainPoolFields = ['mainPoolPH', 'mainPoolCl'];
-    mainPoolFields.forEach(fieldName => {
-        const field = document.getElementById(fieldName);
-        const formGroup = field.closest('.form-group');
-        
-        if (!field.value || field.value.trim() === '') {
-            formGroup.classList.add('error');
-            hasErrors = true;
-        }
-    });
-    
-    const poolLocation = document.getElementById('poolLocation').value;
-    if (poolLocation !== 'Camden CC') {
-        const secondaryPoolFields = ['secondaryPoolPH', 'secondaryPoolCl'];
-        secondaryPoolFields.forEach(fieldName => {
-            const field = document.getElementById(fieldName);
-            const formGroup = field.closest('.form-group');
-            
-            if (!field.value || field.value.trim() === '') {
-                formGroup.classList.add('error');
-                hasErrors = true;
-            }
-        });
-    }
-    
-    if (hasErrors) {
-        showMessage('Please fill in all required fields (highlighted in yellow).', 'error');
-        const firstError = document.querySelector('.form-group.error');
-        if (firstError) {
-            firstError.scrollIntoView({ behavior: 'smooth', block: 'center' });
-        }
-        return;
-    }
-}
-
-function submitForm() {
-    submitFormAndSync();
-}
-
 
 function evaluateFormFeedback() { // Remove formData parameter
     const poolLocation = document.getElementById('poolLocation').value;
@@ -1034,6 +971,110 @@ function setupEventHandlers() {
     
     console.log('Event handlers set up');
 }
+
+// ===================================================
+// COMPREHENSIVE GLOBAL ASSIGNMENTS (62 Functions - Corrected)
+// ===================================================
+
+// Core form and submission functions (6)
+window.submitForm = submitForm;
+window.submitFormAndSync = submitFormAndSync;
+window.loadFormSubmissions = loadFormSubmissions;
+window.saveFormSubmissions = saveFormSubmissions;
+window.initializeFormSubmissions = initializeFormSubmissions;
+window.evaluateFormFeedback = evaluateFormFeedback;
+
+// Form handling (3)
+window.resetForm = resetForm;
+window.handlePoolLocationChange = handlePoolLocationChange;
+window.handleLocationChange = handleLocationChange;
+
+// Authentication and login (6)
+window.openLoginModal = openLoginModal;
+window.closeLoginModal = closeLoginModal;
+window.handleLoginSubmit = handleLoginSubmit;
+window.checkLogin = checkLogin;
+window.checkLoginStatus = checkLoginStatus;
+window.logout = logout;
+
+// Dashboard and data display (6)
+window.showDashboard = showDashboard;
+window.loadDashboardData = loadDashboardData;
+window.displayData = displayData;
+window.filterAndDisplayData = filterAndDisplayData;
+window.filterData = filterData;
+window.useLocalDataOnly = useLocalDataOnly;
+
+// Pagination (5)
+window.goToPreviousPage = goToPreviousPage;
+window.goToNextPage = goToNextPage;
+window.updatePagination = updatePagination;
+window.updatePaginationControls = updatePaginationControls;
+window.changePage = changePage;
+
+// Data management (4)
+window.deleteSubmission = deleteSubmission;
+window.clearAllData = clearAllData;
+window.exportToCSV = exportToCSV;
+window.organizePaginatedData = organizePaginatedData;
+
+// UI and utility functions (5)
+window.getHighlightColor = getHighlightColor;
+window.getPoolWarningLevel = getPoolWarningLevel;
+window.isMoreThan3HoursOld = isMoreThan3HoursOld;
+window.updateTimestampNote = updateTimestampNote;
+window.getClResponse = getClResponse;
+
+// Modals and overlays (5)
+window.createOrShowOverlay = createOrShowOverlay;
+window.removeOverlay = removeOverlay;
+window.closeModal = closeModal;
+window.showFeedbackModal = showFeedbackModal;
+window.showRecipientSelectionInModal = showRecipientSelectionInModal;
+
+// Messages and feedback (4)
+window.showMessage = showMessage;
+window.showFeedback = showFeedback;
+window.notifySupervisor = notifySupervisor;
+window.areAllCheckboxesChecked = areAllCheckboxesChecked;
+
+// Settings management (7)
+window.openSettings = openSettings;
+window.showSettings = showSettings;
+window.closeSettings = closeSettings;
+window.handleSanitationChange = handleSanitationChange;
+window.initializeSanitationSettings = initializeSanitationSettings;
+window.saveSanitationSettings = saveSanitationSettings;
+window.loadSanitationSettings = loadSanitationSettings;
+window.updateSanitationUI = updateSanitationUI;
+
+// SMS and notifications (3)
+window.sendSMSNotification = sendSMSNotification;
+window.chooseAndSendSMS = chooseAndSendSMS;
+window.checkForCriticalAlerts = checkForCriticalAlerts;
+
+// Menu and navigation (1)
+window.toggleMenu = toggleMenu;
+
+// Firebase functions (3)
+window.initializeFirebase = initializeFirebase;
+window.updateFirebaseStatus = updateFirebaseStatus;
+window.validateFirebaseConfig = validateFirebaseConfig;
+
+// Event handlers and setup (2)
+window.setupEventHandlers = setupEventHandlers;
+window.updateHeaderButtons = updateHeaderButtons;
+
+// Debug functions (2)
+window.debugApp = debugApp;
+window.debugLoginState = debugLoginState;
+
+console.log('✅ All 62 unique functions exposed globally');
+
+// ===================================================
+// FINAL COUNT VERIFICATION:
+// 6+3+6+6+5+4+5+5+4+7+3+1+3+2+2 = 62 functions total
+// ===================================================
 
 document.addEventListener('DOMContentLoaded', function() {
     console.log('🔥🔥🔥 UNIFIED APP.JS LOADED - Firebase v9 🔥🔥🔥');
@@ -2105,107 +2146,3 @@ function debugApp() {
 }
 
 window.debugApp = debugApp;
-
-// ===================================================
-// COMPREHENSIVE GLOBAL ASSIGNMENTS (62 Functions - Corrected)
-// ===================================================
-
-// Core form and submission functions (6)
-window.submitForm = submitForm;
-window.submitFormAndSync = submitFormAndSync;
-window.loadFormSubmissions = loadFormSubmissions;
-window.saveFormSubmissions = saveFormSubmissions;
-window.initializeFormSubmissions = initializeFormSubmissions;
-window.evaluateFormFeedback = evaluateFormFeedback;
-
-// Form handling (3)
-window.resetForm = resetForm;
-window.handlePoolLocationChange = handlePoolLocationChange;
-window.handleLocationChange = handleLocationChange;
-
-// Authentication and login (6)
-window.openLoginModal = openLoginModal;
-window.closeLoginModal = closeLoginModal;
-window.handleLoginSubmit = handleLoginSubmit;
-window.checkLogin = checkLogin;
-window.checkLoginStatus = checkLoginStatus;
-window.logout = logout;
-
-// Dashboard and data display (6)
-window.showDashboard = showDashboard;
-window.loadDashboardData = loadDashboardData;
-window.displayData = displayData;
-window.filterAndDisplayData = filterAndDisplayData;
-window.filterData = filterData;
-window.useLocalDataOnly = useLocalDataOnly;
-
-// Pagination (5)
-window.goToPreviousPage = goToPreviousPage;
-window.goToNextPage = goToNextPage;
-window.updatePagination = updatePagination;
-window.updatePaginationControls = updatePaginationControls;
-window.changePage = changePage;
-
-// Data management (4)
-window.deleteSubmission = deleteSubmission;
-window.clearAllData = clearAllData;
-window.exportToCSV = exportToCSV;
-window.organizePaginatedData = organizePaginatedData;
-
-// UI and utility functions (5)
-window.getHighlightColor = getHighlightColor;
-window.getPoolWarningLevel = getPoolWarningLevel;
-window.isMoreThan3HoursOld = isMoreThan3HoursOld;
-window.updateTimestampNote = updateTimestampNote;
-window.getClResponse = getClResponse;
-
-// Modals and overlays (5)
-window.createOrShowOverlay = createOrShowOverlay;
-window.removeOverlay = removeOverlay;
-window.closeModal = closeModal;
-window.showFeedbackModal = showFeedbackModal;
-window.showRecipientSelectionInModal = showRecipientSelectionInModal;
-
-// Messages and feedback (4)
-window.showMessage = showMessage;
-window.showFeedback = showFeedback;
-window.notifySupervisor = notifySupervisor;
-window.areAllCheckboxesChecked = areAllCheckboxesChecked;
-
-// Settings management (7)
-window.openSettings = openSettings;
-window.showSettings = showSettings;
-window.closeSettings = closeSettings;
-window.handleSanitationChange = handleSanitationChange;
-window.initializeSanitationSettings = initializeSanitationSettings;
-window.saveSanitationSettings = saveSanitationSettings;
-window.loadSanitationSettings = loadSanitationSettings;
-window.updateSanitationUI = updateSanitationUI;
-
-// SMS and notifications (3)
-window.sendSMSNotification = sendSMSNotification;
-window.chooseAndSendSMS = chooseAndSendSMS;
-window.checkForCriticalAlerts = checkForCriticalAlerts;
-
-// Menu and navigation (1)
-window.toggleMenu = toggleMenu;
-
-// Firebase functions (3)
-window.initializeFirebase = initializeFirebase;
-window.updateFirebaseStatus = updateFirebaseStatus;
-window.validateFirebaseConfig = validateFirebaseConfig;
-
-// Event handlers and setup (2)
-window.setupEventHandlers = setupEventHandlers;
-window.updateHeaderButtons = updateHeaderButtons;
-
-// Debug functions (2)
-window.debugApp = debugApp;
-window.debugLoginState = debugLoginState;
-
-console.log('✅ All 62 unique functions exposed globally');
-
-// ===================================================
-// FINAL COUNT VERIFICATION:
-// 6+3+6+6+5+4+5+5+4+7+3+1+3+2+2 = 62 functions total
-// ===================================================
