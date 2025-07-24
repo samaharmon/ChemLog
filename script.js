@@ -1219,6 +1219,22 @@ document.addEventListener('DOMContentLoaded', function() {
     console.log('🚀 App initialization complete');
 });
 
+// In your JS/script.js file, add these to make them globally accessible:
+window.openLoginModal = function() {
+    document.getElementById('loginModal').style.display = 'block';
+};
+
+window.closeLoginModal = function() {
+    document.getElementById('loginModal').style.display = 'none';
+};
+
+window.submitForm = function() {
+    // Your form submission logic here
+    console.log('Form submitted');
+};
+
+// Add all other functions you're calling in onclick attributes
+
 function updateHeaderButtons() {
     console.log('updateHeaderButtons called, isLoggedIn:', isLoggedIn);
     
