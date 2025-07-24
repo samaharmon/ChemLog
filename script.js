@@ -28,24 +28,7 @@ function submitForm() {
     
     // Rest of function remains the same...
 }
-function handlePoolLocationChange() {
-    const poolLocation = document.getElementById('poolLocation').value;
-    const secondaryPoolSection = document.getElementById('secondaryPoolSection');
-    const secondaryPH = document.getElementById('secondaryPoolPH');
-    const secondaryCl = document.getElementById('secondaryPoolCl');
-    
-    if (poolLocation === 'Camden CC') {
-        secondaryPoolSection.classList.add('hidden');
-        secondaryPH.removeAttribute('required');
-        secondaryCl.removeAttribute('required');
-        secondaryPH.value = '';
-        secondaryCl.value = '';
-    } else {
-        secondaryPoolSection.classList.remove('hidden');
-        secondaryPH.setAttribute('required', '');
-        secondaryCl.setAttribute('required', '');
-    }
-}
+window.submitForm = submitForm;
 function openLoginModal() {
     console.log('openLoginModal called');
     
@@ -71,6 +54,25 @@ function openLoginModal() {
     }, 100);
     
     console.log('Login modal opened successfully');
+}
+window.openLoginModal = openLoginModal; 
+function handlePoolLocationChange() {
+    const poolLocation = document.getElementById('poolLocation').value;
+    const secondaryPoolSection = document.getElementById('secondaryPoolSection');
+    const secondaryPH = document.getElementById('secondaryPoolPH');
+    const secondaryCl = document.getElementById('secondaryPoolCl');
+    
+    if (poolLocation === 'Camden CC') {
+        secondaryPoolSection.classList.add('hidden');
+        secondaryPH.removeAttribute('required');
+        secondaryCl.removeAttribute('required');
+        secondaryPH.value = '';
+        secondaryCl.value = '';
+    } else {
+        secondaryPoolSection.classList.remove('hidden');
+        secondaryPH.setAttribute('required', '');
+        secondaryCl.setAttribute('required', '');
+    }
 }
 function closeLoginModal() {
     const modal = document.getElementById('loginModal');
@@ -1418,7 +1420,6 @@ function setupEventHandlers() {
 // ===================================================
 
 // Core form and submission functions (6)
-window.submitForm = submitForm;
 window.loadFormSubmissions = loadFormSubmissions;
 window.saveFormSubmissions = saveFormSubmissions;
 window.initializeFormSubmissions = initializeFormSubmissions;
@@ -1430,7 +1431,6 @@ window.handlePoolLocationChange = handlePoolLocationChange;
 window.handleLocationChange = handleLocationChange;
 
 // Authentication and login (6)
-window.openLoginModal = openLoginModal;
 window.closeLoginModal = closeLoginModal;
 window.handleLoginSubmit = handleLoginSubmit;
 window.checkLogin = checkLogin;
@@ -1672,36 +1672,6 @@ function showDashboard() {
     loadDashboardData();
     
     console.log('Dashboard shown, isLoggedIn set to true');
-}
-
-
-// Filter dashboard data
-function filterData() {
-    const poolFilter = document.getElementById('poolFilter')?.value || '';
-    const dateFilter = document.getElementById('dateFilter')?.value || '';
-    
-    filteredSubmissions = allSubmissions.filter(submission => {
-        let passesFilter = true;
-        
-        // Pool filter
-        if (poolFilter && submission.poolLocation !== poolFilter) {
-            passesFilter = false;
-        }
-        
-        // Date filter
-        if (dateFilter) {
-            const filterDate = new Date(dateFilter);
-            const submissionDate = new Date(submission.timestamp);
-            if (submissionDate.toDateString() !== filterDate.toDateString()) {
-                passesFilter = false;
-            }
-        }
-        
-        return passesFilter;
-    });
-    
-    currentPage = 1;
-    displayData();
 }
 
 // ===================================================
