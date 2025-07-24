@@ -9,22 +9,28 @@ function submitForm() {
     document.querySelectorAll('.form-group.error').forEach(group => {
         group.classList.remove('error');
     });
-
-   
-    evaluateFormFeedback(); // Remove formData parameter
     
+    if (!validateForm()) {
+         showMessage('Please fill in all required fields.', 'error');
+          return; // Stop execution if validation fails
+ }
+
+    evaluateFormFeedback();
+
     // Create submission object
+    // Create submission object
+    const poolLocation = document.getElementById('poolLocation').value;
     const submission = {
         id: Date.now(),
         timestamp: new Date(),
         firstName: document.getElementById('firstName').value,
         lastName: document.getElementById('lastName').value,
-        poolLocation: document.getElementById('poolLocation').value,
+        poolLocation: poolLocation, // Now you can use the variable
         mainPoolPH: document.getElementById('mainPoolPH').value,
         mainPoolCl: document.getElementById('mainPoolCl').value,
         secondaryPoolPH: poolLocation === 'Camden CC' ? 'N/A' : document.getElementById('secondaryPoolPH').value,
         secondaryPoolCl: poolLocation === 'Camden CC' ? 'N/A' : document.getElementById('secondaryPoolCl').value
-    };
+};
     
     // Rest of function remains the same...
 }
@@ -1818,26 +1824,12 @@ console.log('🔧 Login functionality fixes applied');
 function showForm() {
     console.log('Showing Form View');
     currentView = 'form';
-
+    
     const mainForm = document.getElementById('mainForm');
     const supervisorDashboard = document.getElementById('supervisorDashboard');
-
-    // Modals (added checks for existence)
-    const loginModal = document.getElementById('loginModal');
-    const feedbackModal = document.getElementById('feedbackModal');
-    const settingsModal = document.getElementById('settingsModal');
-    const exported = document.getElementById('exported'); // No ID exists in HTML for this
-    const email = document.getElementById('email'); // No ID exists in HTML for this
     
-    // Apply display styles with checks
-    if (mainForm) mainForm.style.display = 'block'; else console.error("Main form element (id='mainForm') not found!");
-    if (supervisorDashboard) supervisorDashboard.style.display = 'none'; else console.warn("Supervisor dashboard element (id='supervisorDashboard') not found when showing form!");
-    
-    if (loginModal) loginModal.style.display = 'none';
-    if (feedbackModal) feedbackModal.style.display = 'none';
-    if (settingsModal) settingsModal.style.display = 'none';
-    if (exported) exported.style.display = 'none'; // Only hide if element exists
-    if (email) email.style.display = 'none'; // Only hide if element exists
+    if (mainForm) mainForm.classList.add('show');
+    if (supervisorDashboard) supervisorDashboard.classList.remove('show');
     
     removeOverlay();
     updateHeaderButtons();
@@ -1846,26 +1838,12 @@ function showForm() {
 function showDashboard() {
     console.log('Showing Dashboard View');
     currentView = 'dashboard';
-
+    
     const mainForm = document.getElementById('mainForm');
     const supervisorDashboard = document.getElementById('supervisorDashboard');
-
-    // Modals (added checks for existence)
-    const loginModal = document.getElementById('loginModal');
-    const feedbackModal = document.getElementById('feedbackModal');
-    const settingsModal = document.getElementById('settingsModal');
-    const exported = document.getElementById('exported'); // No ID exists in HTML for this
-    const email = document.getElementById('email'); // No ID exists in HTML for this
     
-    // Apply display styles with checks
-    if (mainForm) mainForm.style.display = 'none'; else console.warn("Main form element (id='mainForm') not found when showing dashboard!");
-    if (supervisorDashboard) supervisorDashboard.style.display = 'block'; else console.error("Supervisor dashboard element (id='supervisorDashboard') not found!"); // This was the specific one causing your last error!
-
-    if (loginModal) loginModal.style.display = 'none';
-    if (feedbackModal) feedbackModal.style.display = 'none';
-    if (settingsModal) settingsModal.style.display = 'none';
-    if (exported) exported.style.display = 'none'; // Only hide if element exists
-    if (email) email.style.display = 'none'; // Only hide if element exists
+    if (mainForm) mainForm.classList.remove('show');
+    if (supervisorDashboard) supervisorDashboard.classList.add('show');
     
     removeOverlay();
     loadDashboardData();
