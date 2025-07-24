@@ -532,6 +532,7 @@ async function submitFormAndSync() {
 function submitForm() {
     submitFormAndSync();
 }
+}
 
 function evaluateFormFeedback(formData) {
     const poolLocation = document.getElementById('poolLocation').value;
