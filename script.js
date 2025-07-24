@@ -1791,25 +1791,23 @@ function showForm() {
 
     const mainForm = document.getElementById('mainForm'); // Corrected ID from 'mainFormContainer'
     const supervisorDashboard = document.getElementById('supervisorDashboard');
-    const splashScreen = document.getElementById('splashScreen'); // No ID exists in HTML for this
 
     // Modals (added checks for existence)
     const loginModal = document.getElementById('loginModal');
     const feedbackModal = document.getElementById('feedbackModal');
     const settingsModal = document.getElementById('settingsModal');
-    const exportModal = document.getElementById('exportModal'); // No ID exists in HTML for this
-    const emailSelectionModal = document.getElementById('emailSelectionModal'); // No ID exists in HTML for this
+    const exported = document.getElementById('exported'); // No ID exists in HTML for this
+    const email = document.getElementById('email'); // No ID exists in HTML for this
     
     // Apply display styles with checks
     if (mainForm) mainForm.style.display = 'block'; else console.error("Main form element (id='mainForm') not found!");
     if (supervisorDashboard) supervisorDashboard.style.display = 'none'; else console.warn("Supervisor dashboard element (id='supervisorDashboard') not found when showing form!");
-    if (splashScreen) splashScreen.style.display = 'none'; else console.warn("Splash screen element (id='splashScreen') not found when showing form!");
-
+    
     if (loginModal) loginModal.style.display = 'none';
     if (feedbackModal) feedbackModal.style.display = 'none';
     if (settingsModal) settingsModal.style.display = 'none';
-    if (exportModal) exportModal.style.display = 'none'; // Only hide if element exists
-    if (emailSelectionModal) emailSelectionModal.style.display = 'none'; // Only hide if element exists
+    if (exported) exported.style.display = 'none'; // Only hide if element exists
+    if (email) email.style.display = 'none'; // Only hide if element exists
     
     removeOverlay();
     updateHeaderButtons();
@@ -1827,8 +1825,8 @@ function showDashboard() {
     const loginModal = document.getElementById('loginModal');
     const feedbackModal = document.getElementById('feedbackModal');
     const settingsModal = document.getElementById('settingsModal');
-    const exportModal = document.getElementById('exportModal'); // No ID exists in HTML for this
-    const emailSelectionModal = document.getElementById('emailSelectionModal'); // No ID exists in HTML for this
+    const exported = document.getElementById('exported'); // No ID exists in HTML for this
+    const email = document.getElementById('email'); // No ID exists in HTML for this
     
     // Apply display styles with checks
     if (mainForm) mainForm.style.display = 'none'; else console.warn("Main form element (id='mainForm') not found when showing dashboard!");
@@ -1838,8 +1836,8 @@ function showDashboard() {
     if (loginModal) loginModal.style.display = 'none';
     if (feedbackModal) feedbackModal.style.display = 'none';
     if (settingsModal) settingsModal.style.display = 'none';
-    if (exportModal) exportModal.style.display = 'none'; // Only hide if element exists
-    if (emailSelectionModal) emailSelectionModal.style.display = 'none'; // Only hide if element exists
+    if (exported) exported.style.display = 'none'; // Only hide if element exists
+    if (email) email.style.display = 'none'; // Only hide if element exists
     
     removeOverlay();
     loadDashboardData();
