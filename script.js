@@ -2104,10 +2104,6 @@ async function showSettings() {
     loadSanitationSettings();
 }
 
-function closeSettings() {
-    document.getElementById('settingsModal').style.display = 'none';
-}
-
 function sendSMSNotification(message, phoneNumber) {
     console.log(`SMS would be sent to ${phoneNumber}: ${message}`);
     showMessage('SMS notification sent successfully!', 'success');
