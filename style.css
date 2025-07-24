@@ -253,7 +253,6 @@ html, body {
 
         /* Modal Styles */
         .modal {
-            display: none;
             position: fixed;
             align-items: flex-start;
             justify-content: center;
