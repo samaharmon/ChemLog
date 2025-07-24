@@ -1539,6 +1539,25 @@ document.addEventListener('DOMContentLoaded', function() {
         poolLocation.addEventListener('change', handlePoolLocationChange);
         console.log('✅ Pool location handler attached');
     }
+
+    // Add this to your DOMContentLoaded event listener
+document.addEventListener('DOMContentLoaded', function() {
+    // Find the login button and add event listener
+    const loginButton = document.querySelector('button[onclick="openLoginModal()"]');
+    if (loginButton) {
+        loginButton.removeAttribute('onclick');
+        loginButton.addEventListener('click', openLoginModal);
+    }
+    
+    // Find the submit button and add event listener
+    const submitButton = document.querySelector('button[onclick="submitForm()"]');
+    if (submitButton) {
+        submitButton.removeAttribute('onclick');
+        submitButton.addEventListener('click', submitForm);
+    }
+    
+    // Continue with other initialization...
+});
     
     setupEventHandlers();
     updateHeaderButtons();
@@ -1729,44 +1748,6 @@ function logout() {
     updateHeaderButtons();
     
     console.log('Logged out successfully, isLoggedIn set to false');
-}
-
-// ===================================================
-// EXPORT FUNCTIONALITY
-// ===================================================
-
-function exportToCSV() {
-    if (filteredData.length === 0) {
-        showMessage('No data to export.', 'error');
-        return;
-    }
-    
-    const headers = ['Timestamp', 'First Name', 'Last Name', 'Pool Location', 'Main pH', 'Main Cl', 'Secondary pH', 'Secondary Cl'];
-    const csvContent = [
-        headers.join(','),
-        ...filteredData.map(row => [
-            `"${row.timestamp}"`,
-            `"${row.firstName}"`,
-            `"${row.lastName}"`,
-            `"${row.poolLocation}"`,
-            `"${row.mainPoolPH}"`,
-            `"${row.mainPoolCl}"`,
-            `"${row.secondaryPoolPH}"`,
-            `"${row.secondaryPoolCl}"`
-        ].join(','))
-    ].join('\n');
-    
-    const blob = new Blob([csvContent], { type: 'text/csv' });
-    const url = window.URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = `pool-chemistry-data-${new Date().toISOString().split('T')[0]}.csv`;
-    document.body.appendChild(a);
-    a.click();
-    document.body.removeChild(a);
-    window.URL.revokeObjectURL(url);
-    
-    showMessage('Data exported successfully!', 'success');
 }
 
 // ===================================================
