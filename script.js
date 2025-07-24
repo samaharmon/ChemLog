@@ -1613,40 +1613,6 @@ document.addEventListener('DOMContentLoaded', function() {
 
 // Add all other functions you're calling in onclick attributes
 
-function createAndAppendMenu(parentElement) {
-    const menuContainer = document.createElement('div');
-    menuContainer.className = 'menu-container'; // Keep this class for styling
-
-    const menuBtn = document.createElement('button');
-    menuBtn.className = 'menu-btn';
-    menuBtn.innerHTML = '☰';
-    menuBtn.addEventListener('click', toggleMenu);
-    menuContainer.appendChild(menuBtn);
-
-    const dropdownMenu = document.createElement('div');
-    dropdownMenu.id = 'dropdownMenu';
-    dropdownMenu.className = 'dropdown-menu';
-    dropdownMenu.style.display = 'none'; // Initially hidden
-
-    const settingsDiv = document.createElement('div');
-    settingsDiv.textContent = 'Settings';
-    settingsDiv.addEventListener('click', showSettings);
-    dropdownMenu.appendChild(settingsDiv);
-
-    const clearDataDiv = document.createElement('div');
-    clearDataDiv.textContent = 'Clear All Data';
-    clearDataDiv.addEventListener('click', clearAllData);
-    dropdownMenu.appendChild(clearDataDiv);
-
-    const logoutDiv = document.createElement('div');
-    logoutDiv.textContent = 'Logout';
-    logoutDiv.addEventListener('click', logout);
-    dropdownMenu.appendChild(logoutDiv);
-
-    menuContainer.appendChild(dropdownMenu);
-    parentElement.appendChild(menuContainer); // Append to the designated parent
-}
-
 function updateHeaderButtons() {
     console.log('Updating header buttons. isLoggedIn:', isLoggedIn, 'currentView:', currentView);
 
@@ -1717,6 +1683,39 @@ function updateHeaderButtons() {
     }
 }
 
+function createAndAppendMenu(parentElement) {
+    const menuContainer = document.createElement('div');
+    menuContainer.className = 'menu-container'; // Keep this class for styling
+
+    const menuBtn = document.createElement('button');
+    menuBtn.className = 'menu-btn';
+    menuBtn.innerHTML = '☰';
+    menuBtn.addEventListener('click', toggleMenu);
+    menuContainer.appendChild(menuBtn);
+
+    const dropdownMenu = document.createElement('div');
+    dropdownMenu.id = 'dropdownMenu';
+    dropdownMenu.className = 'dropdown-menu';
+    dropdownMenu.style.display = 'none'; // Initially hidden
+
+    const settingsDiv = document.createElement('div');
+    settingsDiv.textContent = 'Settings';
+    settingsDiv.addEventListener('click', showSettings);
+    dropdownMenu.appendChild(settingsDiv);
+
+    const clearDataDiv = document.createElement('div');
+    clearDataDiv.textContent = 'Clear All Data';
+    clearDataDiv.addEventListener('click', clearAllData);
+    dropdownMenu.appendChild(clearDataDiv);
+
+    const logoutDiv = document.createElement('div');
+    logoutDiv.textContent = 'Logout';
+    logoutDiv.addEventListener('click', logout);
+    dropdownMenu.appendChild(logoutDiv);
+
+    menuContainer.appendChild(dropdownMenu);
+    parentElement.appendChild(menuContainer); // Append to the designated parent
+}
 
 // ===================================================
 // UTILITY FUNCTIONS
