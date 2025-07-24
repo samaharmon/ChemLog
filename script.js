@@ -1,14 +1,510 @@
 //===================================================
 //Hoisted Functions
 //===================================================
-showMessage(message, type);
-saveFormSubmissions();
-resetForm();
-submitForm();
-showFeedbackModal();
-getClResponse();
-createOrShowOverlay();
-removeOverlay();
+
+function submitForm() {
+    console.log('Submit button clicked');
+    
+    // Clear any previous error highlighting
+    document.querySelectorAll('.form-group.error').forEach(group => {
+        group.classList.remove('error');
+    });
+
+   
+    evaluateFormFeedback(); // Remove formData parameter
+    
+    // Create submission object
+    const submission = {
+        id: Date.now(),
+        timestamp: new Date(),
+        firstName: document.getElementById('firstName').value,
+        lastName: document.getElementById('lastName').value,
+        poolLocation: document.getElementById('poolLocation').value,
+        mainPoolPH: document.getElementById('mainPoolPH').value,
+        mainPoolCl: document.getElementById('mainPoolCl').value,
+        secondaryPoolPH: poolLocation === 'Camden CC' ? 'N/A' : document.getElementById('secondaryPoolPH').value,
+        secondaryPoolCl: poolLocation === 'Camden CC' ? 'N/A' : document.getElementById('secondaryPoolCl').value
+    };
+    
+    // Rest of function remains the same...
+}
+function handlePoolLocationChange() {
+    const poolLocation = document.getElementById('poolLocation').value;
+    const secondaryPoolSection = document.getElementById('secondaryPoolSection');
+    const secondaryPH = document.getElementById('secondaryPoolPH');
+    const secondaryCl = document.getElementById('secondaryPoolCl');
+    
+    if (poolLocation === 'Camden CC') {
+        secondaryPoolSection.classList.add('hidden');
+        secondaryPH.removeAttribute('required');
+        secondaryCl.removeAttribute('required');
+        secondaryPH.value = '';
+        secondaryCl.value = '';
+    } else {
+        secondaryPoolSection.classList.remove('hidden');
+        secondaryPH.setAttribute('required', '');
+        secondaryCl.setAttribute('required', '');
+    }
+}
+function openLoginModal() {
+    console.log('openLoginModal called');
+    
+    const modal = document.getElementById('loginModal');
+    if (!modal) {
+        console.error('Login modal not found in DOM');
+        showMessage('Login modal not found. Please refresh the page.', 'error');
+        return;
+    }
+    
+    // Create or show overlay
+    createOrShowOverlay();
+    
+    // Show modal
+    modal.style.display = 'block';
+    
+    // Focus on first input after a short delay
+    setTimeout(() => {
+        const firstInput = modal.querySelector('input[name="email"]');
+        if (firstInput) {
+            firstInput.focus();
+        }
+    }, 100);
+    
+    console.log('Login modal opened successfully');
+}
+function closeLoginModal() {
+    const modal = document.getElementById('loginModal');
+    if (modal) {
+        modal.style.display = 'none';
+    }
+    
+    const loginForm = document.getElementById('loginForm');
+    if (loginForm) {
+        loginForm.reset();
+    }
+    
+    removeOverlay();
+    console.log('Login modal closed');
+}
+function handleLoginSubmit(event) {
+    event.preventDefault();
+    console.log('Login form submitted');
+    
+    const emailInput = document.querySelector('#loginForm input[name="email"]');
+    const passwordInput = document.querySelector('#loginForm input[name="password"]');
+    
+    if (!emailInput || !passwordInput) {
+        console.error('Login inputs not found');
+        showMessage('Login form inputs not found.', 'error');
+        return;
+    }
+    
+    const email = emailInput.value.trim();
+    const password = passwordInput.value.trim();
+    
+    console.log('Login attempt with email:', email);
+    
+    if (email === supervisorCredentials.email && password === supervisorCredentials.password) {
+        console.log('Login successful');
+        
+        // Set login state
+        isLoggedIn = true;
+        
+        // Set persistent login token for 1 month
+        const expires = Date.now() + 30 * 24 * 60 * 60 * 1000;
+        localStorage.setItem('loginToken', JSON.stringify({ username: email, expires }));
+        
+        // Close modal and show dashboard
+        closeLoginModal();
+        showDashboard();
+        
+        // Update header buttons
+        updateHeaderButtons();
+        
+        showMessage('Login successful!', 'success');
+    } else {
+        console.log('Invalid credentials provided');
+        showMessage('Invalid credentials. Please try again.', 'error');
+    }
+}
+function showMessage(message, type) {
+    // Remove any existing message banner
+    const existingBanner = document.getElementById('messageBanner');
+    if (existingBanner) {
+        existingBanner.remove();
+    }
+    
+    // Create new message banner
+    const banner = document.createElement('div');
+    banner.id = 'messageBanner';
+    banner.textContent = message;
+    
+    // Style based on type
+    if (type === 'error') {
+        banner.style.backgroundColor = '#f8d7da';
+        banner.style.color = '#721c24';
+        banner.style.border = '1px solid #f5c6cb';
+    } else if (type === 'success') {
+        banner.style.backgroundColor = '#d4edda';
+        banner.style.color = '#155724';
+        banner.style.border = '1px solid #c3e6cb';
+    }
+    
+    banner.style.cssText += `
+        position: fixed;
+        top: 20px;
+        left: 50%;
+        transform: translateX(-50%);
+        z-index: 10000;
+        padding: 10px 20px;
+        border-radius: 0px;
+        font-family: 'Franklin Gothic Medium', Arial, sans-serif;
+        font-size: 14px;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.15);
+    `;
+    
+    document.body.appendChild(banner);
+    
+   // Auto-remove after 3 seconds
+    setTimeout(() => {
+        if (banner) {
+            banner.remove();
+        }
+    }, 3000);
+}
+function resetForm() {
+    document.getElementById('firstName').value = '';
+    document.getElementById('lastName').value = '';
+    document.getElementById('poolLocation').value = '';
+    document.getElementById('mainPoolPH').value = '';
+    document.getElementById('mainPoolCl').value = '';
+    document.getElementById('secondaryPoolPH').value = '';
+    document.getElementById('secondaryPoolCl').value = '';
+    
+    document.querySelectorAll('.form-group.error').forEach(group => {
+        group.classList.remove('error');
+    });
+    
+    // Reset secondary pool visibility
+    handlePoolLocationChange();
+}
+function saveFormSubmissions() {
+    localStorage.setItem('formSubmissions', JSON.stringify(formSubmissions));
+    console.log(`Saved ${formSubmissions.length} submissions to localStorage`);
+}
+function exportToCSV() {
+    if (filteredData.length === 0) {
+        showMessage('No data to export.', 'error');
+        return;
+    }
+    
+    const headers = ['Timestamp', 'First Name', 'Last Name', 'Pool Location', 'Main pH', 'Main Cl', 'Secondary pH', 'Secondary Cl'];
+    const csvContent = [
+        headers.join(','),
+        ...filteredData.map(row => [
+            `"${row.timestamp}"`,
+            `"${row.firstName}"`,
+            `"${row.lastName}"`,
+            `"${row.poolLocation}"`,
+            `"${row.mainPoolPH}"`,
+            `"${row.mainPoolCl}"`,
+            `"${row.secondaryPoolPH}"`,
+            `"${row.secondaryPoolCl}"`
+        ].join(','))
+    ].join('\n');
+    
+    const blob = new Blob([csvContent], { type: 'text/csv' });
+    const url = window.URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `pool-chemistry-data-${new Date().toISOString().split('T')[0]}.csv`;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    window.URL.revokeObjectURL(url);
+    
+    showMessage('Data exported successfully!', 'success');
+}
+function filterData() {
+    const poolFilter = document.getElementById('poolFilter')?.value || '';
+    const dateFilter = document.getElementById('dateFilter')?.value || '';
+    
+    filteredSubmissions = allSubmissions.filter(submission => {
+        let passesFilter = true;
+        
+        // Pool filter
+        if (poolFilter && submission.poolLocation !== poolFilter) {
+            passesFilter = false;
+        }
+        
+        // Date filter
+        if (dateFilter) {
+            const filterDate = new Date(dateFilter);
+            const submissionDate = new Date(submission.timestamp);
+            if (submissionDate.toDateString() !== filterDate.toDateString()) {
+                passesFilter = false;
+            }
+        }
+        
+        return passesFilter;
+    });
+    
+    currentPage = 1;
+    displayData();
+}
+function goToPreviousPage() {
+    if (currentPage > 1) {
+        currentPage--;
+        displayData();
+    }
+}
+function goToNextPage() {
+    const totalPages = Math.ceil(filteredSubmissions.length / itemsPerPage);
+    if (currentPage < totalPages) {
+        currentPage++;
+        displayData();
+    }
+}
+function closeSettings() {
+    document.getElementById('settingsModal').style.display = 'none';
+}
+async function handleSanitationChange(checkbox) {
+    const pool = checkbox.dataset.pool;
+    const method = checkbox.dataset.method;
+    
+    console.log(`Changing sanitation for ${pool} to ${method}, checked: ${checkbox.checked}`);
+    
+    if (checkbox.checked) {
+        // Uncheck the other method for this pool
+        const otherMethod = method === 'bleach' ? 'granular' : 'bleach';
+        const otherCheckbox = document.querySelector(`[data-pool="${pool}"][data-method="${otherMethod}"]`);
+        if (otherCheckbox) {
+            otherCheckbox.checked = false;
+        }
+        
+        // Update settings
+        sanitationSettings[pool] = method;
+    } else {
+        // If unchecking, default to bleach
+        sanitationSettings[pool] = 'bleach';
+        const bleachCheckbox = document.querySelector(`[data-pool="${pool}"][data-method="bleach"]`);
+        if (bleachCheckbox) {
+            bleachCheckbox.checked = true;
+        }
+    }
+    
+    console.log('Updated sanitationSettings:', sanitationSettings);
+    
+    // Always save to localStorage first for immediate persistence
+    localStorage.setItem('sanitationSettings', JSON.stringify(sanitationSettings));
+    console.log('Saved sanitation settings to localStorage');
+    
+    // Try to save to Firebase if available
+    try {
+        if (db && window.firebaseModules) {
+            const settingsRef = window.firebaseModules.doc(db, 'settings', 'sanitationMethods');
+            await window.firebaseModules.setDoc(settingsRef, sanitationSettings);
+            console.log('Successfully saved sanitation settings to Firebase v9');
+        } else {
+            console.log('Firebase not available, settings saved to localStorage only');
+        }
+    } catch (error) {
+        console.warn('Could not save to Firebase v9, but settings are saved to localStorage:', error);
+    }
+}
+function closeModal() {
+    const feedbackModal = document.getElementById('feedbackModal');
+    feedbackModal.style.display = 'none';
+}
+function chooseAndSendSMS() {
+    const checkboxes = document.querySelectorAll('#samOption, #haleyOption');
+    const selectedRecipients = [];
+    
+    checkboxes.forEach(checkbox => {
+        if (checkbox.checked) {
+            selectedRecipients.push(checkbox.value);
+        }
+    });
+
+    if (selectedRecipients.length === 0) {
+        alert('Please select at least one supervisor to notify.');
+        return;
+    }
+
+    if (formSubmissions.length === 0) {
+        alert("No form submission found to share.");
+        return;
+    }
+    
+    const latest = formSubmissions[formSubmissions.length - 1];
+
+    // Determine which values need highlighting
+    const mainPH = latest.mainPoolPH;
+    const secPH = latest.secondaryPoolPH;
+    const mainCl = latest.mainPoolCl;
+    const secCl = latest.secondaryPoolCl;
+    
+    // Create highlighted message parts
+    const mainPoolPHText = mainPH === '< 7.0' ? 
+        `⚠️ Main Pool pH: ${mainPH} - REQUIRES ATTENTION ⚠️` : 
+        `Main Pool pH: ${mainPH}`;
+        
+    const secPoolPHText = secPH === '< 7.0' ? 
+        `⚠️ Secondary Pool pH: ${secPH} - REQUIRES ATTENTION ⚠️` : 
+        `Secondary Pool pH: ${secPH}`;
+        
+    const mainPoolClText = (mainCl === '10' || mainCl === '> 10' || parseFloat(mainCl) > 10) ? 
+        `⚠️ Main Pool Cl: ${mainCl} - HIGH LEVEL ⚠️` : 
+        `Main Pool Cl: ${mainCl}`;
+        
+    const secPoolClText = (secCl === '10' || secCl === '> 10' || parseFloat(secCl) > 10) ? 
+        `⚠️ Secondary Pool Cl: ${secCl} - HIGH LEVEL ⚠️` : 
+        `Secondary Pool Cl: ${secCl}`;
+        
+    const message =
+        `Pool Chemistry Log\n\n` +
+        `Submitted by: ${latest.firstName} ${latest.lastName}\n` +
+        `Pool Location: ${latest.poolLocation}\n\n` +
+        `${mainPoolPHText}\n` +
+        `${mainPoolClText}\n` +
+        `${secPoolPHText}\n` +
+        `${secPoolClText}\n\n` +
+        `Time: ${latest.timestamp}`;
+
+    // Send to each selected recipient
+    selectedRecipients.forEach(recipient => {
+        window.location.href = `sms:${recipient}?body=${encodeURIComponent(message)}`;
+    });
+    
+    // Close modals and remove overlay
+    const feedbackModal = document.querySelector('.feedback-modal');
+    if (feedbackModal) feedbackModal.remove();
+    
+    removeOverlay();
+}
+function showFeedbackModal(messages, isGood, setpointImgNeeded) {
+    const modal = document.createElement('div');
+    modal.className = 'feedback-modal ' + (isGood ? 'good' : 'warning');
+
+    const closeBtn = document.createElement('button');
+    closeBtn.className = 'close-btn';
+    closeBtn.innerHTML = '×';
+    closeBtn.onclick = () => {
+        if (isGood || areAllCheckboxesChecked()) {
+            modal.remove();
+            removeOverlay();
+        } else {
+            showMessage('Please complete all water chemistry changes and check them off the list before closing.', 'error');
+        }
+    };
+
+    const feedbackContent = document.createElement('div');
+    feedbackContent.className = 'feedback-content';
+
+    const title = document.createElement('h2');
+    title.textContent = isGood
+        ? '✅ Water chemistry looks good!'
+        : '🚨 You need to make immediate changes to the water chemistry:';
+    feedbackContent.appendChild(title);
+
+    if (!isGood) {
+        const messageList = document.createElement('div');
+        messages.forEach(msg => {
+            if (msg.includes('setpoint.jpeg')) {
+                const chartContainer = document.createElement('div');
+                chartContainer.className = 'setpoint-container';
+                chartContainer.style.textAlign = 'center';
+                chartContainer.style.margin = '20px 0';
+
+                const chart = document.createElement('img');
+                chart.src = 'setpoint.jpeg';
+                chart.alt = 'Setpoint Chart';
+                chart.className = 'setpoint-chart';
+                chart.style.maxWidth = '100%';
+                chart.style.height = 'auto';
+
+                chartContainer.appendChild(chart);
+                messageList.appendChild(chartContainer);
+            } else {
+                const checkboxItem = document.createElement('div');
+                checkboxItem.className = 'checkbox-item';
+
+                const checkbox = document.createElement('input');
+                checkbox.type = 'checkbox';
+                checkbox.className = 'feedback-checkbox';
+
+                const label = document.createElement('label');
+                label.innerHTML = msg;
+
+                checkboxItem.appendChild(checkbox);
+                checkboxItem.appendChild(label);
+                messageList.appendChild(checkboxItem);
+            }
+        });
+        feedbackContent.appendChild(messageList);
+    } else {
+        const message = document.createElement('p');
+        message.textContent = messages[0];
+        feedbackContent.appendChild(message);
+    }
+
+    // Add Notify a Supervisor button only if messages contain "notify a supervisor"
+    const shouldShowNotifyButton = messages.some(msg => 
+        msg.toLowerCase().includes('notify a supervisor')
+    );
+    
+    if (shouldShowNotifyButton) {
+        const notifyBtn = document.createElement('button');
+        notifyBtn.className = 'notify-btn';
+        notifyBtn.textContent = 'Notify a Supervisor';
+        notifyBtn.onclick = () => {
+            showRecipientSelectionInModal(modal);
+        };
+        modal.appendChild(notifyBtn);
+    }
+
+    modal.appendChild(closeBtn);
+    modal.appendChild(feedbackContent);
+    document.body.appendChild(modal);
+}
+function createOrShowOverlay() {
+    let overlay = document.getElementById('modal-overlay');
+    if (!overlay) {
+        overlay = document.createElement('div');
+        overlay.id = 'modal-overlay';
+        overlay.className = 'modal-overlay';
+        document.body.appendChild(overlay);
+    }
+    overlay.style.display = 'block'; // Show the overlay
+    return overlay;
+}
+function removeOverlay() {
+    const overlay = document.getElementById('modal-overlay');
+    if (overlay) {
+        overlay.style.display = 'none'; // Hide the overlay
+    }
+}
+function getClResponse(poolLocation, isMainPool, clValue) {
+    // Special handling for Forest Lake secondary pool (granular/bleach methods)
+    if (poolLocation === 'Forest Lake' && !isMainPool) {
+        const sanitationMethod = sanitationSettings['Forest Lake Lap Pool'] || 'bleach';
+
+        if (sanitationMethod === 'granular') {
+            if (clValue === '> 10') {
+                return `<strong>Notify a supervisor of the high Cl in the Lap Pool immediately. Lower the Cl level of the Lap Pool.</strong><br>Do not add any more shock to the pool. Ensure that the waterline is at normal height, and turn the fill line on if it is low. Always set a timer when turning on the fill line.`;
+            }
+            if (clValue === '10') {
+                return `<strong>Lower the Cl level of the Lap Pool.</strong><br>Turn the Cl feeder off, and set a timer to turn it back on. Ensure that the waterline is at normal height, and turn the fill line on if it is low. Always set a timer when turning on the fill line.`;
+            }
+            if (['0', '1', '2'].includes(clValue)) {
+                return `<strong>Raise the Cl level in the Lap Pool.</strong><br>If not handled the previous hour, change the Cl feeder rate according to the setpoint chart.`;
+            }
+        }
+    }
+
+    // Default fallback for other cases
+    return null;
+}
 
 const firebaseConfig = {
   apiKey: "AIzaSyCRxSL2uuH6O5MFvbq0FS02zF2K_lXGvqI",
@@ -483,75 +979,10 @@ function displayData() {
     console.log('Data display completed');
 }
 
-// Replace the existing showMessage function
-function showMessage(message, type) {
-    // Remove any existing message banner
-    const existingBanner = document.getElementById('messageBanner');
-    if (existingBanner) {
-        existingBanner.remove();
-    }
-    
-    // Create new message banner
-    const banner = document.createElement('div');
-    banner.id = 'messageBanner';
-    banner.textContent = message;
-    
-    // Style based on type
-    if (type === 'error') {
-        banner.style.backgroundColor = '#f8d7da';
-        banner.style.color = '#721c24';
-        banner.style.border = '1px solid #f5c6cb';
-    } else if (type === 'success') {
-        banner.style.backgroundColor = '#d4edda';
-        banner.style.color = '#155724';
-        banner.style.border = '1px solid #c3e6cb';
-    }
-    
-    banner.style.cssText += `
-        position: fixed;
-        top: 20px;
-        left: 50%;
-        transform: translateX(-50%);
-        z-index: 10000;
-        padding: 10px 20px;
-        border-radius: 0px;
-        font-family: 'Franklin Gothic Medium', Arial, sans-serif;
-        font-size: 14px;
-        box-shadow: 0 2px 8px rgba(0,0,0,0.15);
-    `;
-    
-    document.body.appendChild(banner);
-    
-   // Auto-remove after 3 seconds
-    setTimeout(() => {
-        if (banner) {
-            banner.remove();
-        }
-    }, 3000);
-}
-
 // Save form submissions to localStorage
 function saveFormSubmissions() {
     localStorage.setItem('formSubmissions', JSON.stringify(formSubmissions));
     console.log(`Saved ${formSubmissions.length} submissions to localStorage`);
-}
-
-// Reset form after submission
-function resetForm() {
-    document.getElementById('firstName').value = '';
-    document.getElementById('lastName').value = '';
-    document.getElementById('poolLocation').value = '';
-    document.getElementById('mainPoolPH').value = '';
-    document.getElementById('mainPoolCl').value = '';
-    document.getElementById('secondaryPoolPH').value = '';
-    document.getElementById('secondaryPoolCl').value = '';
-    
-    document.querySelectorAll('.form-group.error').forEach(group => {
-        group.classList.remove('error');
-    });
-    
-    // Reset secondary pool visibility
-    handlePoolLocationChange();
 }
 
 function evaluateFormFeedback() { // Remove formData parameter
@@ -948,106 +1379,8 @@ function loadSanitationSettings() {
 }
 
 // ===================================================
-// POOL LOCATION HANDLING
-// ===================================================
-
-// Handle pool location change
-function handlePoolLocationChange() {
-    const poolLocation = document.getElementById('poolLocation').value;
-    const secondaryPoolSection = document.getElementById('secondaryPoolSection');
-    const secondaryPH = document.getElementById('secondaryPoolPH');
-    const secondaryCl = document.getElementById('secondaryPoolCl');
-    
-    if (poolLocation === 'Camden CC') {
-        secondaryPoolSection.classList.add('hidden');
-        secondaryPH.removeAttribute('required');
-        secondaryCl.removeAttribute('required');
-        secondaryPH.value = '';
-        secondaryCl.value = '';
-    } else {
-        secondaryPoolSection.classList.remove('hidden');
-        secondaryPH.setAttribute('required', '');
-        secondaryCl.setAttribute('required', '');
-    }
-}
-
-// ===================================================
-// DOM INITIALIZATION
-// ===================================================
-
-function handleLoginSubmit(event) {
-    event.preventDefault();
-    console.log('Login form submitted');
-    
-    const emailInput = document.querySelector('#loginForm input[name="email"]');
-    const passwordInput = document.querySelector('#loginForm input[name="password"]');
-    
-    if (!emailInput || !passwordInput) {
-        console.error('Login inputs not found');
-        showMessage('Login form inputs not found.', 'error');
-        return;
-    }
-    
-    const email = emailInput.value.trim();
-    const password = passwordInput.value.trim();
-    
-    console.log('Login attempt with email:', email);
-    
-    if (email === supervisorCredentials.email && password === supervisorCredentials.password) {
-        console.log('Login successful');
-        
-        // Set login state
-        isLoggedIn = true;
-        
-        // Set persistent login token for 1 month
-        const expires = Date.now() + 30 * 24 * 60 * 60 * 1000;
-        localStorage.setItem('loginToken', JSON.stringify({ username: email, expires }));
-        
-        // Close modal and show dashboard
-        closeLoginModal();
-        showDashboard();
-        
-        // Update header buttons
-        updateHeaderButtons();
-        
-        showMessage('Login successful!', 'success');
-    } else {
-        console.log('Invalid credentials provided');
-        showMessage('Invalid credentials. Please try again.', 'error');
-    }
-}
-
-// ===================================================
 // FORM SUBMISSION
 // ===================================================
-
-// Form submission function
-function submitForm() {
-    console.log('Submit button clicked');
-    
-    // Clear any previous error highlighting
-    document.querySelectorAll('.form-group.error').forEach(group => {
-        group.classList.remove('error');
-    });
-
-   
-    evaluateFormFeedback(); // Remove formData parameter
-    
-    // Create submission object
-    const submission = {
-        id: Date.now(),
-        timestamp: new Date(),
-        firstName: document.getElementById('firstName').value,
-        lastName: document.getElementById('lastName').value,
-        poolLocation: document.getElementById('poolLocation').value,
-        mainPoolPH: document.getElementById('mainPoolPH').value,
-        mainPoolCl: document.getElementById('mainPoolCl').value,
-        secondaryPoolPH: poolLocation === 'Camden CC' ? 'N/A' : document.getElementById('secondaryPoolPH').value,
-        secondaryPoolCl: poolLocation === 'Camden CC' ? 'N/A' : document.getElementById('secondaryPoolCl').value
-    };
-    
-    // Rest of function remains the same...
-}
 
 function setupEventHandlers() {
     // Pool location change handler
@@ -1317,60 +1650,6 @@ function checkLogin() {
     return false;
 }
 
-function openLoginModal() {
-    console.log('openLoginModal called');
-    
-    const modal = document.getElementById('loginModal');
-    if (!modal) {
-        console.error('Login modal not found in DOM');
-        showMessage('Login modal not found. Please refresh the page.', 'error');
-        return;
-    }
-    
-    // Create or show overlay
-    createOrShowOverlay();
-    
-    // Show modal
-    modal.style.display = 'block';
-    
-    // Focus on first input after a short delay
-    setTimeout(() => {
-        const firstInput = modal.querySelector('input[name="email"]');
-        if (firstInput) {
-            firstInput.focus();
-        }
-    }, 100);
-    
-    console.log('Login modal opened successfully');
-}
-
-function closeLoginModal() {
-    const modal = document.getElementById('loginModal');
-    if (modal) {
-        modal.style.display = 'none';
-    }
-    
-    const loginForm = document.getElementById('loginForm');
-    if (loginForm) {
-        loginForm.reset();
-    }
-    
-    removeOverlay();
-    console.log('Login modal closed');
-}
-
-function createOrShowOverlay() {
-    let overlay = document.getElementById('modal-overlay');
-    if (!overlay) {
-        overlay = document.createElement('div');
-        overlay.id = 'modal-overlay';
-        overlay.className = 'modal-overlay';
-        document.body.appendChild(overlay);
-    }
-    overlay.style.display = 'block'; // Show the overlay
-    return overlay;
-}
-
 function debugLoginState() {
     console.log('=== LOGIN DEBUG INFO ===');
     console.log('isLoggedIn:', isLoggedIn);
@@ -1458,21 +1737,6 @@ function updatePagination() {
     if (pageInfo) pageInfo.textContent = `Page ${currentPage} of ${totalPages}`;
     if (prevBtn) prevBtn.disabled = currentPage === 1;
     if (nextBtn) nextBtn.disabled = currentPage === totalPages;
-}
-
-function goToPreviousPage() {
-    if (currentPage > 1) {
-        currentPage--;
-        displayData();
-    }
-}
-
-function goToNextPage() {
-    const totalPages = Math.ceil(filteredSubmissions.length / itemsPerPage);
-    if (currentPage < totalPages) {
-        currentPage++;
-        displayData();
-    }
 }
 
 // ===================================================
@@ -1564,52 +1828,6 @@ function openSettings() {
     updateSanitationUI(); // Ensure UI reflects current settings
 }
 
-// Handle sanitation method changes
-async function handleSanitationChange(checkbox) {
-    const pool = checkbox.dataset.pool;
-    const method = checkbox.dataset.method;
-    
-    console.log(`Changing sanitation for ${pool} to ${method}, checked: ${checkbox.checked}`);
-    
-    if (checkbox.checked) {
-        // Uncheck the other method for this pool
-        const otherMethod = method === 'bleach' ? 'granular' : 'bleach';
-        const otherCheckbox = document.querySelector(`[data-pool="${pool}"][data-method="${otherMethod}"]`);
-        if (otherCheckbox) {
-            otherCheckbox.checked = false;
-        }
-        
-        // Update settings
-        sanitationSettings[pool] = method;
-    } else {
-        // If unchecking, default to bleach
-        sanitationSettings[pool] = 'bleach';
-        const bleachCheckbox = document.querySelector(`[data-pool="${pool}"][data-method="bleach"]`);
-        if (bleachCheckbox) {
-            bleachCheckbox.checked = true;
-        }
-    }
-    
-    console.log('Updated sanitationSettings:', sanitationSettings);
-    
-    // Always save to localStorage first for immediate persistence
-    localStorage.setItem('sanitationSettings', JSON.stringify(sanitationSettings));
-    console.log('Saved sanitation settings to localStorage');
-    
-    // Try to save to Firebase if available
-    try {
-        if (db && window.firebaseModules) {
-            const settingsRef = window.firebaseModules.doc(db, 'settings', 'sanitationMethods');
-            await window.firebaseModules.setDoc(settingsRef, sanitationSettings);
-            console.log('Successfully saved sanitation settings to Firebase v9');
-        } else {
-            console.log('Firebase not available, settings saved to localStorage only');
-        }
-    } catch (error) {
-        console.warn('Could not save to Firebase v9, but settings are saved to localStorage:', error);
-    }
-}
-
 // ===================================================
 // FEEDBACK & NOTIFICATIONS
 // ===================================================
@@ -1681,12 +1899,6 @@ function notifySupervisor() {
     feedbackModal.style.display = 'block';
 }
 
-// Define the missing functions
-function closeModal() {
-    const feedbackModal = document.getElementById('feedbackModal');
-    feedbackModal.style.display = 'none';
-}
-
 function handleLocationChange() {
     const poolLocation = document.getElementById('poolLocation').value;
     const secondarySection = document.getElementById('secondaryPoolSection');
@@ -1700,92 +1912,6 @@ function handleLocationChange() {
             secondarySection.style.display = 'none';
         }
     }
-}
-
-function showFeedbackModal(messages, isGood, setpointImgNeeded) {
-    const modal = document.createElement('div');
-    modal.className = 'feedback-modal ' + (isGood ? 'good' : 'warning');
-
-    const closeBtn = document.createElement('button');
-    closeBtn.className = 'close-btn';
-    closeBtn.innerHTML = '×';
-    closeBtn.onclick = () => {
-        if (isGood || areAllCheckboxesChecked()) {
-            modal.remove();
-            removeOverlay();
-        } else {
-            showMessage('Please complete all water chemistry changes and check them off the list before closing.', 'error');
-        }
-    };
-
-    const feedbackContent = document.createElement('div');
-    feedbackContent.className = 'feedback-content';
-
-    const title = document.createElement('h2');
-    title.textContent = isGood
-        ? '✅ Water chemistry looks good!'
-        : '🚨 You need to make immediate changes to the water chemistry:';
-    feedbackContent.appendChild(title);
-
-    if (!isGood) {
-        const messageList = document.createElement('div');
-        messages.forEach(msg => {
-            if (msg.includes('setpoint.jpeg')) {
-                const chartContainer = document.createElement('div');
-                chartContainer.className = 'setpoint-container';
-                chartContainer.style.textAlign = 'center';
-                chartContainer.style.margin = '20px 0';
-
-                const chart = document.createElement('img');
-                chart.src = 'setpoint.jpeg';
-                chart.alt = 'Setpoint Chart';
-                chart.className = 'setpoint-chart';
-                chart.style.maxWidth = '100%';
-                chart.style.height = 'auto';
-
-                chartContainer.appendChild(chart);
-                messageList.appendChild(chartContainer);
-            } else {
-                const checkboxItem = document.createElement('div');
-                checkboxItem.className = 'checkbox-item';
-
-                const checkbox = document.createElement('input');
-                checkbox.type = 'checkbox';
-                checkbox.className = 'feedback-checkbox';
-
-                const label = document.createElement('label');
-                label.innerHTML = msg;
-
-                checkboxItem.appendChild(checkbox);
-                checkboxItem.appendChild(label);
-                messageList.appendChild(checkboxItem);
-            }
-        });
-        feedbackContent.appendChild(messageList);
-    } else {
-        const message = document.createElement('p');
-        message.textContent = messages[0];
-        feedbackContent.appendChild(message);
-    }
-
-    // Add Notify a Supervisor button only if messages contain "notify a supervisor"
-    const shouldShowNotifyButton = messages.some(msg => 
-        msg.toLowerCase().includes('notify a supervisor')
-    );
-    
-    if (shouldShowNotifyButton) {
-        const notifyBtn = document.createElement('button');
-        notifyBtn.className = 'notify-btn';
-        notifyBtn.textContent = 'Notify a Supervisor';
-        notifyBtn.onclick = () => {
-            showRecipientSelectionInModal(modal);
-        };
-        modal.appendChild(notifyBtn);
-    }
-
-    modal.appendChild(closeBtn);
-    modal.appendChild(feedbackContent);
-    document.body.appendChild(modal);
 }
 
 // ===================================================
@@ -1852,105 +1978,9 @@ function checkForCriticalAlerts() {
     }
 }
 
-function getClResponse(poolLocation, isMainPool, clValue) {
-    // Special handling for Forest Lake secondary pool (granular/bleach methods)
-    if (poolLocation === 'Forest Lake' && !isMainPool) {
-        const sanitationMethod = sanitationSettings['Forest Lake Lap Pool'] || 'bleach';
-
-        if (sanitationMethod === 'granular') {
-            if (clValue === '> 10') {
-                return `<strong>Notify a supervisor of the high Cl in the Lap Pool immediately. Lower the Cl level of the Lap Pool.</strong><br>Do not add any more shock to the pool. Ensure that the waterline is at normal height, and turn the fill line on if it is low. Always set a timer when turning on the fill line.`;
-            }
-            if (clValue === '10') {
-                return `<strong>Lower the Cl level of the Lap Pool.</strong><br>Turn the Cl feeder off, and set a timer to turn it back on. Ensure that the waterline is at normal height, and turn the fill line on if it is low. Always set a timer when turning on the fill line.`;
-            }
-            if (['0', '1', '2'].includes(clValue)) {
-                return `<strong>Raise the Cl level in the Lap Pool.</strong><br>If not handled the previous hour, change the Cl feeder rate according to the setpoint chart.`;
-            }
-        }
-    }
-
-    // Default fallback for other cases
-    return null;
-}
-
 function areAllCheckboxesChecked() {
     const checkboxes = document.querySelectorAll('.feedback-checkbox');
     return Array.from(checkboxes).every(checkbox => checkbox.checked);
-}
-
-function chooseAndSendSMS() {
-    const checkboxes = document.querySelectorAll('#samOption, #haleyOption');
-    const selectedRecipients = [];
-    
-    checkboxes.forEach(checkbox => {
-        if (checkbox.checked) {
-            selectedRecipients.push(checkbox.value);
-        }
-    });
-
-    if (selectedRecipients.length === 0) {
-        alert('Please select at least one supervisor to notify.');
-        return;
-    }
-
-    if (formSubmissions.length === 0) {
-        alert("No form submission found to share.");
-        return;
-    }
-    
-    const latest = formSubmissions[formSubmissions.length - 1];
-
-    // Determine which values need highlighting
-    const mainPH = latest.mainPoolPH;
-    const secPH = latest.secondaryPoolPH;
-    const mainCl = latest.mainPoolCl;
-    const secCl = latest.secondaryPoolCl;
-    
-    // Create highlighted message parts
-    const mainPoolPHText = mainPH === '< 7.0' ? 
-        `⚠️ Main Pool pH: ${mainPH} - REQUIRES ATTENTION ⚠️` : 
-        `Main Pool pH: ${mainPH}`;
-        
-    const secPoolPHText = secPH === '< 7.0' ? 
-        `⚠️ Secondary Pool pH: ${secPH} - REQUIRES ATTENTION ⚠️` : 
-        `Secondary Pool pH: ${secPH}`;
-        
-    const mainPoolClText = (mainCl === '10' || mainCl === '> 10' || parseFloat(mainCl) > 10) ? 
-        `⚠️ Main Pool Cl: ${mainCl} - HIGH LEVEL ⚠️` : 
-        `Main Pool Cl: ${mainCl}`;
-        
-    const secPoolClText = (secCl === '10' || secCl === '> 10' || parseFloat(secCl) > 10) ? 
-        `⚠️ Secondary Pool Cl: ${secCl} - HIGH LEVEL ⚠️` : 
-        `Secondary Pool Cl: ${secCl}`;
-        
-    const message =
-        `Pool Chemistry Log\n\n` +
-        `Submitted by: ${latest.firstName} ${latest.lastName}\n` +
-        `Pool Location: ${latest.poolLocation}\n\n` +
-        `${mainPoolPHText}\n` +
-        `${mainPoolClText}\n` +
-        `${secPoolPHText}\n` +
-        `${secPoolClText}\n\n` +
-        `Time: ${latest.timestamp}`;
-
-    // Send to each selected recipient
-    selectedRecipients.forEach(recipient => {
-        window.location.href = `sms:${recipient}?body=${encodeURIComponent(message)}`;
-    });
-    
-    // Close modals and remove overlay
-    const feedbackModal = document.querySelector('.feedback-modal');
-    if (feedbackModal) feedbackModal.remove();
-    
-    removeOverlay();
-}
-
-function removeOverlay() {
-    const overlay = document.getElementById('modal-overlay');
-    if (overlay) {
-        overlay.style.display = 'none'; // Hide the overlay
-    }
 }
 
 // Replace the entire showRecipientSelectionInModal function (around lines 1890-1979) with this:
