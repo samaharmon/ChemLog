@@ -3,6 +3,8 @@ html, body {
     background: white !important;
 }
 
+        /* General Styles */
+
 * {
             margin: 0;
             padding: 0;
@@ -444,6 +446,25 @@ html, body {
             align-items: center;
             margin-bottom: 30px;
         }
+        /* In your style.css */
+
+        .header-left {
+    display: flex; /* Or block, if you prefer vertical stacking */
+    flex-direction: column; /* Stacks children vertically */
+    align-items: flex-start; /* Aligns items to the start (left) */
+    }
+
+        #dashboardMenuContainer {
+    /* Add specific styles for its placement */
+    margin-top: 10px; /* Example: space below "Capital City Aquatics" */
+    /* You might want to remove any floats or absolute positioning from the menu button itself */
+        }
+
+/* Style the menu button within its new container */
+        #dashboardMenuContainer .menu-btn {
+    /* Ensure it's not absolutely positioned relative to the overall header */
+    /* Adjust padding, font-size, etc. */
+        }
 
     .logout-btn {
     background-color: rgba(255, 255, 255, 0.2);
@@ -736,7 +757,7 @@ html, body {
 
 .sanitation-checkbox:checked {
     background-color: #69140e;
-    border-color: black;
+    border-color: #69140e;
 }
 
 .sanitation-checkbox:checked::after {
