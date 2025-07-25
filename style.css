@@ -600,20 +600,6 @@ input[type="text"], select, input[type="password"] {
     flex-wrap: wrap;
 }
 
-.export-btn {
-    background-color: #262626;
-    color: white;
-    border: none;
-    border-radius: 0;
-    padding: 10px 20px;
-    font-family: 'Franklin Gothic Medium', Arial, sans-serif;
-    cursor: pointer;
-}
-
-.export-btn:hover {
-    background-color: #666;
-}
-
 .data-table {
     width: 100%;
     border-collapse: collapse;
