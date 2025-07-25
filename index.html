@@ -179,9 +179,7 @@
             <em>Developed by Sam Harmon | 2025<br>
             v2.1</em>
         </div>
-    </div>
-
-    <div id="loginModal" class="modal">
+    </div> <div id="loginModal" class="modal">
         <div class="modal-content">
             <div class="modal-header">
                 <h2>Supervisor Login</h2>
@@ -199,179 +197,172 @@
                 <button type="submit" class="login-btn">Login</button>
             </form>
         </div>
-    </div>
-
-
-<div id="supervisorDashboard" style="display: none;">  <div class="header">
-        <div class="header-content">
-            <div class="header-left">
-                <div>
-                    <h1>Pool Chemistry Dashboard</h1>
-                    <p>Capital City Aquatics</p>
-                </div>
-                <div class="menu-container">
-                    <button class="menu-btn" id="menuButton" onclick="toggleMenu()">
-                        <span>≡</span>
-                        <span>Menu</span>
-                    </button>
-                    <div class="dropdown-menu" id="dropdownMenu">
-                        <a href="#" class="dropdown-item" onclick="openSettings()">Settings</a>
-                        <a href="#" class="dropdown-item logout" onclick="logout()">Logout</a>
+    </div> <div id="supervisorDashboard" style="display: none;">
+        <div class="header">
+            <div class="header-content">
+                <div class="header-left">
+                    <div>
+                        <h1>Pool Chemistry Dashboard</h1>
+                        <p>Capital City Aquatics</p>
+                    </div>
+                    <div class="menu-container">
+                        <button class="menu-btn" id="menuButton" onclick="toggleMenu()">
+                            <span>≡</span>
+                            <span>Menu</span>
+                        </button>
+                        <div class="dropdown-menu" id="dropdownMenu">
+                            <a href="#" class="dropdown-item" onclick="openSettings()">Settings</a>
+                            <a href="#" class="dropdown-item logout" onclick="logout()">Logout</a>
+                        </div>
                     </div>
                 </div>
-            </div>
-            <div class="header-right"></div>
-        </div>
-    </div>
-
-    <div class="container" style="max-width: calc(100vw - 100px);">
-        <div class="dashboard-controls">
-            <button id="exported" class="export-btn" onclick="exportToCSV()">Export to CSV</button>
-            <div class="form-group" style="flex: none; width: 200px;">
-                <label for="poolFilter">Filter by Pool:</label>
-                <select id="poolFilter" onchange="filterData()" style="width: 99.999%">
-                    <option value="">All Pools</option>
-                    <option value="Camden CC">Camden CC</option>
-                    <option value="Columbia CC">Columbia CC</option>
-                    <option value="Forest Lake">Forest Lake</option>
-                    <option value="CC of Lexington">CC of Lexington</option>
-                    <option value="Quail Hollow">Quail Hollow</option>
-                    <option value="Rockbridge">Rockbridge</option>
-                    <option value="Wildewood">Wildewood</option>
-                    <option value="Winchester">Winchester</option>
-                </select>
-            </div>
-            <div class="form-group" style="flex: none; width: 50px">
-                <label for="dateFilter">Date:</label>
-                <input type="date" id="dateFilter" onchange="filterData()">
+                <div class="header-right"></div>
             </div>
         </div>
 
-        <h3>Main Pool Chemistry</h3>
-        <table class="data-table" id="dataTable1">
-            <thead>
-                <tr>
-                    <th>Timestamp</th>
-                    <th>Pool Location</th>
-                    <th>Main Pool pH</th>
-                    <th>Main Pool Cl</th>
-                </tr>
-            </thead>
-            <tbody id="dataTableBody1">
-            </tbody>
-        </table>
+        <div class="container" style="max-width: calc(100vw - 100px);">
+            <div class="dashboard-controls">
+                <button id="exported" class="export-btn" onclick="exportToCSV()">Export to CSV</button>
+                <div class="form-group" style="flex: none; width: 200px;">
+                    <label for="poolFilter">Filter by Pool:</label>
+                    <select id="poolFilter" onchange="filterData()" style="width: 99.999%">
+                        <option value="">All Pools</option>
+                        <option value="Camden CC">Camden CC</option>
+                        <option value="Columbia CC">Columbia CC</option>
+                        <option value="Forest Lake">Forest Lake</option>
+                        <option value="CC of Lexington">CC of Lexington</option>
+                        <option value="Quail Hollow">Quail Hollow</option>
+                        <option value="Rockbridge">Rockbridge</option>
+                        <option value="Wildewood">Wildewood</option>
+                        <option value="Winchester">Winchester</option>
+                    </select>
+                </div>
+                <div class="form-group" style="flex: none; width: 50px">
+                    <label for="dateFilter">Date:</label>
+                    <input type="date" id="dateFilter" onchange="filterData()">
+                </div>
+            </div>
 
-        <h3>Secondary Pool Chemistry</h3>
-        <table class="data-table" id="dataTable2">
-            <thead>
-                <tr>
-                    <th>Timestamp</th>
-                    <th>Pool Location</th>
-                    <th>Secondary Pool pH</th>
-                    <th>Secondary Pool Cl</th>
-                </tr>
-            </thead>
-            <tbody id="dataTableBody2">
-            </tbody>
-        </table>
-        
-        <div id="timestampNote" style="margin-top: 5px; text-align: left; color: #666; font-size: 12px; font-style: italic;">
-            <span style="color: red; font-weight: bold;">!!!</span> indicates chemistry values that are more than 3 hours old
-        </div>
+            <h3>Main Pool Chemistry</h3>
+            <table class="data-table" id="dataTable1">
+                <thead>
+                    <tr>
+                        <th>Timestamp</th>
+                        <th>Pool Location</th>
+                        <th>Main Pool pH</th>
+                        <th>Main Pool Cl</th>
+                    </tr>
+                </thead>
+                <tbody id="dataTableBody1">
+                </tbody>
+            </table>
 
-    <div class="pagination" id="pagination" style="margin-top: 30px;">
+            <h3>Secondary Pool Chemistry</h3>
+            <table class="data-table" id="dataTable2">
+                <thead>
+                    <tr>
+                        <th>Timestamp</th>
+                        <th>Pool Location</th>
+                        <th>Secondary Pool pH</th>
+                        <th>Secondary Pool Cl</th>
+                    </tr>
+                </thead>
+                <tbody id="dataTableBody2">
+                </tbody>
+            </table>
+            
+            <div id="timestampNote" style="margin-top: 5px; text-align: left; color: #666; font-size: 12px; font-style: italic;">
+                <span style="color: red; font-weight: bold;">!!!</span> indicates chemistry values that are more than 3 hours old
+            </div>
+
+            <div class="pagination" id="pagination" style="margin-top: 30px;">
                 <button id="prevBtn" onclick="goToPreviousPage()">←</button>
                 <span id="pageInfo"></span>
                 <button id="nextBtn" onclick="goToNextPage()">→</button>
             </div>
-        </div> </div> <div id="settingsModal" class="modal">
+        </div>
+    </div> <div id="settingsModal" class="modal">
         <div class="modal-content settings-modal-content">
+            <div class="modal-header">
+                <h2>Settings</h2>
+                <span class="close" onclick="closeSettings()">&times;</span>
             </div>
-    </div>
-        <div class="modal-header">
-            <h2>Settings</h2>
-            <span class="close" onclick="closeSettings()">&times;</span>
+            
+            <div class="settings-section">
+                <h3>Sanitation Methods</h3>
+                <table class="sanitation-table">
+                    <thead>
+                        <tr>
+                            <th>Pool Name</th>
+                            <th>Bleach</th>
+                            <th>Granular</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>Camden CC</td>
+                            <td><input type="checkbox" class="sanitation-checkbox bleach-checkbox" data-pool="Camden CC" data-method="bleach" onchange="handleSanitationChange(this)"></td>
+                            <td><input type="checkbox" class="sanitation-checkbox granular-checkbox" data-pool="Camden CC" data-method="granular" onchange="handleSanitationChange(this)"></td>
+                        </tr>
+                        <tr>
+                            <td>CC of Lexington</td>
+                            <td><input type="checkbox" class="sanitation-checkbox bleach-checkbox" data-pool="CC of Lexington" data-method="bleach" onchange="handleSanitationChange(this)"></td>
+                            <td><input type="checkbox" class="sanitation-checkbox granular-checkbox" data-pool="CC of Lexington" data-method="granular" onchange="handleSanitationChange(this)"></td>
+                        </tr>
+                        <tr>
+                            <td>Columbia CC</td>
+                            <td><input type="checkbox" class="sanitation-checkbox bleach-checkbox" data-pool="Columbia CC" data-method="bleach" onchange="handleSanitationChange(this)"></td>
+                            <td><input type="checkbox" class="sanitation-checkbox granular-checkbox" data-pool="Columbia CC" data-method="granular" onchange="handleSanitationChange(this)"></td>
+                        </tr>
+                        <tr>
+                            <td>Forest Lake Lap Pool</td>
+                            <td><input type="checkbox" class="sanitation-checkbox bleach-checkbox" data-pool="Forest Lake Lap Pool" data-method="bleach" onchange="handleSanitationChange(this)"></td>
+                            <td><input type="checkbox" class="sanitation-checkbox granular-checkbox" data-pool="Forest Lake Lap Pool" data-method="granular" onchange="handleSanitationChange(this)"></td>
+                        </tr>
+                        <tr>
+                            <td>Forest Lake Main Pool</td>
+                            <td><input type="checkbox" class="sanitation-checkbox bleach-checkbox" data-pool="Forest Lake" data-method="bleach" onchange="handleSanitationChange(this)"></td>
+                            <td><input type="checkbox" class="sanitation-checkbox granular-checkbox" data-pool="Forest Lake" data-method="granular" onchange="handleSanitationChange(this)"></td>
+                        </tr>
+                        <tr>
+                            <td>Quail Hollow</td>
+                            <td><input type="checkbox" class="sanitation-checkbox bleach-checkbox" data-pool="Quail Hollow" data-method="bleach" onchange="handleSanitationChange(this)"></td>
+                            <td><input type="checkbox" class="sanitation-checkbox granular-checkbox" data-pool="Quail Hollow" data-method="granular" onchange="handleSanitationChange(this)"></td>
+                        </tr>
+                        <tr>
+                            <td>Rockbridge</td>
+                            <td><input type="checkbox" class="sanitation-checkbox bleach-checkbox" data-pool="Rockbridge" data-method="bleach" onchange="handleSanitationChange(this)"></td>
+                            <td><input type="checkbox" class="sanitation-checkbox granular-checkbox" data-pool="Rockbridge" data-method="granular" onchange="handleSanitationChange(this)"></td>
+                        </tr>
+                        <tr>
+                            <td>Wildewood</td>
+                            <td><input type="checkbox" class="sanitation-checkbox bleach-checkbox" data-pool="Wildewood" data-method="bleach" onchange="handleSanitationChange(this)"></td>
+                            <td><input type="checkbox" class="sanitation-checkbox granular-checkbox" data-pool="Wildewood" data-method="granular" onchange="handleSanitationChange(this)"></td>
+                        </tr>
+                        <tr>
+                            <td>Winchester</td>
+                            <td><input type="checkbox" class="sanitation-checkbox bleach-checkbox" data-pool="Winchester" data-method="bleach" onchange="handleSanitationChange(this)"></td>
+                            <td><input type="checkbox" class="sanitation-checkbox granular-checkbox" data-pool="Winchester" data-method="granular" onchange="handleSanitationChange(this)"></td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
         </div>
-        
-        <div class="settings-section">
-            <h3>Sanitation Methods</h3>
-            <table class="sanitation-table">
-                <thead>
-                    <tr>
-                        <th>Pool Name</th>
-                        <th>Bleach</th>
-                        <th>Granular</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    <tr>
-                        <td>Camden CC</td>
-                        <td><input type="checkbox" class="sanitation-checkbox bleach-checkbox" data-pool="Camden CC" data-method="bleach" onchange="handleSanitationChange(this)"></td>
-                        <td><input type="checkbox" class="sanitation-checkbox granular-checkbox" data-pool="Camden CC" data-method="granular" onchange="handleSanitationChange(this)"></td>
-                    </tr>
-                    <tr>
-                        <td>CC of Lexington</td>
-                        <td><input type="checkbox" class="sanitation-checkbox bleach-checkbox" data-pool="CC of Lexington" data-method="bleach" onchange="handleSanitationChange(this)"></td>
-                        <td><input type="checkbox" class="sanitation-checkbox granular-checkbox" data-pool="CC of Lexington" data-method="granular" onchange="handleSanitationChange(this)"></td>
-                    </tr>
-                    <tr>
-                        <td>Columbia CC</td>
-                        <td><input type="checkbox" class="sanitation-checkbox bleach-checkbox" data-pool="Columbia CC" data-method="bleach" onchange="handleSanitationChange(this)"></td>
-                        <td><input type="checkbox" class="sanitation-checkbox granular-checkbox" data-pool="Columbia CC" data-method="granular" onchange="handleSanitationChange(this)"></td>
-                    </tr>
-                    <tr>
-                        <td>Forest Lake Lap Pool</td>
-                        <td><input type="checkbox" class="sanitation-checkbox bleach-checkbox" data-pool="Forest Lake Lap Pool" data-method="bleach" onchange="handleSanitationChange(this)"></td>
-                        <td><input type="checkbox" class="sanitation-checkbox granular-checkbox" data-pool="Forest Lake Lap Pool" data-method="granular" onchange="handleSanitationChange(this)"></td>
-                    </tr>
-                    <tr>
-                        <td>Forest Lake Main Pool</td>
-                        <td><input type="checkbox" class="sanitation-checkbox bleach-checkbox" data-pool="Forest Lake" data-method="bleach" onchange="handleSanitationChange(this)"></td>
-                        <td><input type="checkbox" class="sanitation-checkbox granular-checkbox" data-pool="Forest Lake" data-method="granular" onchange="handleSanitationChange(this)"></td>
-                    </tr>
-                    <tr>
-                        <td>Quail Hollow</td>
-                        <td><input type="checkbox" class="sanitation-checkbox bleach-checkbox" data-pool="Quail Hollow" data-method="bleach" onchange="handleSanitationChange(this)"></td>
-                        <td><input type="checkbox" class="sanitation-checkbox granular-checkbox" data-pool="Quail Hollow" data-method="granular" onchange="handleSanitationChange(this)"></td>
-                    </tr>
-                    <tr>
-                        <td>Rockbridge</td>
-                        <td><input type="checkbox" class="sanitation-checkbox bleach-checkbox" data-pool="Rockbridge" data-method="bleach" onchange="handleSanitationChange(this)"></td>
-                        <td><input type="checkbox" class="sanitation-checkbox granular-checkbox" data-pool="Rockbridge" data-method="granular" onchange="handleSanitationChange(this)"></td>
-                    </tr>
-                    <tr>
-                        <td>Wildewood</td>
-                        <td><input type="checkbox" class="sanitation-checkbox bleach-checkbox" data-pool="Wildewood" data-method="bleach" onchange="handleSanitationChange(this)"></td>
-                        <td><input type="checkbox" class="sanitation-checkbox granular-checkbox" data-pool="Wildewood" data-method="granular" onchange="handleSanitationChange(this)"></td>
-                    </tr>
-                    <tr>
-                        <td>Winchester</td>
-                        <td><input type="checkbox" class="sanitation-checkbox bleach-checkbox" data-pool="Winchester" data-method="bleach" onchange="handleSanitationChange(this)"></td>
-                        <td><input type="checkbox" class="sanitation-checkbox granular-checkbox" data-pool="Winchester" data-method="granular" onchange="handleSanitationChange(this)"></td>
-                    </tr>
-                </tbody>
-            </table>
-        </div>
-    </div>
-</div>
+    </div> <div id="feedbackModal" style="display: none; position: fixed; top: 20%; left: 50%; transform: translateX(-50%); z-index: 9999; padding: 20px; border-radius: 0px; box-shadow: 0 0 10px rgba(0,0,0,0.3); max-width: 400px; text-align: center;">
+        <div id="modalContent" style="white-space: pre-wrap; font-size: 16px;"></div>
+        <button onclick="closeModal()" style="margin-top: 15px; padding: 5px 15px; font-weight: bold;">X</button>
+            <select id="smsRecipientSelect">
+                <option value="">Choose recipient</option>
+                <option value="+18644096231">Sam Harmon</option>
+                <option value="+18036738396">Haley Wilson</option>
+            </select>
+            <button onclick="chooseAndSendSMS()">Send Text Message</button>
 
-<div id="feedbackModal" style="display: none; position: fixed; top: 20%; left: 50%; transform: translateX(-50%); z-index: 9999; padding: 20px; border-radius: 0px; box-shadow: 0 0 10px rgba(0,0,0,0.3); max-width: 400px; text-align: center;">
-    <div id="modalContent" style="white-space: pre-wrap; font-size: 16px;"></div>
-    <button onclick="closeModal()" style="margin-top: 15px; padding: 5px 15px; font-weight: bold;">X</button>
-        <select id="smsRecipientSelect">
-            <option value="">Choose recipient</option>
-            <option value="+18644096231">Sam Harmon</option>
-            <option value="+18036738396">Haley Wilson</option>
-        </select>
-        <button onclick="chooseAndSendSMS()">Send Text Message</button>
-
-        <div id="smsRecipientGroup" style="margin-top: 20px; text-align: left;">
-            <label style="font-weight: bold;">Notify:</label><br>
-            <label><input type="radio" name="smsRecipient" value="+18644096231"> Sam Harmon</label><br>
-            <label><input type="radio" name="smsRecipient" value="+18036738396"> Haley Wilson</label><br>
-            <label><input type="radio" name="smsRecipient" value="both"> Both</label>
-        </div>
-</div>
-
-</body>
+            <div id="smsRecipientGroup" style="margin-top: 20px; text-align: left;">
+                <label style="font-weight: bold;">Notify:</label><br>
+                <label><input type="radio" name="smsRecipient" value="+18644096231"> Sam Harmon</label><br>
+                <label><input type="radio" name="smsRecipient" value="+18036738396"> Haley Wilson</label><br>
+                <label><input type="radio" name="smsRecipient" value="both"> Both</label>
+            </div>
+    </div> </body>
 </html>
