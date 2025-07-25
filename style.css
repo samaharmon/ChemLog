@@ -401,10 +401,6 @@ input[type="text"], select, input[type="password"] {
     background-color: white;
 }
 
-.settings-font {
-    font-size: 24x !important;
-}
-
 /* Overlay for dimming background */
 .modal-overlay {
     display: none; /* Initially hidden */
@@ -415,6 +411,10 @@ input[type="text"], select, input[type="password"] {
     height: 100vh;
     background-color: rgba(0, 0, 0, 0.5); /* Semi-transparent black */
     z-index: 998; /* Below modal but above other content */
+}
+
+#settingsModal h3 {
+    font-size: 20px;
 }
 
 /* Login modal header styling */
