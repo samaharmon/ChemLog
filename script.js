@@ -1598,7 +1598,6 @@ window.areAllCheckboxesChecked = areAllCheckboxesChecked;
 
 // Settings management (7)
 window.openSettings = openSettings;
-window.openSettings = openSettings;
 window.closeSettings = closeSettings;
 window.handleSanitationChange = handleSanitationChange;
 window.initializeSanitationSettings = initializeSanitationSettings;
@@ -2310,6 +2309,8 @@ async function openSettings() {
         console.warn('Could not refresh from Firebase v9 when showing settings:', error);
     }
     
+    createOrShowOverlay();
+
     // Show the settings modal
     document.getElementById('settingsModal').style.display = 'block';
     loadSanitationSettings();
