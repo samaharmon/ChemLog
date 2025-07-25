@@ -359,7 +359,7 @@ input[type="text"], select, input[type="password"] {
     box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
 }
 
-#settingsModal {
+#settings-Modal {
     display: none;
     position: fixed;
     top: 50%;
