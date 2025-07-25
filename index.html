@@ -213,31 +213,38 @@
     </div>
 
 
-    <!-- Supervisor Dashboard -->
-    <div id="supervisorDashboard">
-        <div class="header">
-            <div class="header-content">
-                <div class="header-left">
-                    <div>
-                        <h1>Pool Chemistry Dashboard</h1>
-                        <p>Capital City Aquatics</p>
-                    </div>
-                    <div class="menu-container">
-                        <button class="menu-btn" id="menuButton" onclick="toggleMenu()">
-                            <span>≡</span>
-                            <span>Menu</span>
-                        </button>
-                        <div class="dropdown-menu" id="dropdownMenu">
-                            <a href="#" class="dropdown-item" onclick="openSettings()">Settings</a>
-                            <a href="#" class="dropdown-item logout" onclick="logout()">Logout</a>
-                        </div>
+<!-- Supervisor Dashboard -->
+<div id="supervisorDashboard">
+    <div class="header">
+        <div class="header-content">
+            <div class="header-left">
+                <div>
+                    <h1>Pool Chemistry Dashboard</h1>
+                    <p>Capital City Aquatics</p>
+                </div>
+                <div class="menu-container">
+                    <button class="menu-btn" id="menuButton" onclick="toggleMenu()">
+                        <span>≡</span>
+                        <span>Menu</span>
+                    </button>
+                    <div class="dropdown-menu" id="dropdownMenu">
+                        <a href="#" class="dropdown-item" onclick="openSettings()">Settings</a>
+                        <a href="#" class="dropdown-item logout" onclick="logout()">Logout</a>
                     </div>
                 </div>
-                <div class="header-right"></div>
             </div>
+            <div class="header-right"></div>
         </div>
-        <!-- Rest of dashboard content -->
     </div>
+
+    <!-- MOVE THIS ENTIRE CONTAINER INSIDE -->
+    <div class="container" style="max-width: calc(100vw - 100px);">
+        <div class="dashboard-controls">
+            <!-- all dashboard content -->
+        </div>
+        <!-- tables, pagination, etc. -->
+    </div>
+</div> <!-- Close supervisorDashboard here -->
 
         <div class="container" style="max-width: calc(100vw - 100px);">
             <div class="dashboard-controls">
