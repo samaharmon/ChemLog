@@ -1701,23 +1701,17 @@ function updateHeaderButtons() {
             console.log('Login button hidden on dashboard');
         }
         
-        // Show dashboard menu and logout button if logged in
+        // Show dashboard menu if logged in
         if (isLoggedIn) {
             if (dashboardMenuContainer) {
                 createAndAppendMenu(dashboardMenuContainer);
                 console.log('Menu button appended to dashboard.');
             }
-            if (dashboardHeaderRight && !dashboardHeaderRight.querySelector('.logout-btn')) {
-                const logoutBtn = document.createElement('button');
-                logoutBtn.className = 'logout-btn';
-                logoutBtn.textContent = 'Logout';
-                logoutBtn.addEventListener('click', logout);
-                dashboardHeaderRight.appendChild(logoutBtn);
-                console.log('Logout button appended to dashboard.');
-            }
+            // Note: Removed the separate logout button creation since logout is now in the dropdown
         }
     }
 }
+
 
 // ===================================================
 // UTILITY FUNCTIONS
@@ -1882,13 +1876,13 @@ function updatePagination() {
 function logout() {
     console.log('logout called');
     
+    // Close the dropdown menu first
+    const dropdown = document.getElementById('dropdownMenu');
+    if (dropdown) dropdown.style.display = 'none';
+    
     // Reset state
     isLoggedIn = false;
     currentView = 'form';
-    
-    // Close any open menus
-    const dropdown = document.getElementById('dropdownMenu');
-    if (dropdown) dropdown.style.display = 'none';
     
     // Remove login token
     localStorage.removeItem('loginToken');
@@ -1912,7 +1906,7 @@ function logout() {
     // Update header buttons AFTER setting isLoggedIn to false
     updateHeaderButtons();
     
-    console.log('Logged out successfully, isLoggedIn set to false');
+    console.log('Logged out successfully, returned to main form');
 }
 
 // ===================================================
@@ -2245,7 +2239,8 @@ function toggleMenu() {
     });
 }
 
-async function showSettings() {
+async function openSettings() {
+    // Close the dropdown menu first
     document.getElementById('dropdownMenu').style.display = 'none';
     
     // Refresh settings from Firebase before showing modal (if available)
@@ -2269,6 +2264,7 @@ async function showSettings() {
         console.warn('Could not refresh from Firebase v9 when showing settings:', error);
     }
     
+    // Show the settings modal
     document.getElementById('settingsModal').style.display = 'block';
     loadSanitationSettings();
 }
