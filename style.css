@@ -37,7 +37,7 @@ body {
     display: flex; /* CHANGED: Use flexbox for horizontal alignment */
     flex-direction: column; /* CHANGED: Arrange children in a row */
     align-items: flex-start; /* Vertically aligns items like menu button and title */
-    gap: 20px; /* NEW: Adds space between menu button and title/subtitle */
+    gap: 15px; /* NEW: Adds space between menu button and title/subtitle */
 }
 
 .header-right {
@@ -576,7 +576,7 @@ input[type="text"], select, input[type="password"] {
 
 .dashboard-controls {
     display: flex;
-    gap: 20px;
+    gap: 15px;
     margin-bottom: 20px;
     flex-wrap: wrap;
 }
