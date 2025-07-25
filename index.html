@@ -5,55 +5,24 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Hourly Pool Chemistry Log - Capital City Aquatics</title>
     <link rel="stylesheet" href="style.css">
-    
-    <!-- PWA Meta Tags for iPhone Home Screen -->
-   <meta name="mobile-web-app-capable" content="yes">
-    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-    <meta name="apple-mobile-web-app-title" content="Pool Chem Log">
+
+    <meta name="mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent"> <meta name="apple-mobile-web-app-title" content="Pool Chem Log">
     <meta name="theme-color" content="#007bff">
     <meta name="msapplication-navbutton-color" content="#69140e">
-    <meta name="apple-mobile-web-app-status-bar-style" content="#69140e">
     <meta name="msapplication-TileColor" content="#69140e">
-    
-    <!-- App Icons for Home Screen -->
+
     <link rel="apple-touch-icon" sizes="180x180" href="icon-180x180.png">
     <link rel="apple-touch-icon" sizes="152x152" href="icon-152x152.png">
     <link rel="apple-touch-icon" sizes="120x120" href="icon-120x120.png">
     <link rel="icon" type="image/png" sizes="32x32" href="icon-32x32.png">
     <link rel="icon" type="image/png" sizes="16x16" href="icon-16x16.png">
-    
-    <!-- PWA Manifest -->
-    <link rel="manifest" href="manifest.json">
-    
-    <!-- Firebase v9 SDK from CDN -->
-<script type="module">
-  // Import Firebase v9 modules and make them globally available
-  import { initializeApp } from 'https://www.gstatic.com/firebasejs/9.23.0/firebase-app.js';
-  import { getFirestore, collection, doc, addDoc, setDoc, getDoc, onSnapshot, orderBy, query, Timestamp, writeBatch } from 'https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore.js';
-  
-  // Make Firebase modules available globally for your app files
-  window.firebaseModules = {
-    initializeApp,
-    getFirestore,
-    collection,
-    doc,
-    addDoc,
-    setDoc,
-    getDoc,
-    onSnapshot,
-    orderBy,
-    query,
-    Timestamp,
-    writeBatch
-  };
-</script>
 
-<!-- Your existing module scripts -->
-<script type="module" src="script.js"></script>
+    <link rel="manifest" href="manifest.json">
+
 </head>
 <body>
 
-    <!-- Main Form -->
     <div id="mainForm">
         <div class="header">
             <div class="header-content">
@@ -71,7 +40,6 @@
 
         <div class="container">
             <div class="form-container">
-                <!-- Respondent Information -->
                 <div class="section">
                     <h2>Respondent Information</h2>
                     <div class="form-row">
@@ -86,8 +54,7 @@
                     </div>
                     <div class="form-group full-width">
                         <label for="poolLocation">Which pool are you recording data for?</label>
-                        <select id="poolLocation" name="poolLocation" required onchange="handlePoolLocationChange()" style="width: 70.5%;">
-                            <option value="">Select</option>
+                        <select id="poolLocation" name="poolLocation" required> <option value="">Select</option>
                             <option value="Camden CC">Camden CC</option>
                             <option value="Columbia CC">Columbia CC</option>
                             <option value="Forest Lake">Forest Lake</option>
@@ -102,11 +69,9 @@
             </div>
 
             <div class="form-container">
-                <!-- Chemistry Log -->
                 <div class="section">
                     <h2>Chemistry Log</h2>
-                    
-                    <!-- Main Pool Section -->
+
                     <div class="pool-section">
                         <h3>Main Pool</h3>
                         <div class="pool-section-content">
@@ -143,7 +108,6 @@
                         </div>
                     </div>
 
-                    <!-- Secondary Pool Section -->
                     <div class="pool-section" id="secondaryPoolSection">
                         <h3>Secondary Pool</h3>
                         <div class="pool-section-content">
@@ -191,16 +155,14 @@
         </div>
     </div>
 
-    <!-- Supervisor Login Modal -->
     <div id="loginModal" class="modal">
         <div class="modal-content">
             <div class="modal-header">
                 <h2>Supervisor Login</h2>
-                <span class="close" onclick="closeLoginModal()">&times;</span>
-            </div>
+                <span class="close">x</span> </div>
             <form id="loginForm" class="modal-form">
                 <div class="form-group">
-                    <label for="email">Username</label>
+                    <label for="inputEmail">Username</label>
                     <input type="text" id="inputEmail" name="email" style="width: 100%;" required>
                 </div>
                 <div class="form-group">
@@ -212,28 +174,22 @@
         </div>
     </div>
 
-
-    <!-- Supervisor Dashboard -->
     <div id="supervisorDashboard">
-    <div class="header">
-        <div class="header-content">
-          <div class="header-left">
-            <div class="title-subtitle-wrapper">
-                <h1>Pool Chemistry Dashboard</h1>
-                <p>Capital City Aquatics</p>
-            </div>
-          </div>
-        </div>
-    </div>
-    </div>
-
-        <div class="container" style="max-width: calc(100vw - 100px);">
+        <div class="header">
+            <div class="header-content">
+                <div class="header-left">
+                    <div class="title-subtitle-wrapper">
+                        <h1>Pool Chemistry Dashboard</h1>
+                        <p>Capital City Aquatics</p>
+                    </div>
+                    </div>
+                <div class="header-right">
+                    </div>
+            </div> </div> <div class="container" style="max-width: calc(100vw - 100px);">
             <div class="dashboard-controls">
-                <button id="exported" class="export-btn" onclick="exportToCSV()">Export to CSV</button>
-                <div class="form-group" style="flex: none; width: 200px;">
+                <button id="exported" class="export-btn">Export to CSV</button> <div class="form-group" style="flex: none; width: 200px;">
                     <label for="poolFilter">Filter by Pool:</label>
-                    <select id="poolFilter" onchange="filterData()" style="width: 99.999%">
-                        <option value="">All Pools</option>
+                    <select id="poolFilter" style="width: 99.999%"> <option value="">All Pools</option>
                         <option value="Camden CC">Camden CC</option>
                         <option value="Columbia CC">Columbia CC</option>
                         <option value="Forest Lake">Forest Lake</option>
@@ -246,8 +202,7 @@
                 </div>
                 <div class="form-group" style="flex: none; width: 50px">
                     <label for="dateFilter">Date:</label>
-                    <input type="date" id="dateFilter" onchange="filterData()">
-                </div>
+                    <input type="date" id="dateFilter"> </div>
             </div>
 
             <h3>Main Pool Chemistry</h3>
@@ -277,105 +232,124 @@
                 <tbody id="dataTableBody2">
                 </tbody>
             </table>
-            
+
             <div id="timestampNote" style="margin-top: 5px; text-align: left; color: #666; font-size: 12px; font-style: italic;">
                 <span style="color: red; font-weight: bold;">!!!</span> indicates chemistry values that are more than 3 hours old
             </div>
 
             <div class="pagination" id="pagination" style="margin-top: 30px;">
-                <button id="prevBtn" onclick="goToPreviousPage()">←</button>
-                <span id="pageInfo"></span>
-                <button id="nextBtn" onclick="goToNextPage()">→</button>
+                <button id="prevBtn">←</button> <span id="pageInfo"></span>
+                <button id="nextBtn">→</button> </div>
+        </div> </div> <div id="settingsModal" class="modal">
+        <div class="modal-content settings-modal-content">
+            <div class="modal-header">
+                <h2>Settings</h2>
+                <span class="close">x</span> </div>
+
+            <div class="settings-section">
+                <h3>Sanitation Methods</h3>
+                <table class="sanitation-table">
+                    <thead>
+                        <tr>
+                            <th>Pool Name</th>
+                            <th>Bleach</th>
+                            <th>Granular</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>Camden CC</td>
+                            <td><input type="checkbox" class="sanitation-checkbox bleach-checkbox" data-pool="Camden CC" data-method="bleach"></td> <td><input type="checkbox" class="sanitation-checkbox granular-checkbox" data-pool="Camden CC" data-method="granular"></td> </tr>
+                        <tr>
+                            <td>CC of Lexington</td>
+                            <td><input type="checkbox" class="sanitation-checkbox bleach-checkbox" data-pool="CC of Lexington" data-method="bleach"></td>
+                            <td><input type="checkbox" class="sanitation-checkbox granular-checkbox" data-pool="CC of Lexington" data-method="granular"></td>
+                        </tr>
+                        <tr>
+                            <td>Columbia CC</td>
+                            <td><input type="checkbox" class="sanitation-checkbox bleach-checkbox" data-pool="Columbia CC" data-method="bleach"></td>
+                            <td><input type="checkbox" class="sanitation-checkbox granular-checkbox" data-pool="Columbia CC" data-method="granular"></td>
+                        </tr>
+                        <tr>
+                            <td>Forest Lake Lap Pool</td>
+                            <td><input type="checkbox" class="sanitation-checkbox bleach-checkbox" data-pool="Forest Lake Lap Pool" data-method="bleach"></td>
+                            <td><input type="checkbox" class="sanitation-checkbox granular-checkbox" data-pool="Forest Lake Lap Pool" data-method="granular"></td>
+                        </tr>
+                        <tr>
+                            <td>Forest Lake Main Pool</td>
+                            <td><input type="checkbox" class="sanitation-checkbox bleach-checkbox" data-pool="Forest Lake" data-method="bleach"></td>
+                            <td><input type="checkbox" class="sanitation-checkbox granular-checkbox" data-pool="Forest Lake" data-method="granular"></td>
+                        </tr>
+                        <tr>
+                            <td>Quail Hollow</td>
+                            <td><input type="checkbox" class="sanitation-checkbox bleach-checkbox" data-pool="Quail Hollow" data-method="bleach"></td>
+                            <td><input type="checkbox" class="sanitation-checkbox granular-checkbox" data-pool="Quail Hollow" data-method="granular"></td>
+                        </tr>
+                        <tr>
+                            <td>Rockbridge</td>
+                            <td><input type="checkbox" class="sanitation-checkbox bleach-checkbox" data-pool="Rockbridge" data-method="bleach"></td>
+                            <td><input type="checkbox" class="sanitation-checkbox granular-checkbox" data-pool="Rockbridge" data-method="granular"></td>
+                        </tr>
+                        <tr>
+                            <td>Wildewood</td>
+                            <td><input type="checkbox" class="sanitation-checkbox bleach-checkbox" data-pool="Wildewood" data-method="bleach"></td>
+                            <td><input type="checkbox" class="sanitation-checkbox granular-checkbox" data-pool="Wildewood" data-method="granular"></td>
+                        </tr>
+                        <tr>
+                            <td>Winchester</td>
+                            <td><input type="checkbox" class="sanitation-checkbox bleach-checkbox" data-pool="Winchester" data-method="bleach"></td>
+                            <td><input type="checkbox" class="sanitation-checkbox granular-checkbox" data-pool="Winchester" data-method="granular"></td>
+                        </tr>
+                    </tbody>
+                </table>
             </div>
         </div>
-
-<!-- Settings Modal -->
-<div id="settingsModal" class="modal">
-    <div class="modal-content settings-modal-content">
-        <div class="modal-header">
-            <h2>Settings</h2>
-            <span class="close" onclick="closeSettings()">&times;</span>
-        </div>
-        
-        <div class="settings-section">
-            <h3>Sanitation Methods</h3>
-            <table class="sanitation-table">
-                <thead>
-                    <tr>
-                        <th>Pool Name</th>
-                        <th>Bleach</th>
-                        <th>Granular</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    <tr>
-                        <td>Camden CC</td>
-                        <td><input type="checkbox" class="sanitation-checkbox bleach-checkbox" data-pool="Camden CC" data-method="bleach" onchange="handleSanitationChange(this)"></td>
-                        <td><input type="checkbox" class="sanitation-checkbox granular-checkbox" data-pool="Camden CC" data-method="granular" onchange="handleSanitationChange(this)"></td>
-                    </tr>
-                    <tr>
-                        <td>CC of Lexington</td>
-                        <td><input type="checkbox" class="sanitation-checkbox bleach-checkbox" data-pool="CC of Lexington" data-method="bleach" onchange="handleSanitationChange(this)"></td>
-                        <td><input type="checkbox" class="sanitation-checkbox granular-checkbox" data-pool="CC of Lexington" data-method="granular" onchange="handleSanitationChange(this)"></td>
-                    </tr>
-                    <tr>
-                        <td>Columbia CC</td>
-                        <td><input type="checkbox" class="sanitation-checkbox bleach-checkbox" data-pool="Columbia CC" data-method="bleach" onchange="handleSanitationChange(this)"></td>
-                        <td><input type="checkbox" class="sanitation-checkbox granular-checkbox" data-pool="Columbia CC" data-method="granular" onchange="handleSanitationChange(this)"></td>
-                    </tr>
-                    <tr>
-                        <td>Forest Lake Lap Pool</td>
-                        <td><input type="checkbox" class="sanitation-checkbox bleach-checkbox" data-pool="Forest Lake Lap Pool" data-method="bleach" onchange="handleSanitationChange(this)"></td>
-                        <td><input type="checkbox" class="sanitation-checkbox granular-checkbox" data-pool="Forest Lake Lap Pool" data-method="granular" onchange="handleSanitationChange(this)"></td>
-                    </tr>
-                    <tr>
-                        <td>Forest Lake Main Pool</td>
-                        <td><input type="checkbox" class="sanitation-checkbox bleach-checkbox" data-pool="Forest Lake" data-method="bleach" onchange="handleSanitationChange(this)"></td>
-                        <td><input type="checkbox" class="sanitation-checkbox granular-checkbox" data-pool="Forest Lake" data-method="granular" onchange="handleSanitationChange(this)"></td>
-                    </tr>
-                    <tr>
-                        <td>Quail Hollow</td>
-                        <td><input type="checkbox" class="sanitation-checkbox bleach-checkbox" data-pool="Quail Hollow" data-method="bleach" onchange="handleSanitationChange(this)"></td>
-                        <td><input type="checkbox" class="sanitation-checkbox granular-checkbox" data-pool="Quail Hollow" data-method="granular" onchange="handleSanitationChange(this)"></td>
-                    </tr>
-                    <tr>
-                        <td>Rockbridge</td>
-                        <td><input type="checkbox" class="sanitation-checkbox bleach-checkbox" data-pool="Rockbridge" data-method="bleach" onchange="handleSanitationChange(this)"></td>
-                        <td><input type="checkbox" class="sanitation-checkbox granular-checkbox" data-pool="Rockbridge" data-method="granular" onchange="handleSanitationChange(this)"></td>
-                    </tr>
-                    <tr>
-                        <td>Wildewood</td>
-                        <td><input type="checkbox" class="sanitation-checkbox bleach-checkbox" data-pool="Wildewood" data-method="bleach" onchange="handleSanitationChange(this)"></td>
-                        <td><input type="checkbox" class="sanitation-checkbox granular-checkbox" data-pool="Wildewood" data-method="granular" onchange="handleSanitationChange(this)"></td>
-                    </tr>
-                    <tr>
-                        <td>Winchester</td>
-                        <td><input type="checkbox" class="sanitation-checkbox bleach-checkbox" data-pool="Winchester" data-method="bleach" onchange="handleSanitationChange(this)"></td>
-                        <td><input type="checkbox" class="sanitation-checkbox granular-checkbox" data-pool="Winchester" data-method="granular" onchange="handleSanitationChange(this)"></td>
-                    </tr>
-                </tbody>
-            </table>
-        </div>
     </div>
-</div>
 
-<!-- Feedback Modal -->
-<div id="feedbackModal" style="display: none; position: fixed; top: 20%; left: 50%; transform: translateX(-50%); z-index: 9999; padding: 20px; border-radius: 0px; box-shadow: 0 0 10px rgba(0,0,0,0.3); max-width: 400px; text-align: center;">
-    <div id="modalContent" style="white-space: pre-wrap; font-size: 16px;"></div>
-    <button onclick="closeModal()" style="margin-top: 15px; padding: 5px 15px; font-weight: bold;">X</button>
-        <option value="">Choose recipient</option>
-        <option value="+18644096231">Sam Harmon</option>
-        <option value="+18036738396">Haley Wilson</option>
-    </select>
-    <button onclick="chooseAndSendSMS()">Send Text Message</button>
+    <div id="feedbackModal" class="modal"> <div class="modal-content"> <div class="modal-header">
+                <h2>Send Feedback</h2> <span class="close">x</span> </div>
+            <div id="modalContent" style="white-space: pre-wrap; font-size: 16px; margin-bottom: 20px;"></div>
 
-    <div id="smsRecipientGroup" style="margin-top: 20px; text-align: left;">
-        <label style="font-weight: bold;">Notify:</label><br>
-        <label><input type="radio" name="smsRecipient" value="+18644096231"> Sam Harmon</label><br>
-        <label><input type="radio" name="smsRecipient" value="+18036738396"> Haley Wilson</label><br>
-        <label><input type="radio" name="smsRecipient" value="both"> Both</label>
-    </div>
-</div>
+            <div class="form-group">
+                <label for="smsRecipientSelect" style="font-weight: bold;">Choose Recipient:</label>
+                <select id="smsRecipientSelect" style="width: 100%;">
+                    <option value="">Choose recipient</option>
+                    <option value="+18644096231">Sam Harmon</option>
+                    <option value="+18036738396">Haley Wilson</option>
+                </select>
+            </div>
+            <button id="sendMessageBtn" class="send-message-btn">Send Text Message</button> <div id="smsRecipientGroup" style="margin-top: 20px; text-align: left;">
+                <label style="font-weight: bold;">Notify:</label><br>
+                <label><input type="radio" name="smsRecipient" value="+18644096231"> Sam Harmon</label><br>
+                <label><input type="radio" name="smsRecipient" value="+18036738396"> Haley Wilson</label><br>
+                <label><input type="radio" name="smsRecipient" value="both"> Both</label>
+            </div>
+        </div> 
+    </div> 
+    
+    <script type="module">
+        // Import Firebase v9 modules and make them globally available
+        import { initializeApp } from 'https://www.gstatic.com/firebasejs/9.23.0/firebase-app.js';
+        import { getFirestore, collection, doc, addDoc, setDoc, getDoc, onSnapshot, orderBy, query, Timestamp, writeBatch } from 'https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore.js';
 
+        // Make Firebase modules available globally for your app files
+        window.firebaseModules = {
+            initializeApp,
+            getFirestore,
+            collection,
+            doc,
+            addDoc,
+            setDoc,
+            getDoc,
+            onSnapshot,
+            orderBy,
+            query,
+            Timestamp,
+            writeBatch
+        };
+    </script>
+
+    <script type="module" src="script.js"></script>
+    
 </body>
 </html>
