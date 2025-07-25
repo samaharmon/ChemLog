@@ -1,3 +1,31 @@
+import { initializeApp } from 'https://www.gstatic.com/firebasejs/9.23.0/firebase-app.js';
+import {
+  getFirestore,
+  collection,
+  doc,
+  addDoc,
+  setDoc,
+  getDoc,
+  getDocs,
+  onSnapshot,
+  orderBy,
+  query,
+  Timestamp,
+  writeBatch
+} from 'https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore.js';
+
+// Your Firebase config
+const firebaseConfig = {
+  apiKey: "your-api-key",
+  authDomain: "your-auth-domain",
+  projectId: "your-project-id",
+  // etc.
+};
+
+const firebaseApp = initializeApp(firebaseConfig);
+const db = getFirestore(firebaseApp);
+
+
 //===================================================
 //Hoisted Functions
 //===================================================
@@ -803,20 +831,19 @@ async function confirmClearData() {
     }
 
     try {
-        const db = firebaseModules.getFirestore(firebaseApp);
-        const collectionRef = firebaseModules.collection(db, 'formSubmissions');
+        const collectionRef = collection(db, 'formSubmissions');
 
         let totalDeleted = 0;
         let deletedThisRound;
 
         do {
-            const snapshot = await firebaseModules.getDocs(
-                firebaseModules.query(collectionRef, firebaseModules.orderBy('timestamp'), firebaseModules.limit(500))
+            const snapshot = await getDocs(
+                query(collectionRef, orderBy('timestamp'), limit(500))
             );
 
             if (snapshot.empty) break;
 
-            const batch = firebaseModules.writeBatch(db);
+            const batch = writeBatch(db);
 
             snapshot.docs.forEach((doc) => {
                 batch.delete(doc.ref);
@@ -828,16 +855,17 @@ async function confirmClearData() {
 
             console.log(`Deleted ${deletedThisRound} documents in this batch...`);
 
-        } while (deletedThisRound === 500); // Keep going while maxed out
+        } while (deletedThisRound === 500);
 
         alert(`Deleted ${totalDeleted} chemistry log entries successfully.`);
-        fetchAndRenderData(); // Refresh dashboard view if necessary
+        fetchAndRenderData(); // Refresh dashboard
 
     } catch (error) {
         console.error("Error clearing dashboard data:", error);
         alert("Failed to delete data. Check the console for details.");
     }
 }
+
 
 // Fallback function for local data only
 function useLocalDataOnly() {
