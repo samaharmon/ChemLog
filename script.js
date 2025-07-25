@@ -792,6 +792,53 @@ function loadDashboardData() {
     }
 }
 
+async function confirmClearData() {
+    const input = prompt(
+        'WARNING: This will permanently delete ALL chemistry log data.\n\nType "DELETE" (in all caps) to confirm.'
+    );
+
+    if (input !== "DELETE") {
+        alert("Data purge cancelled.");
+        return;
+    }
+
+    try {
+        const db = firebaseModules.getFirestore(firebaseApp);
+        const collectionRef = firebaseModules.collection(db, 'formSubmissions');
+
+        let totalDeleted = 0;
+        let deletedThisRound;
+
+        do {
+            const snapshot = await firebaseModules.getDocs(
+                firebaseModules.query(collectionRef, firebaseModules.orderBy('timestamp'), firebaseModules.limit(500))
+            );
+
+            if (snapshot.empty) break;
+
+            const batch = firebaseModules.writeBatch(db);
+
+            snapshot.docs.forEach((doc) => {
+                batch.delete(doc.ref);
+            });
+
+            await batch.commit();
+            deletedThisRound = snapshot.size;
+            totalDeleted += deletedThisRound;
+
+            console.log(`Deleted ${deletedThisRound} documents in this batch...`);
+
+        } while (deletedThisRound === 500); // Keep going while maxed out
+
+        alert(`Deleted ${totalDeleted} chemistry log entries successfully.`);
+        fetchAndRenderData(); // Refresh dashboard view if necessary
+
+    } catch (error) {
+        console.error("Error clearing dashboard data:", error);
+        alert("Failed to delete data. Check the console for details.");
+    }
+}
+
 // Fallback function for local data only
 function useLocalDataOnly() {
     loadFormSubmissions();
