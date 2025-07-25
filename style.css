@@ -414,7 +414,7 @@ input[type="text"], select, input[type="password"] {
 }
 
 #settingsModal h3 {
-    font-size: 20px;
+    font-size: 24px;
 }
 
 /* Login modal header styling */
@@ -430,7 +430,7 @@ input[type="text"], select, input[type="password"] {
 
 #loginModal .modal-header h2 {
     color: #69140e;
-    font-size: 24px;
+    font-size: 30px;
     font-family: 'Franklin Gothic Medium', Arial, sans-serif;
     margin: 0;
 }
