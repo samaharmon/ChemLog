@@ -35,8 +35,8 @@ body {
 
 .header-left {
     display: flex; /* CHANGED: Use flexbox for horizontal alignment */
-    flex-direction: row; /* CHANGED: Arrange children in a row */
-    align-items: center; /* Vertically aligns items like menu button and title */
+    flex-direction: column; /* CHANGED: Arrange children in a row */
+    align-items: flex-start; /* Vertically aligns items like menu button and title */
     gap: 20px; /* NEW: Adds space between menu button and title/subtitle */
 }
 
