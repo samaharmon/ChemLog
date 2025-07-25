@@ -823,6 +823,7 @@ async function confirmClearData() {
     }
 
     try {
+        const db = getFirestore(firebaseApp); // initialize db here
         const collectionRef = collection(db, 'formSubmissions');
 
         let totalDeleted = 0;
@@ -857,6 +858,7 @@ async function confirmClearData() {
         alert("Failed to delete data. Check the console for details.");
     }
 }
+
 
 
 // Fallback function for local data only
