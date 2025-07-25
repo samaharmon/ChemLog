@@ -1684,6 +1684,20 @@ document.addEventListener('DOMContentLoaded', function() {
     console.log('🚀 App initialization complete');
 });
 
+document.addEventListener("DOMContentLoaded", () => {
+  const clearDataBtn = document.getElementById("clearDataBtn");
+  const exportCsvBtn = document.getElementById("exportCsvBtn");
+
+  if (clearDataBtn) {
+    clearDataBtn.addEventListener("click", confirmClearData);
+  }
+
+  if (exportCsvBtn) {
+    exportCsvBtn.addEventListener("click", exportToCSV);
+  }
+});
+
+
 // Add all other functions you're calling in onclick attributes
 
 function createAndAppendMenu(parentElement) {
