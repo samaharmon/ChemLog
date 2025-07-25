@@ -368,8 +368,8 @@ input[type="text"], select, input[type="password"] {
     border-radius: 0; /* No rounded corners */
     box-shadow: 0 0 10px rgba(0, 0, 0, 0.3); /* Original shadow */
     max-width: 550px; /* Original max-width */
-    width: 300%;
-    height: 90%;
+    width: 100vw;
+    height: 100vh;
     text-align: left;
     max-height: 80vh; /* Add max height for scrolling */
     overflow: hidden; /* Hide overflow on main modal */
