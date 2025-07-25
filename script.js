@@ -338,8 +338,7 @@ function goToNextPage() {
     }
 }
 function closeSettings() {
-    document.getElementById('settingsModalClose').style.display = 'none';
-    document.getElementById('modalOverlay').style.display = 'none';
+    document.getElementById('settingsModal').style.display = 'none';
 }
 async function handleSanitationChange(checkbox) {
     const pool = checkbox.dataset.pool;
@@ -1676,13 +1675,6 @@ document.addEventListener('DOMContentLoaded', function() {
         submitButton.removeAttribute('onclick');
         submitButton.addEventListener('click', submitForm);
     }
-
-    const clearDataBtn = document.getElementById('clearDataBtn');
-    if (clearDataBtn) {
-        clearDataBtn.addEventListener('click', confirmClearData);
-        console.log('🧼 Clear All Data button handler attached');
-}
-
     
     // Continue with other initialization...
     
