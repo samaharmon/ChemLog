@@ -1890,13 +1890,17 @@ function logout() {
     // Remove login token
     localStorage.removeItem('loginToken');
     
-    // Hide dashboard and show form
+    // Hide dashboard and remove 'show' class just in case
     const dashboard = document.getElementById('supervisorDashboard');
+    if (dashboard) {
+        dashboard.style.display = 'none';
+        dashboard.classList.remove('show'); // <== CRUCIAL
+    }
+
+    // Show form
     const form = document.getElementById('mainForm');
-    
-    if (dashboard) dashboard.style.display = 'none';
     if (form) form.style.display = 'block';
-    
+
     // Clear any filters
     const poolFilter = document.getElementById('poolFilter');
     const dateFilter = document.getElementById('dateFilter');
@@ -1911,6 +1915,7 @@ function logout() {
     
     console.log('Logged out successfully, returned to main form');
 }
+
 
 // ===================================================
 // FEEDBACK & NOTIFICATIONS
