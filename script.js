@@ -16,10 +16,13 @@ import {
 
 // Your Firebase config
 const firebaseConfig = {
-  apiKey: "your-api-key",
-  authDomain: "your-auth-domain",
-  projectId: "your-project-id",
-  // etc.
+  apiKey: "AIzaSyCRxSL2uuH6O5MFvbq0FS02zF2K_lXGvqI",
+  authDomain: "chemlog-43c08.firebaseapp.com",
+  projectId: "chemlog-43c08",
+  storageBucket: "chemlog-43c08.firebasestorage.app",
+  messagingSenderId: "554394202059",
+  appId: "1:554394202059:web:a8d5824a1d7ccdd871d04e",
+  measurementId: "G-QF5ZQ88VS2"
 };
 
 const firebaseApp = initializeApp(firebaseConfig);
