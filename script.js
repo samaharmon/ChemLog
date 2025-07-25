@@ -1685,7 +1685,7 @@ document.addEventListener('DOMContentLoaded', function() {
 });
 
 document.addEventListener("DOMContentLoaded", () => {
-  const clearDataBtn = document.getElementById("clearDataBtn");
+  const clearDataBtn = document.getElementById("clearAllData");
   const exportCsvBtn = document.getElementById("exportCsvBtn");
 
   if (clearDataBtn) {
