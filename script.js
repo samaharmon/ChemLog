@@ -338,7 +338,7 @@ function goToNextPage() {
     }
 }
 function closeSettings() {
-    document.getElementById('settingsModal').style.display = 'none';
+    document.getElementById('settingsModalClose').style.display = 'none';
     document.getElementById('modalOverlay').style.display = 'none';
 }
 async function handleSanitationChange(checkbox) {
