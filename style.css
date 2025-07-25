@@ -482,6 +482,18 @@ input[type="text"], select, input[type="password"] {
     display: block !important;
 }
 
+.title-subtitle-wrapper {
+    display: flex;
+    flex-direction: column; /* Make them stack vertically */
+    align-items: flex-start; /* Left-align their text */
+    /* You might remove margin-bottom from .header p if gap above takes care of it */
+}
+.header p {
+    font-size: 18px;
+    font-weight: normal;
+    margin-bottom: 0; /* Adjust this if the wrapper handles spacing */
+}
+
 .dashboard-header {
     display: flex;
     justify-content: space-between;
