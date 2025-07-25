@@ -21,6 +21,28 @@
     <link rel="icon" type="image/png" sizes="16x16" href="icon-16x16.png">
     
     <link rel="manifest" href="manifest.json">
+    
+    <script type="module">
+  // Import Firebase v9 modules and make them globally available
+  import { initializeApp } from 'https://www.gstatic.com/firebasejs/9.23.0/firebase-app.js';
+  import { getFirestore, collection, doc, addDoc, setDoc, getDoc, onSnapshot, orderBy, query, Timestamp, writeBatch } from 'https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore.js';
+  
+  // Make Firebase modules available globally for your app files
+  window.firebaseModules = {
+    initializeApp,
+    getFirestore,
+    collection,
+    doc,
+    addDoc,
+    setDoc,
+    getDoc,
+    onSnapshot,
+    orderBy,
+    query,
+    Timestamp,
+    writeBatch
+  };
+</script>
 
 <script type="module" src="script.js"></script>
 </head>
