@@ -1589,28 +1589,30 @@ console.log('✅ All 62 unique functions exposed globally');
 
 document.addEventListener('DOMContentLoaded', function() {
     console.log('🔥🔥🔥 UNIFIED APP.JS LOADED - Firebase v9 🔥🔥🔥');
-    
+
     const dashboard = document.getElementById('supervisorDashboard');
     if (dashboard) {
-        dashboard.style.display = 'none';
-        console.log('Dashboard force hidden on load');
+        // REMOVE this line as the 'show' class will control visibility now
+        // dashboard.style.display = 'none';
+        console.log('Dashboard visibility to be managed by "show" class.');
     }
 
     // Initialize Firebase v9 first
     const firebaseInitialized = initializeFirebase();
-    
+
     // Initialize app components
+    // checkLogin() will now handle creating the menu and showing/hiding the dashboard
     checkLogin();
     initializeFormSubmissions();
-    
-    // Set up login form handler - FIX: Use the function directly, not from window
+
+    // Set up login form handler
     const loginForm = document.getElementById('loginForm');
     if (loginForm) {
         loginForm.addEventListener('submit', handleLoginSubmit);
         console.log('✅ Login form handler attached');
     }
-    
-    // Set up pool location change handler - FIX: Use function directly
+
+    // Set up pool location change handler
     const poolLocation = document.getElementById('poolLocation');
     if (poolLocation) {
         poolLocation.addEventListener('change', handlePoolLocationChange);
@@ -1619,59 +1621,78 @@ document.addEventListener('DOMContentLoaded', function() {
 
     const loginButton = document.querySelector('.supervisor-login-btn');
     if (loginButton) {
-        loginButton.removeAttribute('onclick');
+        loginButton.removeAttribute('onclick'); // Ensure no old inline handlers conflict
         loginButton.addEventListener('click', openLoginModal);
     }
-    
+
     // Find the submit button and add event listener
     const submitButton = document.querySelector('.submit-btn');
     if (submitButton) {
-        submitButton.removeAttribute('onclick');
+        submitButton.removeAttribute('onclick'); // Ensure no old inline handlers conflict
         submitButton.addEventListener('click', submitForm);
     }
-    
+
     // Continue with other initialization...
-    
+
+    // --- YOUR ORIGINAL LINES BELOW THIS POINT ARE PRESERVED ---
     setupEventHandlers();
     updateHeaderButtons();
-    
+    // --- END OF PRESERVED LINES ---
+
     console.log('🚀 App initialization complete');
 });
 
 // Add all other functions you're calling in onclick attributes
 
 function createAndAppendMenu(parentElement) {
+    // Create the main menu container div
     const menuContainer = document.createElement('div');
-    menuContainer.className = 'menu-container'; // Keep this class for styling
+    menuContainer.className = 'menu-container'; // Keep this class for styling (e.g., position: relative)
 
+    // Create the menu button
     const menuBtn = document.createElement('button');
-    menuBtn.className = 'menu-btn';
-    menuBtn.innerHTML = '☰';
-    menuBtn.addEventListener('click', toggleMenu);
-    menuContainer.appendChild(menuBtn);
+    menuBtn.className = 'menu-btn'; // Class for general button styling
+    menuBtn.id = 'menuButton'; // <--- CRUCIAL: Set the ID here for JS toggling
+    // Set the innerHTML to include both the hamburger icon and the word "Menu"
+    // wrapped in spans, which allows your CSS (display: flex, gap) to work.
+    menuBtn.innerHTML = '<span>☰</span> <span>Menu</span>';
+    menuBtn.addEventListener('click', toggleMenu); // Attach the click listener
+    menuContainer.appendChild(menuBtn); // Add button to the container
 
+    // Create the dropdown menu div
     const dropdownMenu = document.createElement('div');
-    dropdownMenu.id = 'dropdownMenu';
-    dropdownMenu.className = 'dropdown-menu';
-    dropdownMenu.style.display = 'none'; // Initially hidden
+    dropdownMenu.id = 'dropdownMenu'; // <--- CRUCIAL: Set the ID here for JS toggling
+    dropdownMenu.className = 'dropdown-menu'; // Class for dropdown styling
+    dropdownMenu.style.display = 'none'; // <--- CRUCIAL: Initially hidden via inline style
 
-    const settingsDiv = document.createElement('div');
-    settingsDiv.textContent = 'Settings';
-    settingsDiv.addEventListener('click', openSettings);
-    dropdownMenu.appendChild(settingsDiv);
+    // Create and append Settings item
+    const settingsLink = document.createElement('a'); // Using 'a' for navigation items is generally better
+    settingsLink.href = "#"; // Or the actual link
+    settingsLink.className = 'dropdown-item'; // Class for dropdown item styling
+    settingsLink.textContent = 'Settings';
+    settingsLink.addEventListener('click', openSettings);
+    dropdownMenu.appendChild(settingsLink);
 
-    const clearDataDiv = document.createElement('div');
-    clearDataDiv.textContent = 'Clear All Data';
-    clearDataDiv.addEventListener('click', clearAllData);
-    dropdownMenu.appendChild(clearDataDiv);
+    // Create and append Clear All Data item
+    const clearDataLink = document.createElement('a'); // Using 'a' for navigation items
+    clearDataLink.href = "#";
+    clearDataLink.className = 'dropdown-item'; // Class for dropdown item styling
+    clearDataLink.textContent = 'Clear All Data';
+    clearDataLink.addEventListener('click', clearAllData);
+    dropdownMenu.appendChild(clearDataLink);
 
-    const logoutDiv = document.createElement('div');
-    logoutDiv.textContent = 'Logout';
-    logoutDiv.addEventListener('click', logout);
-    dropdownMenu.appendChild(logoutDiv);
+    // Create and append Logout item
+    const logoutLink = document.createElement('a'); // Using 'a' for navigation items
+    logoutLink.href = "#"; // Or the actual logout endpoint
+    logoutLink.className = 'dropdown-item logout'; // Classes for dropdown item and logout-specific styling
+    logoutLink.textContent = 'Logout';
+    logoutLink.addEventListener('click', logout);
+    dropdownMenu.appendChild(logoutLink);
 
-    menuContainer.appendChild(dropdownMenu);
-    parentElement.appendChild(menuContainer); // Append to the designated parent
+    menuContainer.appendChild(dropdownMenu); // Add the dropdown to the menu container
+
+    // Append the entire menu structure to the designated parent element
+    parentElement.appendChild(menuContainer);
 }
 
 function updateHeaderButtons() {
