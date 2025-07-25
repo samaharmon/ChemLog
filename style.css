@@ -28,8 +28,8 @@ body {
 
 .header-content {
     display: flex;
-    justify-content: space-between; /* Pushes header-left to left, header-right to right */
-    align-items: center; /* Vertically aligns content in the middle */ /* CHANGED from flex-start to center for better vertical alignment of full header content */
+    justify-content: left; /* Pushes header-left to left, header-right to right */
+    align-items: flex-start; /* Vertically aligns content in the middle */ /* CHANGED from flex-start to center for better vertical alignment of full header content */
     width: 100%;
 }
 
