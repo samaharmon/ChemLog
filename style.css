@@ -158,6 +158,7 @@ body {
     margin-top: 30px;
     padding-top: 10px;
     border-top: 1px solid #ccc;
+    border-bottom: 1px solid #ccc;
 }
 
 .danger-button {
@@ -402,7 +403,7 @@ input[type="text"], select, input[type="password"] {
 }
 
 .settings-font {
-    font-size: 18px;
+    font-size: 24x;
 }
 
 /* Overlay for dimming background */
