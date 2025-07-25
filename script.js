@@ -1,35 +1,3 @@
-import { initializeApp } from 'https://www.gstatic.com/firebasejs/9.23.0/firebase-app.js';
-import {
-  getFirestore,
-  collection,
-  doc,
-  addDoc,
-  setDoc,
-  getDoc,
-  getDocs,
-  onSnapshot,
-  orderBy,
-  query,
-  Timestamp,
-  limit,
-  writeBatch
-} from 'https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore.js';
-
-// Your Firebase config
-const firebaseConfig = {
-  apiKey: "AIzaSyCRxSL2uuH6O5MFvbq0FS02zF2K_lXGvqI",
-  authDomain: "chemlog-43c08.firebaseapp.com",
-  projectId: "chemlog-43c08",
-  storageBucket: "chemlog-43c08.firebasestorage.app",
-  messagingSenderId: "554394202059",
-  appId: "1:554394202059:web:a8d5824a1d7ccdd871d04e",
-  measurementId: "G-QF5ZQ88VS2"
-};
-
-const firebaseApp = initializeApp(firebaseConfig);
-const db = getFirestore(firebaseApp);
-
-
 //===================================================
 //Hoisted Functions
 //===================================================
@@ -610,7 +578,18 @@ function getClResponse(poolLocation, isMainPool, clValue) {
     return null;
 }
 
+const firebaseConfig = {
+  apiKey: "AIzaSyCRxSL2uuH6O5MFvbq0FS02zF2K_lXGvqI",
+  authDomain: "chemlog-43c08.firebaseapp.com",
+  projectId: "chemlog-43c08",
+  storageBucket: "chemlog-43c08.firebasestorage.app",
+  messagingSenderId: "554394202059",
+  appId: "1:554394202059:web:a8d5824a1d7ccdd871d04e",
+  measurementId: "G-QF5ZQ88VS2"
+};
+
 // Global variables
+let app, db;
 let allSubmissions = [];
 let filteredSubmissions = [];
 let formSubmissions = [];
@@ -824,20 +803,20 @@ async function confirmClearData() {
     }
 
     try {
-        const db = getFirestore(firebaseApp); // initialize db here
-        const collectionRef = collection(db, 'formSubmissions');
+        const db = firebaseModules.getFirestore(firebaseApp);
+        const collectionRef = firebaseModules.collection(db, 'formSubmissions');
 
         let totalDeleted = 0;
         let deletedThisRound;
 
         do {
-            const snapshot = await getDocs(
-                query(collectionRef, orderBy('timestamp'), limit(500))
+            const snapshot = await firebaseModules.getDocs(
+                firebaseModules.query(collectionRef, firebaseModules.orderBy('timestamp'), firebaseModules.limit(500))
             );
 
             if (snapshot.empty) break;
 
-            const batch = writeBatch(db);
+            const batch = firebaseModules.writeBatch(db);
 
             snapshot.docs.forEach((doc) => {
                 batch.delete(doc.ref);
@@ -849,18 +828,16 @@ async function confirmClearData() {
 
             console.log(`Deleted ${deletedThisRound} documents in this batch...`);
 
-        } while (deletedThisRound === 500);
+        } while (deletedThisRound === 500); // Keep going while maxed out
 
         alert(`Deleted ${totalDeleted} chemistry log entries successfully.`);
-        fetchAndRenderData(); // Refresh dashboard
+        fetchAndRenderData(); // Refresh dashboard view if necessary
 
     } catch (error) {
         console.error("Error clearing dashboard data:", error);
         alert("Failed to delete data. Check the console for details.");
     }
 }
-
-
 
 // Fallback function for local data only
 function useLocalDataOnly() {
