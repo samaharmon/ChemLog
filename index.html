@@ -181,6 +181,10 @@
             <em>Developed by Sam Harmon | 2025<br>
             v2.1</em>
         </div>
+        
+    <div id="modalOverlay" class="modal-overlay"></div>
+    <div id="settingsModal">...</div>
+
     </div> <div id="loginModal" class="modal">
         <div class="modal-content">
             <div class="modal-header">
@@ -349,7 +353,7 @@
                 <div class="settings-section">
                     <h3>Data Storage</h3>
 
-                    <button class="submit-btn" onclick="confirmClearData()">Clear All Chemistry Log Data</button>
+                    <button id="clearDataBtn" class="submit-btn" onclick="confirmClearData()">Clear All Chemistry Log Data</button>
                     <br>
                     <button id="exportCsvBtn" class="submit-btn">Export to CSV</button>
                 </div>
@@ -371,5 +375,7 @@
                 <label><input type="radio" name="smsRecipient" value="+18036738396"> Haley Wilson</label><br>
                 <label><input type="radio" name="smsRecipient" value="both"> Both</label>
             </div>
-    </div> </body>
+    </div> 
+
+</body>
 </html>
