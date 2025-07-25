@@ -1675,6 +1675,13 @@ document.addEventListener('DOMContentLoaded', function() {
         submitButton.removeAttribute('onclick');
         submitButton.addEventListener('click', submitForm);
     }
+
+    const clearDataBtn = document.getElementById('clearDataBtn');
+    if (clearDataBtn) {
+        clearDataBtn.addEventListener('click', confirmClearData);
+        console.log('🧼 Clear All Data button handler attached');
+}
+
     
     // Continue with other initialization...
     
