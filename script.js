@@ -1551,7 +1551,7 @@ window.areAllCheckboxesChecked = areAllCheckboxesChecked;
 
 // Settings management (7)
 window.openSettings = openSettings;
-window.showSettings = showSettings;
+window.openSettings = openSettings;
 window.closeSettings = closeSettings;
 window.handleSanitationChange = handleSanitationChange;
 window.initializeSanitationSettings = initializeSanitationSettings;
@@ -1657,7 +1657,7 @@ function createAndAppendMenu(parentElement) {
 
     const settingsDiv = document.createElement('div');
     settingsDiv.textContent = 'Settings';
-    settingsDiv.addEventListener('click', showSettings);
+    settingsDiv.addEventListener('click', openSettings);
     dropdownMenu.appendChild(settingsDiv);
 
     const clearDataDiv = document.createElement('div');
