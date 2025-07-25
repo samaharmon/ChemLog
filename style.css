@@ -358,18 +358,22 @@ input[type="text"], select, input[type="password"] {
 }
 
 #settingsModal {
-    display: none; /* default state */
-    position: fixed; /* stays in place on screen */
+    display: none;
+    position: fixed;
     top: 50%;
     left: 50%;
-    transform: translate(-50%, -50%); /* centers it */
-    background-color: white;
-    padding: 20px;
-    border-radius: 10px;
-    box-shadow: 0 0 10px rgba(0,0,0,0.3);
-    z-index: 9999; /* ensure it's above everything */
-    max-height: 90vh;
-    overflow-y: auto;
+    transform: translateX(-50%) translateY(-50%);
+    z-index: 9999;
+    padding: 20px 30px 80px 30px; /* Increased bottom padding to 80px */
+    border: 4px solid #69140e; /* Add red border */
+    border-radius: 0; /* No rounded corners */
+    box-shadow: 0 0 10px rgba(0, 0, 0, 0.3); /* Original shadow */
+    max-width: 550px; /* Original max-width */
+    width: 200%;
+    background: white;
+    text-align: left;
+    max-height: 80vh; /* Add max height for scrolling */
+    overflow: hidden; /* Hide overflow on main modal */
 }
 
 /* Settings Modal Content - Centered */
