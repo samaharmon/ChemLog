@@ -609,19 +609,6 @@ function getClResponse(poolLocation, isMainPool, clValue) {
     return null;
 }
 
-// Global variables
-let app, db;
-let allSubmissions = [];
-let filteredSubmissions = [];
-let formSubmissions = [];
-let filteredData = [];
-let paginatedData = [];
-let currentPage = 1;
-const itemsPerPage = 20;
-let isLoggedIn = false;
-let sanitationSettings = {};
-let currentView = 'form';
-
 // Define pools with secondary pools ONCE
 const POOLS_WITH_SECONDARY = ['Forest Lake', 'Columbia CC', 'CC of Lexington', 'Wildewood', 'Quail Hollow', 'Rockbridge', 'Winchester'];
 
