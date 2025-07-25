@@ -252,8 +252,6 @@ body {
     max-width: 100%;
     font-family: 'Franklin Gothic Medium', Arial, sans-serif;
     font-weight: bold;
-    justify-content: center;
-    display: flex
 }
 
 .form-group.full-width {
