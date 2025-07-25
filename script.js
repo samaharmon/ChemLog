@@ -1910,15 +1910,6 @@ function logout() {
 }
 
 // ===================================================
-// SETTINGS & SANITATION MANAGEMENT
-// ===================================================
-
-function openSettings() {
-    document.getElementById('settingsModal').style.display = 'flex';
-    updateSanitationUI(); // Ensure UI reflects current settings
-}
-
-// ===================================================
 // FEEDBACK & NOTIFICATIONS
 // ===================================================
 
