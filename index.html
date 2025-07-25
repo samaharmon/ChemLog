@@ -6,27 +6,23 @@
     <title>Hourly Pool Chemistry Log - Capital City Aquatics</title>
     <link rel="stylesheet" href="style.css">
     
-    <!-- PWA Meta Tags for iPhone Home Screen -->
-   <meta name="mobile-web-app-capable" content="yes">
+    <meta name="mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <meta name="apple-mobile-web-app-title" content="Pool Chem Log">
     <meta name="theme-color" content="#007bff">
     <meta name="msapplication-navbutton-color" content="#69140e">
-    <meta name="apple-mobile-web-app-status-bar-style" content="#69140e">
+    <meta name="apple-mobile-app-status-bar-style" content="#69140e">
     <meta name="msapplication-TileColor" content="#69140e">
     
-    <!-- App Icons for Home Screen -->
     <link rel="apple-touch-icon" sizes="180x180" href="icon-180x180.png">
     <link rel="apple-touch-icon" sizes="152x152" href="icon-152x152.png">
     <link rel="apple-touch-icon" sizes="120x120" href="icon-120x120.png">
     <link rel="icon" type="image/png" sizes="32x32" href="icon-32x32.png">
     <link rel="icon" type="image/png" sizes="16x16" href="icon-16x16.png">
     
-    <!-- PWA Manifest -->
     <link rel="manifest" href="manifest.json">
     
-    <!-- Firebase v9 SDK from CDN -->
-<script type="module">
+    <script type="module">
   // Import Firebase v9 modules and make them globally available
   import { initializeApp } from 'https://www.gstatic.com/firebasejs/9.23.0/firebase-app.js';
   import { getFirestore, collection, doc, addDoc, setDoc, getDoc, onSnapshot, orderBy, query, Timestamp, writeBatch } from 'https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore.js';
@@ -48,12 +44,10 @@
   };
 </script>
 
-<!-- Your existing module scripts -->
 <script type="module" src="script.js"></script>
 </head>
 <body>
 
-    <!-- Main Form -->
     <div id="mainForm">
         <div class="header">
             <div class="header-content">
@@ -71,7 +65,6 @@
 
         <div class="container">
             <div class="form-container">
-                <!-- Respondent Information -->
                 <div class="section">
                     <h2>Respondent Information</h2>
                     <div class="form-row">
@@ -102,11 +95,9 @@
             </div>
 
             <div class="form-container">
-                <!-- Chemistry Log -->
                 <div class="section">
                     <h2>Chemistry Log</h2>
                     
-                    <!-- Main Pool Section -->
                     <div class="pool-section">
                         <h3>Main Pool</h3>
                         <div class="pool-section-content">
@@ -143,7 +134,6 @@
                         </div>
                     </div>
 
-                    <!-- Secondary Pool Section -->
                     <div class="pool-section" id="secondaryPoolSection">
                         <h3>Secondary Pool</h3>
                         <div class="pool-section-content">
@@ -191,7 +181,6 @@
         </div>
     </div>
 
-    <!-- Supervisor Login Modal -->
     <div id="loginModal" class="modal">
         <div class="modal-content">
             <div class="modal-header">
@@ -213,9 +202,7 @@
     </div>
 
 
-<!-- Supervisor Dashboard -->
-<div id="supervisorDashboard">
-    <div class="header">
+<div id="supervisorDashboard" style="display: none;">  <div class="header">
         <div class="header-content">
             <div class="header-left">
                 <div>
@@ -236,82 +223,69 @@
             <div class="header-right"></div>
         </div>
     </div>
-    <!-- REMOVE THE </div> THAT WAS HERE -->
 
     <div class="container" style="max-width: calc(100vw - 100px);">
-        <!-- all your dashboard content stays exactly the same -->
         <div class="dashboard-controls">
-            <!-- content -->
-        </div>
-        <!-- tables, etc. -->
-    </div>
-</div> <!-- This closes the supervisorDashboard -->
-
-        <div class="container" style="max-width: calc(100vw - 100px);">
-            <div class="dashboard-controls">
-                <button id="exported" class="export-btn" onclick="exportToCSV()">Export to CSV</button>
-                <div class="form-group" style="flex: none; width: 200px;">
-                    <label for="poolFilter">Filter by Pool:</label>
-                    <select id="poolFilter" onchange="filterData()" style="width: 99.999%">
-                        <option value="">All Pools</option>
-                        <option value="Camden CC">Camden CC</option>
-                        <option value="Columbia CC">Columbia CC</option>
-                        <option value="Forest Lake">Forest Lake</option>
-                        <option value="CC of Lexington">CC of Lexington</option>
-                        <option value="Quail Hollow">Quail Hollow</option>
-                        <option value="Rockbridge">Rockbridge</option>
-                        <option value="Wildewood">Wildewood</option>
-                        <option value="Winchester">Winchester</option>
-                    </select>
-                </div>
-                <div class="form-group" style="flex: none; width: 50px">
-                    <label for="dateFilter">Date:</label>
-                    <input type="date" id="dateFilter" onchange="filterData()">
-                </div>
+            <button id="exported" class="export-btn" onclick="exportToCSV()">Export to CSV</button>
+            <div class="form-group" style="flex: none; width: 200px;">
+                <label for="poolFilter">Filter by Pool:</label>
+                <select id="poolFilter" onchange="filterData()" style="width: 99.999%">
+                    <option value="">All Pools</option>
+                    <option value="Camden CC">Camden CC</option>
+                    <option value="Columbia CC">Columbia CC</option>
+                    <option value="Forest Lake">Forest Lake</option>
+                    <option value="CC of Lexington">CC of Lexington</option>
+                    <option value="Quail Hollow">Quail Hollow</option>
+                    <option value="Rockbridge">Rockbridge</option>
+                    <option value="Wildewood">Wildewood</option>
+                    <option value="Winchester">Winchester</option>
+                </select>
             </div>
-
-            <h3>Main Pool Chemistry</h3>
-            <table class="data-table" id="dataTable1">
-                <thead>
-                    <tr>
-                        <th>Timestamp</th>
-                        <th>Pool Location</th>
-                        <th>Main Pool pH</th>
-                        <th>Main Pool Cl</th>
-                    </tr>
-                </thead>
-                <tbody id="dataTableBody1">
-                </tbody>
-            </table>
-
-            <h3>Secondary Pool Chemistry</h3>
-            <table class="data-table" id="dataTable2">
-                <thead>
-                    <tr>
-                        <th>Timestamp</th>
-                        <th>Pool Location</th>
-                        <th>Secondary Pool pH</th>
-                        <th>Secondary Pool Cl</th>
-                    </tr>
-                </thead>
-                <tbody id="dataTableBody2">
-                </tbody>
-            </table>
-            
-            <div id="timestampNote" style="margin-top: 5px; text-align: left; color: #666; font-size: 12px; font-style: italic;">
-                <span style="color: red; font-weight: bold;">!!!</span> indicates chemistry values that are more than 3 hours old
-            </div>
-
-            <div class="pagination" id="pagination" style="margin-top: 30px;">
-                <button id="prevBtn" onclick="goToPreviousPage()">←</button>
-                <span id="pageInfo"></span>
-                <button id="nextBtn" onclick="goToNextPage()">→</button>
+            <div class="form-group" style="flex: none; width: 50px">
+                <label for="dateFilter">Date:</label>
+                <input type="date" id="dateFilter" onchange="filterData()">
             </div>
         </div>
-    </div>
 
-<!-- Settings Modal -->
-<div id="settingsModal" class="modal">
+        <h3>Main Pool Chemistry</h3>
+        <table class="data-table" id="dataTable1">
+            <thead>
+                <tr>
+                    <th>Timestamp</th>
+                    <th>Pool Location</th>
+                    <th>Main Pool pH</th>
+                    <th>Main Pool Cl</th>
+                </tr>
+            </thead>
+            <tbody id="dataTableBody1">
+            </tbody>
+        </table>
+
+        <h3>Secondary Pool Chemistry</h3>
+        <table class="data-table" id="dataTable2">
+            <thead>
+                <tr>
+                    <th>Timestamp</th>
+                    <th>Pool Location</th>
+                    <th>Secondary Pool pH</th>
+                    <th>Secondary Pool Cl</th>
+                </tr>
+            </thead>
+            <tbody id="dataTableBody2">
+            </tbody>
+        </table>
+        
+        <div id="timestampNote" style="margin-top: 5px; text-align: left; color: #666; font-size: 12px; font-style: italic;">
+            <span style="color: red; font-weight: bold;">!!!</span> indicates chemistry values that are more than 3 hours old
+        </div>
+
+        <div class="pagination" id="pagination" style="margin-top: 30px;">
+            <button id="prevBtn" onclick="goToPreviousPage()">←</button>
+            <span id="pageInfo"></span>
+            <button id="nextBtn" onclick="goToNextPage()">→</button>
+        </div>
+    </div>
+</div> <div id="settingsModal" class="modal">
     <div class="modal-content settings-modal-content">
         <div class="modal-header">
             <h2>Settings</h2>
@@ -380,22 +354,22 @@
     </div>
 </div>
 
-<!-- Feedback Modal -->
 <div id="feedbackModal" style="display: none; position: fixed; top: 20%; left: 50%; transform: translateX(-50%); z-index: 9999; padding: 20px; border-radius: 0px; box-shadow: 0 0 10px rgba(0,0,0,0.3); max-width: 400px; text-align: center;">
     <div id="modalContent" style="white-space: pre-wrap; font-size: 16px;"></div>
     <button onclick="closeModal()" style="margin-top: 15px; padding: 5px 15px; font-weight: bold;">X</button>
-        <option value="">Choose recipient</option>
-        <option value="+18644096231">Sam Harmon</option>
-        <option value="+18036738396">Haley Wilson</option>
-    </select>
-    <button onclick="chooseAndSendSMS()">Send Text Message</button>
+        <select id="smsRecipientSelect">
+            <option value="">Choose recipient</option>
+            <option value="+18644096231">Sam Harmon</option>
+            <option value="+18036738396">Haley Wilson</option>
+        </select>
+        <button onclick="chooseAndSendSMS()">Send Text Message</button>
 
-    <div id="smsRecipientGroup" style="margin-top: 20px; text-align: left;">
-        <label style="font-weight: bold;">Notify:</label><br>
-        <label><input type="radio" name="smsRecipient" value="+18644096231"> Sam Harmon</label><br>
-        <label><input type="radio" name="smsRecipient" value="+18036738396"> Haley Wilson</label><br>
-        <label><input type="radio" name="smsRecipient" value="both"> Both</label>
-    </div>
+        <div id="smsRecipientGroup" style="margin-top: 20px; text-align: left;">
+            <label style="font-weight: bold;">Notify:</label><br>
+            <label><input type="radio" name="smsRecipient" value="+18644096231"> Sam Harmon</label><br>
+            <label><input type="radio" name="smsRecipient" value="+18036738396"> Haley Wilson</label><br>
+            <label><input type="radio" name="smsRecipient" value="both"> Both</label>
+        </div>
 </div>
 
 </body>
