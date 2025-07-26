@@ -890,20 +890,27 @@ async function confirmClearData() {
     }
 
     try {
-        const db = firebaseModules.getFirestore(firebaseApp);
-        const collectionRef = firebaseModules.collection(db, 'formSubmissions');
+        if (!db || !window.firebaseModules) {
+            throw new Error("Firebase is not initialized.");
+        }
+
+        const collectionRef = window.firebaseModules.collection(db, 'formSubmissions');
 
         let totalDeleted = 0;
         let deletedThisRound;
 
         do {
-            const snapshot = await firebaseModules.getDocs(
-                firebaseModules.query(collectionRef, firebaseModules.orderBy('timestamp'), firebaseModules.limit(500))
+            const snapshot = await window.firebaseModules.getDocs(
+                window.firebaseModules.query(
+                    collectionRef,
+                    window.firebaseModules.orderBy('timestamp'),
+                    window.firebaseModules.limit(500)
+                )
             );
 
             if (snapshot.empty) break;
 
-            const batch = firebaseModules.writeBatch(db);
+            const batch = window.firebaseModules.writeBatch(db);
 
             snapshot.docs.forEach((doc) => {
                 batch.delete(doc.ref);
@@ -915,10 +922,14 @@ async function confirmClearData() {
 
             console.log(`Deleted ${deletedThisRound} documents in this batch...`);
 
-        } while (deletedThisRound === 500); // Keep going while maxed out
+        } while (deletedThisRound === 500); // Keep going if maxed out
 
         alert(`Deleted ${totalDeleted} chemistry log entries successfully.`);
-        fetchAndRenderData(); // Refresh dashboard view if necessary
+        
+        // Optional: Refresh dashboard view
+        if (typeof fetchAndRenderData === 'function') {
+            loadDashboardData();
+        }
 
     } catch (error) {
         console.error("Error clearing dashboard data:", error);
@@ -1697,11 +1708,6 @@ document.addEventListener("DOMContentLoaded", () => {
     }
 
     const firebaseInitialized = initializeFirebase();
-
-    if (firebaseInitialized) {
-        attachEventListeners(); // Optional if you define it
-        fetchAndRenderData();   // Optional if you use it
-    }
 
     checkLogin();
     initializeFormSubmissions();
