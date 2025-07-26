@@ -1544,9 +1544,9 @@ function setupEventHandlers() {
     }
 
     // Form submission button handler
-    const submit-Btn = document.getElementById('submit-Btn');
-    if (submit-Btn) {
-        submit-Btn.addEventListener('click', (e) => {
+    const submitBtn = document.getElementById('submit-Btn');
+    if (submitBtn) {
+        submitBtn.addEventListener('click', (e) => {
             e.preventDefault();
             submitForm();
         });
@@ -1595,6 +1595,7 @@ function setupEventHandlers() {
 
     console.log('✅ All event handlers set up');
 }
+
 
 
 // ===================================================
