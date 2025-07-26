@@ -711,7 +711,6 @@ function applySanitationSettingsToCheckboxes() {
     });
 }
 
-
 // Load form submissions from localStorage
 function loadFormSubmissions() {
     const saved = localStorage.getItem('formSubmissions');
@@ -1528,37 +1527,64 @@ function setupEventHandlers() {
     const poolLocation = document.getElementById('poolLocation');
     if (poolLocation) {
         poolLocation.addEventListener('change', handlePoolLocationChange);
+        console.log('✅ Pool location change handler attached');
+    } else {
+        console.warn('⚠️ poolLocation not found');
     }
-    
-    // Form submission (if you have a submit button)
+
+    // Form submission button handler
     const submitBtn = document.getElementById('submitBtn');
     if (submitBtn) {
         submitBtn.addEventListener('click', (e) => {
             e.preventDefault();
             submitForm();
         });
+        console.log('✅ Submit button handler attached');
+    } else {
+        console.warn('⚠️ submitBtn not found');
     }
-    
-    // Close modal when clicking outside
+
+    // Clear All Data button
+    const clearDataBtn = document.getElementById('clearAllData');
+    if (clearDataBtn) {
+        clearDataBtn.addEventListener('click', confirmClearData);
+        console.log('✅ Clear All Data button handler attached');
+    } else {
+        console.warn('⚠️ clearAllData button not found');
+    }
+
+    // Export to CSV button
+    const exportCsvBtn = document.getElementById('exportCsvBtn');
+    if (exportCsvBtn) {
+        exportCsvBtn.addEventListener('click', exportToCSV);
+        console.log('✅ Export to CSV button handler attached');
+    } else {
+        console.warn('⚠️ exportCsvBtn not found');
+    }
+
+    // Close login modal on outside click
     document.addEventListener('click', (e) => {
         const modal = document.getElementById('loginModal');
         if (modal && e.target === modal) {
             closeLoginModal();
+            console.log('ℹ️ Closed login modal via outside click');
         }
     });
-    
-    // Close modal with Escape key
+
+    // Close login modal on Escape key
     document.addEventListener('keydown', (e) => {
         if (e.key === 'Escape') {
             const modal = document.getElementById('loginModal');
             if (modal && modal.style.display === 'block') {
                 closeLoginModal();
+                console.log('ℹ️ Closed login modal via Escape key');
             }
         }
     });
-    
-    console.log('Event handlers set up');
+
+    console.log('✅ All event handlers set up');
 }
+
 
 // ===================================================
 // COMPREHENSIVE GLOBAL ASSIGNMENTS (62 Functions - Corrected)
@@ -1661,77 +1687,69 @@ console.log('✅ All 62 unique functions exposed globally');
 // 6+3+6+6+5+4+5+5+4+7+3+1+3+2+2 = 62 functions total
 // ===================================================
 
-document.addEventListener('DOMContentLoaded', function() {
+document.addEventListener("DOMContentLoaded", () => {
     console.log('🔥🔥🔥 UNIFIED APP.JS LOADED - Firebase v9 🔥🔥🔥');
-    
+
     const dashboard = document.getElementById('supervisorDashboard');
     if (dashboard) {
         dashboard.style.display = 'none';
         console.log('Dashboard force hidden on load');
     }
 
-    // Initialize Firebase v9 first
     const firebaseInitialized = initializeFirebase();
-    
-    // Initialize app components
+
+    if (firebaseInitialized) {
+        attachEventListeners(); // Optional if you define it
+        fetchAndRenderData();   // Optional if you use it
+    }
+
     checkLogin();
     initializeFormSubmissions();
-    
-    // Set up login form handler - FIX: Use the function directly, not from window
+
+    // Login form
     const loginForm = document.getElementById('loginForm');
     if (loginForm) {
         loginForm.addEventListener('submit', handleLoginSubmit);
         console.log('✅ Login form handler attached');
     }
-    
-    // Set up pool location change handler - FIX: Use function directly
+
+    // Pool location dropdown
     const poolLocation = document.getElementById('poolLocation');
     if (poolLocation) {
         poolLocation.addEventListener('change', handlePoolLocationChange);
         console.log('✅ Pool location handler attached');
     }
 
+    // Login modal
     const loginButton = document.querySelector('.supervisor-login-btn');
     if (loginButton) {
         loginButton.removeAttribute('onclick');
         loginButton.addEventListener('click', openLoginModal);
     }
-    
-    // Find the submit button and add event listener
+
+    // Submit button
     const submitButton = document.querySelector('.submit-btn');
     if (submitButton) {
         submitButton.removeAttribute('onclick');
         submitButton.addEventListener('click', submitForm);
     }
-    
-    // Continue with other initialization...
-    
+
+    // Clear data + export
+    const clearDataBtn = document.getElementById("clearAllData");
+    const exportCsvBtn = document.getElementById("exportCsvBtn");
+
+    if (clearDataBtn) {
+        clearDataBtn.addEventListener("click", confirmClearData);
+    }
+
+    if (exportCsvBtn) {
+        exportCsvBtn.addEventListener("click", exportToCSV);
+    }
+
     setupEventHandlers();
     updateHeaderButtons();
-    
+
     console.log('🚀 App initialization complete');
-});
-
-document.addEventListener("DOMContentLoaded", () => {
-  const clearDataBtn = document.getElementById("clearAllData");
-  const exportCsvBtn = document.getElementById("exportCsvBtn");
-
-  if (clearDataBtn) {
-    clearDataBtn.addEventListener("click", confirmClearData);
-  }
-
-  if (exportCsvBtn) {
-    exportCsvBtn.addEventListener("click", exportToCSV);
-  }
-});
-
-document.addEventListener("DOMContentLoaded", () => {
-    const success = initializeFirebase();
-    if (success) {
-        // Continue app setup
-        attachEventListeners();
-        fetchAndRenderData();
-    }
 });
 
 function updateSanitationCheckboxesFromSettings() {
