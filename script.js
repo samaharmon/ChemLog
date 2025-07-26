@@ -626,6 +626,92 @@ console.log('🔥 Pool Chemistry App - Script Starting to Load 🔥');
 // FIXED DASHBOARD DATA TABLE FUNCTIONS
 // ===================================================
 
+async function initializeSanitationSettings() {
+    const pools = ['Camden CC', 'CC of Lexington', 'Columbia CC', 'Forest Lake', 'Forest Lake Lap Pool', 'Quail Hollow', 'Rockbridge', 'Wildewood', 'Winchester'];
+    const statusDiv = document.getElementById('firebaseStatus');
+    
+    console.log('Initializing sanitation settings...');
+    updateFirebaseStatus('Loading settings from Firebase v9...');
+    
+    // Set defaults first
+    pools.forEach(pool => {
+        sanitationSettings[pool] = 'bleach';
+    });
+
+    try {
+        if (db) {
+            // Use Firebase v9 syntax
+            const settingsRef = window.firebaseModules.doc(db, 'settings', 'sanitationMethods');
+            const settingsDoc = await window.firebaseModules.getDoc(settingsRef);
+            
+            if (settingsDoc.exists()) {
+                const firebaseSettings = settingsDoc.data();
+                Object.assign(sanitationSettings, firebaseSettings);
+                console.log('Successfully loaded sanitation settings from Firebase v9:', sanitationSettings);
+                updateFirebaseStatus('Settings synced with cloud ✓');
+            } else {
+                console.log('No Firebase settings found, saving defaults');
+                await window.firebaseModules.setDoc(settingsRef, sanitationSettings);
+                updateFirebaseStatus('Default settings saved to cloud');
+            }
+        } else {
+            throw new Error('Database not initialized');
+        }
+    } catch (error) {
+        console.warn('Could not load settings from Firebase v9, using localStorage fallback:', error);
+        updateFirebaseStatus('Using local settings (offline)');
+        
+        // Fallback to localStorage
+        const saved = localStorage.getItem('sanitationSettings');
+        if (saved) {
+            sanitationSettings = JSON.parse(saved);
+            console.log('Loaded sanitation settings from localStorage fallback:', sanitationSettings);
+        } else {
+            localStorage.setItem('sanitationSettings', JSON.stringify(sanitationSettings));
+            console.log('Saved default settings to localStorage');
+        }
+    }
+    
+    console.log('Final sanitationSettings after initialization:', sanitationSettings);
+    updateSanitationUI();
+    
+    // Hide status after 3 seconds
+    setTimeout(() => {
+        if (statusDiv) statusDiv.style.display = 'none';
+    }, 3000);
+}
+
+function startSanitationSettingsListener() {
+    if (!db || !window.firebaseModules) {
+        console.warn("Firebase not initialized for sanitation settings listener.");
+        return;
+    }
+
+    const settingsRef = window.firebaseModules.doc(db, 'settings', 'sanitationMethods');
+
+    window.firebaseModules.onSnapshot(settingsRef, (docSnapshot) => {
+        if (docSnapshot.exists()) {
+            sanitationSettings = docSnapshot.data();
+            console.log('Sanitation settings updated from Firestore:', sanitationSettings);
+            updateSanitationCheckboxesFromSettings();
+        } else {
+            console.warn('Sanitation settings document does not exist.');
+        }
+    });
+}
+
+function applySanitationSettingsToCheckboxes() {
+    Object.entries(sanitationSettings).forEach(([pool, method]) => {
+        const bleachCheckbox = document.querySelector(`[data-pool="${pool}"][data-method="bleach"]`);
+        const granularCheckbox = document.querySelector(`[data-pool="${pool}"][data-method="granular"]`);
+        if (bleachCheckbox && granularCheckbox) {
+            bleachCheckbox.checked = method === 'bleach';
+            granularCheckbox.checked = method === 'granular';
+        }
+    });
+}
+
+
 // Load form submissions from localStorage
 function loadFormSubmissions() {
     const saved = localStorage.getItem('formSubmissions');
@@ -713,8 +799,10 @@ function initializeFirebase() {
         updateFirebaseStatus('✅ Firebase v9 connected successfully');
         console.log('Firebase v9 initialized successfully');
         
+        // Load and sync sanitation settings
         initializeSanitationSettings();
-        
+        startSanitationSettingsListener();
+
         return true;
     } catch (error) {
         console.error('Firebase v9 initialization error:', error);
@@ -1371,66 +1459,6 @@ function evaluateFormFeedback() { // Remove formData parameter
 }
 
 // ===================================================
-// SANITATION SETTINGS
-// ===================================================
-
-// Initialize default sanitation settings (all pools default to bleach)
-async function initializeSanitationSettings() {
-    const pools = ['Camden CC', 'CC of Lexington', 'Columbia CC', 'Forest Lake', 'Forest Lake Lap Pool', 'Quail Hollow', 'Rockbridge', 'Wildewood', 'Winchester'];
-    const statusDiv = document.getElementById('firebaseStatus');
-    
-    console.log('Initializing sanitation settings...');
-    updateFirebaseStatus('Loading settings from Firebase v9...');
-    
-    // Set defaults first
-    pools.forEach(pool => {
-        sanitationSettings[pool] = 'bleach';
-    });
-
-    try {
-        if (db) {
-            // Use Firebase v9 syntax
-            const settingsRef = window.firebaseModules.doc(db, 'settings', 'sanitationMethods');
-            const settingsDoc = await window.firebaseModules.getDoc(settingsRef);
-            
-            if (settingsDoc.exists()) {
-                const firebaseSettings = settingsDoc.data();
-                Object.assign(sanitationSettings, firebaseSettings);
-                console.log('Successfully loaded sanitation settings from Firebase v9:', sanitationSettings);
-                updateFirebaseStatus('Settings synced with cloud ✓');
-            } else {
-                console.log('No Firebase settings found, saving defaults');
-                await window.firebaseModules.setDoc(settingsRef, sanitationSettings);
-                updateFirebaseStatus('Default settings saved to cloud');
-            }
-        } else {
-            throw new Error('Database not initialized');
-        }
-    } catch (error) {
-        console.warn('Could not load settings from Firebase v9, using localStorage fallback:', error);
-        updateFirebaseStatus('Using local settings (offline)');
-        
-        // Fallback to localStorage
-        const saved = localStorage.getItem('sanitationSettings');
-        if (saved) {
-            sanitationSettings = JSON.parse(saved);
-            console.log('Loaded sanitation settings from localStorage fallback:', sanitationSettings);
-        } else {
-            localStorage.setItem('sanitationSettings', JSON.stringify(sanitationSettings));
-            console.log('Saved default settings to localStorage');
-        }
-    }
-    
-    console.log('Final sanitationSettings after initialization:', sanitationSettings);
-    updateSanitationUI();
-    
-    // Hide status after 3 seconds
-    setTimeout(() => {
-        if (statusDiv) statusDiv.style.display = 'none';
-    }, 3000);
-}
-
-// ===================================================
 // FIREBASE INITIALIZATION
 // ===================================================
 
@@ -1697,6 +1725,27 @@ document.addEventListener("DOMContentLoaded", () => {
   }
 });
 
+document.addEventListener("DOMContentLoaded", () => {
+    const success = initializeFirebase();
+    if (success) {
+        // Continue app setup
+        attachEventListeners();
+        fetchAndRenderData();
+    }
+});
+
+function updateSanitationCheckboxesFromSettings() {
+    for (const pool in sanitationSettings) {
+        const method = sanitationSettings[pool];
+        const bleachCheckbox = document.querySelector(`[data-pool="${pool}"][data-method="bleach"]`);
+        const granularCheckbox = document.querySelector(`[data-pool="${pool}"][data-method="granular"]`);
+
+        if (bleachCheckbox && granularCheckbox) {
+            bleachCheckbox.checked = (method === 'bleach');
+            granularCheckbox.checked = (method === 'granular');
+        }
+    }
+}
 
 // Add all other functions you're calling in onclick attributes
 
