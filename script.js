@@ -1544,15 +1544,15 @@ function setupEventHandlers() {
     }
 
     // Form submission button handler
-    const submitBtn = document.getElementById('submitBtn');
-    if (submitBtn) {
-        submitBtn.addEventListener('click', (e) => {
+    const submit-Btn = document.getElementById('submit-Btn');
+    if (submit-Btn) {
+        submit-Btn.addEventListener('click', (e) => {
             e.preventDefault();
             submitForm();
         });
         console.log('✅ Submit button handler attached');
     } else {
-        console.warn('⚠️ submitBtn not found');
+        console.warn('⚠️ submit-Btn not found');
     }
 
     // Clear All Data button
