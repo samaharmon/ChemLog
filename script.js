@@ -1661,71 +1661,78 @@ console.log('✅ All 62 unique functions exposed globally');
 // 6+3+6+6+5+4+5+5+4+7+3+1+3+2+2 = 62 functions total
 // ===================================================
 
-document.addEventListener("DOMContentLoaded", () => {
+document.addEventListener('DOMContentLoaded', function() {
     console.log('🔥🔥🔥 UNIFIED APP.JS LOADED - Firebase v9 🔥🔥🔥');
-
+    
     const dashboard = document.getElementById('supervisorDashboard');
     if (dashboard) {
         dashboard.style.display = 'none';
         console.log('Dashboard force hidden on load');
     }
 
+    // Initialize Firebase v9 first
     const firebaseInitialized = initializeFirebase();
-
-    if (firebaseInitialized) {
-        attachEventListeners(); // Optional if you define it
-        fetchAndRenderData();   // Optional if you use it
-    }
-
+    
+    // Initialize app components
     checkLogin();
     initializeFormSubmissions();
-
-    // Login form
+    
+    // Set up login form handler - FIX: Use the function directly, not from window
     const loginForm = document.getElementById('loginForm');
     if (loginForm) {
         loginForm.addEventListener('submit', handleLoginSubmit);
         console.log('✅ Login form handler attached');
     }
-
-    // Pool location dropdown
+    
+    // Set up pool location change handler - FIX: Use function directly
     const poolLocation = document.getElementById('poolLocation');
     if (poolLocation) {
         poolLocation.addEventListener('change', handlePoolLocationChange);
         console.log('✅ Pool location handler attached');
     }
 
-    // Login modal
     const loginButton = document.querySelector('.supervisor-login-btn');
     if (loginButton) {
         loginButton.removeAttribute('onclick');
         loginButton.addEventListener('click', openLoginModal);
     }
-
-    // Submit button
+    
+    // Find the submit button and add event listener
     const submitButton = document.querySelector('.submit-btn');
     if (submitButton) {
         submitButton.removeAttribute('onclick');
         submitButton.addEventListener('click', submitForm);
     }
-
-    // Clear data + export
-    const clearDataBtn = document.getElementById("clearAllData");
-    const exportCsvBtn = document.getElementById("exportCsvBtn");
-
-    if (clearDataBtn) {
-        clearDataBtn.addEventListener("click", confirmClearData);
-    }
-
-    if (exportCsvBtn) {
-        exportCsvBtn.addEventListener("click", exportToCSV);
-    }
-
+    
+    // Continue with other initialization...
+    
     setupEventHandlers();
     updateHeaderButtons();
-
+    
     console.log('🚀 App initialization complete');
 });
 
+document.addEventListener("DOMContentLoaded", () => {
+  const clearDataBtn = document.getElementById("clearAllData");
+  const exportCsvBtn = document.getElementById("exportCsvBtn");
+
+  if (clearDataBtn) {
+    clearDataBtn.addEventListener("click", confirmClearData);
+  }
+
+  if (exportCsvBtn) {
+    exportCsvBtn.addEventListener("click", exportToCSV);
+  }
+});
+
+document.addEventListener("DOMContentLoaded", () => {
+    const success = initializeFirebase();
+    if (success) {
+        // Continue app setup
+        attachEventListeners();
+        fetchAndRenderData();
+    }
+});
 
 function updateSanitationCheckboxesFromSettings() {
     for (const pool in sanitationSettings) {
