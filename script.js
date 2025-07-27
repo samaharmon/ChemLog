@@ -1336,7 +1336,7 @@ if (mainSanitizer === 'granular') {
                     if (poolLocation === 'Columbia CC') {
                         messages.push('<strong>Raise the pH of the Baby Pool.</strong><br>Sprinkle 1.5 tablespoons of soda ash in the pool itself. It is not harmful.');
                     } else if (poolLocation === 'Wildewood') {
-                        messages.push('<strong>Notify a supervisor of the high Cl in the Splash Pad immediately. Wait for assistance.</strong><br>');
+                        messages.push('<strong>Notify a supervisor of the low pH in the Splash Pad immediately. Wait for assistance.</strong><br>');
                     } else {
                         messages.push('<strong>Raise the pH of the Baby Pool.</strong><br>Ensure that the waterline is at normal height, and turn the fill line on if it is low. Always set a timer when turning on the fill line.');
                     }
@@ -1351,7 +1351,7 @@ if (mainSanitizer === 'granular') {
                     } else if (poolLocation === 'Rockbridge') {
                         messages.push('<strong>Lower the pH of the Baby Pool.</strong><br>Add a small splash (~1.5 tablespoons) of acid below a skimmer basket. Always check for suction before pouring.');
                     } else if (poolLocation === 'Wildewood') {
-                        messages.push('<strong>Lower the pH of the Splash Pad.</strong><br>Add 1/6 scoop of acid below a skimmer basket. Always check for suction before pouring.');
+                        messages.push('<strong>Lower the pH of the Splash Pad.</strong><br>Add 1/6 scoop of acid into the Splash Pad tank. Always ensure that the pump is on before pouring.');
                     } else if (poolLocation === 'Winchester') {
                         messages.push('<strong>Lower the pH of the Baby Pool.</strong><br>Add 1/6 scoop of acid below a skimmer basket. Always check for suction before pouring.');
                     } else {
@@ -1369,7 +1369,7 @@ if (mainSanitizer === 'granular') {
                     } else if (poolLocation === 'Rockbridge') {
                         messages.push('<strong>Lower the pH of the Baby Pool.</strong><br>Add a medium splash of acid below a skimmer basket. Always check for suction before pouring.');
                     } else if (poolLocation === 'Wildewood') {
-                        messages.push('<strong>Lower the pH of the Splash Pad.</strong><br>Add 1/3 scoop of acid below a skimmer basket. Always check for suction before pouring.');
+                        messages.push('<strong>Lower the pH of the Splash Pad.</strong><br>Add 1/3 scoop of acid into the Splash Pad tank. Always ensure that the pump is on before pouring.');
                     } else if (poolLocation === 'Winchester') {
                         messages.push('<strong>Lower the pH of the Baby Pool.</strong><br>Add 1/3 scoop of acid basket. Always check for suction before pouring.');
                     } else {
@@ -1430,7 +1430,7 @@ if (mainSanitizer === 'granular') {
                             messages.push('<strong>Raise the Cl level in the Baby Pool.</strong><br>Ensure that there are 1.5 total Cl tablets below a skimmer basket.');
                             break;
                         case 'Wildewood':
-                            messages.push('<strong>Raise the Cl level in the Splash Pad.</strong><br>Add 1/4 scoop of shock/granular Cl to an empty bucket, then fill it with water. Carefully swirl the water to dissolve the shock, then pour it into the splash pad tank.');
+                            messages.push('<strong>Raise the Cl level in the Splash Pad.</strong><br>Add 1/4 scoop of shock/granular Cl to an empty bucket, then fill it with water. Carefully swirl the water to dissolve the shock, then pour it into the Splash Pad tank.');
                             break;
                         case 'Winchester':
                             messages.push('<strong>Raise the Cl level in the Baby Pool.</strong><br>Ensure that there are 4 total Cl tablets below a skimmer basket.');
@@ -1824,6 +1824,39 @@ document.addEventListener("DOMContentLoaded", () => {
 
     setupEventHandlers();
     updateHeaderButtons();
+
+    const editBtn = document.getElementById('editSanitationBtn');
+const saveBtn = document.getElementById('saveSanitationBtn');
+const sanitationCheckboxes = document.querySelectorAll('.sanitation-checkbox');
+
+// Disable all checkboxes on load
+sanitationCheckboxes.forEach(cb => cb.disabled = true);
+
+editBtn.addEventListener('click', () => {
+    sanitationCheckboxes.forEach(cb => cb.disabled = false);
+    editBtn.disabled = true;
+    saveBtn.disabled = false;
+});
+
+saveBtn.addEventListener('click', () => {
+    // Apply checked values to sanitationSettings
+    sanitationCheckboxes.forEach(cb => {
+        const pool = cb.dataset.pool;
+        const method = cb.dataset.method;
+        if (cb.checked) {
+            sanitationSettings[pool] = method;
+        }
+    });
+
+    // Save and re-disable checkboxes
+    saveSanitationSettings();
+    sanitationCheckboxes.forEach(cb => cb.disabled = true);
+    editBtn.disabled = false;
+    saveBtn.disabled = true;
+
+    console.log('✅ Sanitation settings saved and checkboxes disabled again');
+    });
+
 
     console.log('🚀 App initialization complete');
 });
