@@ -33,6 +33,13 @@ body {
     width: 100%;
 }
 
+#logo {
+    height: 80px; 
+    width: 80px;/* Adjusted height for better visibility */
+    margin-right: 20px; /* Space between logo and header content */
+    box-shadow: 0 8px 10px rgba(0, 0, 0, 0.2);
+}
+
 .header-left {
     display: flex; /* CHANGED: Use flexbox for horizontal alignment */
     flex-direction: column; /* CHANGED: Arrange children in a row */
