@@ -4,37 +4,88 @@
 
 function submitForm() {
     console.log('Submit button clicked');
-    
+
     // Clear any previous error highlighting
     document.querySelectorAll('.form-group.error').forEach(group => {
         group.classList.remove('error');
     });
-    
+
+    // Run global validation
     if (!validateForm()) {
-         showMessage('Please fill in all required fields.', 'error');
-          return; // Stop execution if validation fails
- }
+        showMessage('Please fill in all required fields.', 'error');
+        return;
+    }
 
-    evaluateFormFeedback();
+    // Get form values
+    const firstName = document.getElementById('firstName').value.trim();
+    const lastName = document.getElementById('lastName').value.trim();
+    const poolLocation = document.getElementById('poolLocation').value.trim();
+    const mainPoolPH = document.getElementById('mainPoolPH').value.trim();
+    const mainPoolCl = document.getElementById('mainPoolCl').value.trim();
+    const secondaryPoolPH = poolLocation === 'Camden CC' ? 'N/A' : document.getElementById('secondaryPoolPH').value.trim();
+    const secondaryPoolCl = poolLocation === 'Camden CC' ? 'N/A' : document.getElementById('secondaryPoolCl').value.trim();
+
+    // Required field validation
+    const requiredFields = [
+        { id: 'firstName', value: firstName },
+        { id: 'lastName', value: lastName },
+        { id: 'poolLocation', value: poolLocation },
+        { id: 'mainPoolPH', value: mainPoolPH },
+        { id: 'mainPoolCl', value: mainPoolCl }
+    ];
+
+    let valid = true;
+
+    requiredFields.forEach(field => {
+        if (!field.value) {
+            document.getElementById(field.id)?.closest('.form-group')?.classList.add('error');
+            valid = false;
+        }
+    });
+
+    if (!valid) {
+        showMessage('Please complete all required fields before submitting.', 'error');
+        return;
+    }
+
+    // Numeric checks for pH and Cl (skip if value is 'N/A')
+    if (isNaN(mainPoolPH) || isNaN(mainPoolCl)) {
+        showMessage('Main Pool pH and Cl must be numbers.', 'error');
+        return;
+    }
+    if (secondaryPoolPH !== 'N/A' && isNaN(secondaryPoolPH)) {
+        showMessage('Secondary Pool pH must be a number or N/A.', 'error');
+        return;
+    }
+    if (secondaryPoolCl !== 'N/A' && isNaN(secondaryPoolCl)) {
+        showMessage('Secondary Pool Cl must be a number or N/A.', 'error');
+        return;
+    }
+
+    evaluateFormFeedback(); // Show modal guidance
 
     // Create submission object
-    // Create submission object
-    const poolLocation = document.getElementById('poolLocation').value;
     const submission = {
         id: Date.now(),
         timestamp: new Date(),
-        firstName: document.getElementById('firstName').value,
-        lastName: document.getElementById('lastName').value,
-        poolLocation: poolLocation, // Now you can use the variable
-        mainPoolPH: document.getElementById('mainPoolPH').value,
-        mainPoolCl: document.getElementById('mainPoolCl').value,
-        secondaryPoolPH: poolLocation === 'Camden CC' ? 'N/A' : document.getElementById('secondaryPoolPH').value,
-        secondaryPoolCl: poolLocation === 'Camden CC' ? 'N/A' : document.getElementById('secondaryPoolCl').value
-};
-    
-    // Rest of function remains the same...
+        firstName,
+        lastName,
+        poolLocation,
+        mainPoolPH,
+        mainPoolCl,
+        secondaryPoolPH,
+        secondaryPoolCl
+    };
+
+    // Now you can proceed to save the submission...
+    console.log('✅ Valid submission:', submission);
+    saveFormSubmission(submission); // Ensure this function exists
+    resetForm(); // Clear form
+    showMessage('Submission saved successfully.', 'success');
 }
+
 window.submitForm = submitForm;
+
 function validateForm() {
     let isValid = true;
     const requiredInputs = document.querySelectorAll('#mainForm input[required], #mainForm select[required]');
@@ -726,6 +777,26 @@ function loadFormSubmissions() {
     }
 }
 
+function cleanupTestSubmissions() {
+    const now = Date.now();
+    const FIVE_MINUTES = 5 * 60 * 1000;
+
+    // Filter and delete from localStorage
+    formSubmissions = formSubmissions.filter(submission => {
+        const isTest = submission.firstName === 'TEST';
+        const isExpired = now - new Date(submission.timestamp).getTime() > FIVE_MINUTES;
+
+        if (isTest && isExpired) {
+            console.log(`🧹 Deleted expired TEST submission (ID: ${submission.id})`);
+            return false; // Remove from list
+        }
+
+        return true;
+    });
+
+    localStorage.setItem('formSubmissions', JSON.stringify(formSubmissions));
+}
+
 function organizePaginatedData(data) {
     if (data.length === 0) return [];
 
@@ -772,6 +843,7 @@ function organizePaginatedData(data) {
 // Initialize form submissions on app start
 function initializeFormSubmissions() {
     loadFormSubmissions(); // Load from localStorage
+    cleanupTestSubmissions();
     console.log(`Initialized with ${formSubmissions.length} form submissions`);
 }
 
