@@ -565,24 +565,27 @@ function removeOverlay() {
     }
 }
 function getClResponse(poolLocation, isMainPool, clValue) {
-    // Special handling for Forest Lake secondary pool (granular/bleach methods)
     if (poolLocation === 'Forest Lake' && !isMainPool) {
         const sanitationMethod = sanitationSettings['Forest Lake Lap Pool'] || 'bleach';
 
         if (sanitationMethod === 'granular') {
-            if (clValue === '> 10') {
-                return `<strong>Notify a supervisor of the high Cl in the Lap Pool immediately. Lower the Cl level of the Lap Pool.</strong><br>Do not add any more shock to the pool. Ensure that the waterline is at normal height, and turn the fill line on if it is low. Always set a timer when turning on the fill line.`;
+            if (clValue === '0') {
+                return `<strong>Raise the Cl level in the Main Pool.</strong><br>Make sure that a skimmer has suction, then add 5 scoops of granular/shock to the skimmer. Never add more than 5 scoops to the lap pool at one time.`;
+            }
+            if (clValue === '1') {
+                return `<strong>Raise the Cl level in the Main Pool.</strong><br>Make sure that a skimmer has suction, then add 4 scoops of granular/shock to the skimmer. Never add more than 5 scoops to the lap pool at one time.`;
+            }
+            if (clValue === '2') {
+                return `<strong>Raise the Cl level in the Main Pool.</strong><br>Make sure that a skimmer has suction, then add 3 scoops of granular/shock to the skimmer. Never add more than 5 scoops to the lap pool at one time.`;
             }
             if (clValue === '10') {
-                return `<strong>Lower the Cl level of the Lap Pool.</strong><br>Turn the Cl feeder off, and set a timer to turn it back on. Ensure that the waterline is at normal height, and turn the fill line on if it is low. Always set a timer when turning on the fill line.`;
+                return `<strong>Lower the Cl level of the Main Pool.</strong><br>Turn the Cl feeder off, and set a timer to turn it back on. Ensure that the waterline is at normal height, and turn the fill line on if it is low. Always set a timer when turning on the fill line.`;
             }
-            if (['0', '1', '2'].includes(clValue)) {
-                return `<strong>Raise the Cl level in the Lap Pool.</strong><br>If not handled the previous hour, change the Cl feeder rate according to the setpoint chart.`;
+            if (clValue === '> 10') {
+                return `<strong>Notify a supervisor of the high Cl in the Main Pool immediately. Lower the Cl level of the Main Pool.</strong><br>Turn the Cl feeder off, and set a timer to turn it back on. Ensure that the waterline is at normal height, and turn the fill line on if it is low. Always set a timer when turning on the fill line.`;
             }
         }
     }
-
-    // Default fallback for other cases
     return null;
 }
 
@@ -1238,8 +1241,8 @@ function evaluateFormFeedback() { // Remove formData parameter
     const mainCl = document.getElementById('mainPoolCl').value;
     const secPH = document.getElementById('secondaryPoolPH').value;
     const secCl = document.getElementById('secondaryPoolCl').value;
-    
-    // Rest of function remains the same...
+    const mainSanitizer = document.getElementById('mainSanitizerMethod')?.value || '';
+    const secondarySanitizer = document.getElementById('secondarySanitizerMethod')?.value || '';
     
     // DEBUG LOGS - Remove after testing
     console.log('=== DEBUG INFO ===');
@@ -1265,31 +1268,47 @@ function evaluateFormFeedback() { // Remove formData parameter
         }
     }
     
-    // Check main pool Cl using granular/bleach logic
-    const granularMainResponse = getClResponse(poolLocation, true, mainCl);
-    if (granularMainResponse) {
-        messages.push(granularMainResponse);
+// Check main pool Cl using granular/bleach logic
+const granularMainResponse = getClResponse(poolLocation, true, mainCl);
+// Main pool Cl granular method feedback
+if (mainSanitizer === 'granular') {
+    if (mainCl === '0') {
+        messages.push('<strong>Raise the Cl level in the Main Pool.</strong><br>Make sure that a skimmer has suction, then add 6 scoops of granular/shock to the skimmer. Never add more than 6 scoops at one time.');
         isGood = false;
-        if (granularMainResponse.includes('notify a supervisor')) {
-            setpointImgNeeded = true;
-        }
-    } else {
-        // Bleach method for main pool Cl - RESTORED ORIGINAL MESSAGES
-        if (mainCl === '0' || mainCl === '1' || mainCl === '2') {
-            messages.push('<strong>Raise the Cl level in the Main Pool.</strong><br>If not handled the previous hour, change the Cl feeder rate according to the setpoint chart to raise the Cl level.');
-            messages.push('<img src="setpoint.jpeg" alt="Setpoint Chart" style="max-width: 100%; height: auto; margin-top: 10px;">');
-            isGood = false;
-            setpointImgNeeded = true;
-        } else if (mainCl === '10') {
-            messages.push('<strong>Lower the Cl level of the Main Pool.</strong><br>Turn the Cl feeder off, and set a timer to turn it back on. Ensure that the waterline is at normal height, and turn the fill line on if it is low. Always set a timer when turning on the fill line.');
-            isGood = false;
-            setpointImgNeeded = true;
-        } else if (mainCl === '> 10') {
-            messages.push('<strong>Notify a supervisor of the high Cl in the Main Pool immediately. Lower the Cl level of the Main Pool.</strong><br>Turn the Cl feeder off, and set a timer to turn it back on. Ensure that the waterline is at normal height, and turn the fill line on if it is low. Always set a timer when turning on the fill line.');
-            isGood = false;
-            setpointImgNeeded = true;
-        }
+    } else if (mainCl === '1') {
+        messages.push('<strong>Raise the Cl level in the Main Pool.</strong><br>Make sure that a skimmer has suction, then add 5 scoops of granular/shock to the skimmer. Never add more than 6 scoops at one time.');
+        isGood = false;
+    } else if (mainCl === '2') {
+        messages.push('<strong>Raise the Cl level in the Main Pool.</strong><br>Make sure that a skimmer has suction, then add 4 scoops of granular/shock to the skimmer. Never add more than 6 scoops at one time.');
+        isGood = false;
+    } else if (mainCl === '10') {
+        messages.push('<strong>Lower the Cl level of the Main Pool.</strong><br>Turn the Cl feeder off, and set a timer to turn it back on. Ensure that the waterline is at normal height, and turn the fill line on if it is low. Always set a timer when turning on the fill line.');
+        isGood = false;
+        setpointImgNeeded = true;
+    } else if (mainCl === '> 10') {
+        messages.push('<strong>Notify a supervisor of the high Cl in the Main Pool immediately. Lower the Cl level of the Main Pool.</strong><br>Turn the Cl feeder off, and set a timer to turn it back on. Ensure that the waterline is at normal height, and turn the fill line on if it is low. Always set a timer when turning on the fill line.');
+        isGood = false;
+        setpointImgNeeded = true;
     }
+
+} else {
+    // Bleach method fallback for main pool Cl
+    if (mainCl === '0' || mainCl === '1' || mainCl === '2') {
+        messages.push('<strong>Raise the Cl level in the Main Pool.</strong><br>If not handled the previous hour, change the Cl feeder rate according to the setpoint chart to raise the Cl level.');
+        messages.push('<img src="setpoint.jpeg" alt="Setpoint Chart" style="max-width: 100%; height: auto; margin-top: 10px;">');
+        isGood = false;
+        setpointImgNeeded = true;
+    } else if (mainCl === '10') {
+        messages.push('<strong>Lower the Cl level of the Main Pool.</strong><br>Turn the Cl feeder off, and set a timer to turn it back on...');
+        isGood = false;
+        setpointImgNeeded = true;
+    } else if (mainCl === '> 10') {
+        messages.push('<strong>Notify a supervisor of the high Cl in the Main Pool immediately. Lower the Cl level of the Main Pool.</strong><br>Turn the Cl feeder off, and set a timer to turn it back on...');
+        isGood = false;
+        setpointImgNeeded = true;
+    }
+}
+
     
     // Check secondary pool if not Camden CC
     if (poolLocation !== 'Camden CC') {
