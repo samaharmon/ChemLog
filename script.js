@@ -301,29 +301,27 @@ function filterData() {
     const poolFilter = document.getElementById('poolFilter')?.value || '';
     const dateFilter = document.getElementById('dateFilter')?.value || '';
     
-    filteredSubmissions = allSubmissions.filter(submission => {
-        let passesFilter = true;
-        
-        // Pool filter
-        if (poolFilter && submission.poolLocation !== poolFilter) {
-            passesFilter = false;
-        }
-        
-        // Date filter
+    // Apply filters to all submissions
+    const filtered = allSubmissions.filter(submission => {
+        let passes = true;
+
+        if (poolFilter && submission.poolLocation !== poolFilter) passes = false;
+
         if (dateFilter) {
             const filterDate = new Date(dateFilter);
             const submissionDate = new Date(submission.timestamp);
-            if (submissionDate.toDateString() !== filterDate.toDateString()) {
-                passesFilter = false;
-            }
+            if (submissionDate.toDateString() !== filterDate.toDateString()) passes = false;
         }
-        
-        return passesFilter;
+
+        return passes;
     });
-    
-    currentPage = 1;
+
+    filteredSubmissions = filtered;
+    paginatedData = organizePaginatedData(filteredSubmissions);
+    currentPage = 0;
     displayData();
 }
+
 function goToPreviousPage() {
     if (currentPage > 1) {
         currentPage--;
@@ -732,25 +730,21 @@ function organizePaginatedData(data) {
     if (data.length === 0) return [];
 
     const sortedData = [...data].sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp));
-    const poolLocations = [...new Set(sortedData.map(item => item.poolLocation))];
-
-    // Page 0: Most recent per pool
-    const page0 = [];
-    const seenPools = new Set();
+    
+    // Page 0: Most recent per pool, sorted alphabetically
+    const page0Map = new Map();
     for (let item of sortedData) {
-        if (!seenPools.has(item.poolLocation)) {
-            page0.push(item);
-            seenPools.add(item.poolLocation);
+        if (!page0Map.has(item.poolLocation)) {
+            page0Map.set(item.poolLocation, item);
         }
     }
+    const page0 = Array.from(page0Map.values()).sort((a, b) => a.poolLocation.localeCompare(b.poolLocation));
 
-    // Other pages: Group by pool + date (not full timestamp)
+    // Pages 1+: group by pool + date
     const grouped = {};
-
     for (let item of sortedData) {
         const dateOnly = new Date(item.timestamp).toLocaleDateString();
         const key = `${item.poolLocation}__${dateOnly}`;
-
         if (!grouped[key]) grouped[key] = [];
         grouped[key].push(item);
     }
@@ -758,17 +752,18 @@ function organizePaginatedData(data) {
     const groupKeys = Object.keys(grouped).sort((a, b) => {
         const [poolA, dateA] = a.split('__');
         const [poolB, dateB] = b.split('__');
-        const dateObjA = new Date(dateA);
-        const dateObjB = new Date(dateB);
-        return dateObjB - dateObjA;
+
+        // Sort by pool alphabetically first, then by date descending
+        const poolCompare = poolA.localeCompare(poolB);
+        if (poolCompare !== 0) return poolCompare;
+        return new Date(dateB) - new Date(dateA);
     });
 
     const pages = [page0];
-
     for (let key of groupKeys) {
         const submissions = grouped[key];
-        const submissionsSorted = submissions.sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp));
-        pages.push(submissionsSorted);
+        const sortedSubmissions = submissions.sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp));
+        pages.push(sortedSubmissions);
     }
 
     return pages;
