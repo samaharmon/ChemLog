@@ -570,19 +570,19 @@ function getClResponse(poolLocation, isMainPool, clValue) {
 
         if (sanitationMethod === 'granular') {
             if (clValue === '0') {
-                return `<strong>Raise the Cl level in the Main Pool.</strong><br>Make sure that a skimmer has suction, then add 5 scoops of granular/shock to the skimmer. Never add more than 5 scoops to the lap pool at one time.`;
+                return `<strong>Raise the Cl level in the Lap Pool.</strong><br>Make sure that a skimmer has suction, then add 5 scoops of granular/shock to the skimmer. Never add more than 5 scoops to the lap pool at one time.`;
             }
             if (clValue === '1') {
-                return `<strong>Raise the Cl level in the Main Pool.</strong><br>Make sure that a skimmer has suction, then add 4 scoops of granular/shock to the skimmer. Never add more than 5 scoops to the lap pool at one time.`;
+                return `<strong>Raise the Cl level in the Lap Pool.</strong><br>Make sure that a skimmer has suction, then add 4 scoops of granular/shock to the skimmer. Never add more than 5 scoops to the lap pool at one time.`;
             }
             if (clValue === '2') {
-                return `<strong>Raise the Cl level in the Main Pool.</strong><br>Make sure that a skimmer has suction, then add 3 scoops of granular/shock to the skimmer. Never add more than 5 scoops to the lap pool at one time.`;
+                return `<strong>Raise the Cl level in the Lap Pool.</strong><br>Make sure that a skimmer has suction, then add 3 scoops of granular/shock to the skimmer. Never add more than 5 scoops to the lap pool at one time.`;
             }
             if (clValue === '10') {
-                return `<strong>Lower the Cl level of the Main Pool.</strong><br>Turn the Cl feeder off, and set a timer to turn it back on. Ensure that the waterline is at normal height, and turn the fill line on if it is low. Always set a timer when turning on the fill line.`;
+                return `<strong>Lower the Cl level of the Lap Pool.</strong><br>Turn the Cl feeder off, and set a timer to turn it back on. Ensure that the waterline is at normal height, and turn the fill line on if it is low. Always set a timer when turning on the fill line.`;
             }
             if (clValue === '> 10') {
-                return `<strong>Notify a supervisor of the high Cl in the Main Pool immediately. Lower the Cl level of the Main Pool.</strong><br>Turn the Cl feeder off, and set a timer to turn it back on. Ensure that the waterline is at normal height, and turn the fill line on if it is low. Always set a timer when turning on the fill line.`;
+                return `<strong>Notify a supervisor of the high Cl in the Lap Pool immediately. Lower the Cl level of the Main Pool.</strong><br>Turn the Cl feeder off, and set a timer to turn it back on. Ensure that the waterline is at normal height, and turn the fill line on if it is low. Always set a timer when turning on the fill line.`;
             }
         }
     }
