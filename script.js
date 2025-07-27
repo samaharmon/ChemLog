@@ -1789,6 +1789,18 @@ document.addEventListener("DOMContentLoaded", () => {
         loginButton.addEventListener('click', openLoginModal);
     }
 
+    const mainSanitizerDropdown = document.getElementById('mainSanitizerMethod');
+    if (mainSanitizerDropdown) {
+        mainSanitizerDropdown.addEventListener('change', function () {
+            const poolLocation = document.getElementById('poolLocation')?.value;
+            if (poolLocation) {
+                sanitationSettings[poolLocation] = this.value;
+                localStorage.setItem('sanitationSettings', JSON.stringify(sanitationSettings));
+                console.log(`Updated sanitationSettings[${poolLocation}] to:`, this.value);
+            }
+        });
+    }
+
     // Submit button
     const submitButton = document.querySelector('.submit-btn');
     if (submitButton) {
