@@ -1241,7 +1241,9 @@ function evaluateFormFeedback() { // Remove formData parameter
     const mainCl = document.getElementById('mainPoolCl').value;
     const secPH = document.getElementById('secondaryPoolPH').value;
     const secCl = document.getElementById('secondaryPoolCl').value;
-    const mainSanitizer = document.getElementById('mainSanitizerMethod')?.value || '';
+    const mainSanitizer = document.querySelector(
+        `.sanitation-checkbox[data-pool="${poolLocation}"]:checked`
+        )?.dataset.method || '';
     const secondarySanitizer = document.getElementById('secondarySanitizerMethod')?.value || '';
     
     // DEBUG LOGS - Remove after testing
