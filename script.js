@@ -5,84 +5,42 @@
 function submitForm() {
     console.log('Submit button clicked');
 
-    // Clear any previous error highlighting
+    // Clear previous error highlighting
     document.querySelectorAll('.form-group.error').forEach(group => {
         group.classList.remove('error');
     });
 
-    // Run global validation
+    // Check required fields, including pool location
+    const poolLocation = document.getElementById('poolLocation').value;
+    if (!poolLocation || poolLocation === '') {
+        showMessage('Please select a pool location.', 'error');
+        document.getElementById('poolLocation').closest('.form-group')?.classList.add('error');
+        return;
+    }
+
     if (!validateForm()) {
         showMessage('Please fill in all required fields.', 'error');
         return;
     }
 
-    // Get form values
-    const firstName = document.getElementById('firstName').value.trim();
-    const lastName = document.getElementById('lastName').value.trim();
-    const poolLocation = document.getElementById('poolLocation').value.trim();
-    const mainPoolPH = document.getElementById('mainPoolPH').value.trim();
-    const mainPoolCl = document.getElementById('mainPoolCl').value.trim();
-    const secondaryPoolPH = poolLocation === 'Camden CC' ? 'N/A' : document.getElementById('secondaryPoolPH').value.trim();
-    const secondaryPoolCl = poolLocation === 'Camden CC' ? 'N/A' : document.getElementById('secondaryPoolCl').value.trim();
+    evaluateFormFeedback();
 
-    // Required field validation
-    const requiredFields = [
-        { id: 'firstName', value: firstName },
-        { id: 'lastName', value: lastName },
-        { id: 'poolLocation', value: poolLocation },
-        { id: 'mainPoolPH', value: mainPoolPH },
-        { id: 'mainPoolCl', value: mainPoolCl }
-    ];
-
-    let valid = true;
-
-    requiredFields.forEach(field => {
-        if (!field.value) {
-            document.getElementById(field.id)?.closest('.form-group')?.classList.add('error');
-            valid = false;
-        }
-    });
-
-    if (!valid) {
-        showMessage('Please complete all required fields before submitting.', 'error');
-        return;
-    }
-
-    // Numeric checks for pH and Cl (skip if value is 'N/A')
-    if (isNaN(mainPoolPH) || isNaN(mainPoolCl)) {
-        showMessage('Main Pool pH and Cl must be numbers.', 'error');
-        return;
-    }
-    if (secondaryPoolPH !== 'N/A' && isNaN(secondaryPoolPH)) {
-        showMessage('Secondary Pool pH must be a number or N/A.', 'error');
-        return;
-    }
-    if (secondaryPoolCl !== 'N/A' && isNaN(secondaryPoolCl)) {
-        showMessage('Secondary Pool Cl must be a number or N/A.', 'error');
-        return;
-    }
-
-    evaluateFormFeedback(); // Show modal guidance
-
-    // Create submission object
     const submission = {
         id: Date.now(),
         timestamp: new Date(),
-        firstName,
-        lastName,
-        poolLocation,
-        mainPoolPH,
-        mainPoolCl,
-        secondaryPoolPH,
-        secondaryPoolCl
+        firstName: document.getElementById('firstName').value,
+        lastName: document.getElementById('lastName').value,
+        poolLocation: poolLocation,
+        mainPoolPH: document.getElementById('mainPoolPH').value,
+        mainPoolCl: document.getElementById('mainPoolCl').value,
+        secondaryPoolPH: poolLocation === 'Camden CC' ? 'N/A' : document.getElementById('secondaryPoolPH').value,
+        secondaryPoolCl: poolLocation === 'Camden CC' ? 'N/A' : document.getElementById('secondaryPoolCl').value
     };
 
-    // Now you can proceed to save the submission...
-    console.log('✅ Valid submission:', submission);
-    saveFormSubmission(submission); // Ensure this function exists
-    resetForm(); // Clear form
-    showMessage('Submission saved successfully.', 'success');
+    // Save to localStorage or Firebase...
+    saveSubmission(submission);
 }
+
 
 window.submitForm = submitForm;
 
@@ -843,9 +801,19 @@ function organizePaginatedData(data) {
 // Initialize form submissions on app start
 function initializeFormSubmissions() {
     loadFormSubmissions(); // Load from localStorage
+
+    // Remove test entries first
     cleanupTestSubmissions();
-    console.log(`Initialized with ${formSubmissions.length} form submissions`);
+
+    // Remove entries with missing or blank pool names
+    formSubmissions = formSubmissions.filter(sub => sub.poolLocation && sub.poolLocation.trim() !== '');
+
+    // Save cleaned data back to localStorage
+    localStorage.setItem('formSubmissions', JSON.stringify(formSubmissions));
+
+    console.log(`Initialized with ${formSubmissions.length} cleaned form submissions`);
 }
+
 
 // Firebase v9 initialization using globally available modules
 function initializeFirebase() {
