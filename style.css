@@ -317,6 +317,26 @@ input[type="text"], select, input[type="password"] {
     background-color: #521008;
 }
 
+.editAndSave {
+    background-color: #69140e;
+    color: white;
+    border: none;
+    border-radius: 0;
+    padding: 5px 10px;
+    font-size: 12px;
+    font-weight: bold;
+    width: auto;
+    max-width: 50px;
+    font-family: 'Franklin Gothic Medium', Arial, sans-serif;
+    cursor: pointer;
+    margin-top: 10px;
+    transition: background-color 0.3s;
+}
+
+.editAndSave:hover {
+    background-color: #521008;
+}
+
 /* Footer */
 .footer {
     background-color: #666;
