@@ -1,938 +1,2490 @@
-html, body {
-    background-color: white !important;
-    background: white !important;
-}
+//===================================================
+//Hoisted Functions
+//===================================================
 
-/* General Styles */
-* {
-    margin: 0;
-    padding: 0;
-    box-sizing: border-box;
-}
+function submitForm() {
+    console.log('Submit button clicked');
 
-body {
-    font-family: 'Franklin Gothic Medium', 'Franklin Gothic Medium Cond', Arial, sans-serif;
-    background-color: #F5F5F5;
-    min-height: 100vh;
-}
+    // Clear previous error highlighting
+    document.querySelectorAll('.form-group.error').forEach(group => {
+        group.classList.remove('error');
+    });
 
-/* Header Styles */
-.header {
-    background-color: #69140e;
-    color: white;
-    padding: 20px;
-    position: relative;
-    box-shadow: 0 8px 10px rgba(0, 0, 0, 0.3);
-    min-height: 120px; /* Extended height to accommodate button */
-}
-
-.header-content {
-    display: flex;
-    justify-content: space-between; /* Pushes header-left to left, header-right to right */
-    align-items: center; /* Vertically aligns content in the middle */ /* CHANGED from flex-start to center for better vertical alignment of full header content */
-    width: 100%;
-}
-
-#logo {
-    position: absolute;
-    top: 37.75px;
-    right: 20px;
-    height: 125px;
-    width: 125px;
-    filter: drop-shadow(0 4px 15px rgba(0, 0, 0, 0.4));
-    z-index: 10; /* ensures it appears on top of other content */
-    pointer-events: none; /* optional: prevents it from blocking clicks */
-}
-
-.header-left {
-    display: flex; /* CHANGED: Use flexbox for horizontal alignment */
-    flex-direction: column; /* CHANGED: Arrange children in a row */
-    align-items: flex-start; /* Vertically aligns items like menu button and title */
-    gap: 15px; /* NEW: Adds space between menu button and title/subtitle */
-}
-
-.header-right {
-    margin-left: auto;
-    display: flex;
-    align-items: center;
-}
-
-.header h1 {
-    font-size: 55px;
-    margin-bottom: 5px;
-}
-
-.header p {
-    font-size: 18px;
-    font-weight: normal;
-    margin-bottom: 10px;
-}
-
-.supervisor-login-btn {
-    display: flex; /* NEW & CRUCIAL: Makes children (spans) line up horizontally */
-    align-items: center; /* NEW: Vertically aligns the icon and text */
-    gap: 5px; /* NEW: Adds space between the icon and the word "Menu" */
-    background-color: rgba(255, 255, 255, 0.2);
-    color: white;
-    border: 2px solid white;
-    border-radius: 0;
-    padding: 10px 15px;
-    cursor: pointer;
-    font-size: 18px;
-    font-family: 'Franklin Gothic Medium', Arial, sans-serif;
-    transition: background-color 0.3s;
-}
-
-.supervisor-login-btn:hover {
-    background-color: rgba(255, 255, 255, 0.3);
-}
-
-/* Menu button styles for dashboard */
-.menu-container {
-    position: relative; /* NEW: Essential for positioning the dropdown menu */
-    /* Adjust margin/padding as needed relative to other header-left content */
-    /* Example: If you want menu button higher than text: margin-bottom: auto; */
-}
-
-.menu-btn {
-    display: flex; /* NEW & CRUCIAL: Makes children (spans) line up horizontally */
-    align-items: center; /* NEW: Vertically aligns the icon and text */
-    gap: 5px; /* NEW: Adds space between the icon and the word "Menu" */
-    background-color: rgba(255, 255, 255, 0.2);
-    color: white;
-    border: 2px solid white;
-    border-radius: 0;
-    padding: 10px 15px;
-    cursor: pointer;
-    font-size: 18px;
-    font-family: 'Franklin Gothic Medium', Arial, sans-serif;
-    transition: background-color 0.3s;
-}
-
-.menu-btn span {
-    /* NEW: Ensure spans inside the button don't break the flex layout */
-    display: inline-block;
-    vertical-align: middle; /* Helps ensure icon and text align well */
-}
-
-.menu-btn:hover {
-    background-color: rgba(255, 255, 255, 0.3);
-}
-
-/* Dropdown Menu Styles (solving "Logout/Settings always visible") */
-.dropdown-menu {
-    display: none; /* NEW & CRUCIAL: Hides the dropdown by default */
-    position: absolute; /* NEW & CRUCIAL: Positions it relative to .menu-container */
-    top: 100%; /* NEW: Places it right below the button */
-    left: 0; /* NEW: Aligns it with the left edge of the button */
-    background-color: white;
-    border: 1px solid #ddd;
-    box-shadow: 0 4px 8px rgba(0,0,0,0.1);
-    min-width: 150px; /* Adjust as needed */
-    z-index: 1000; /* Ensures it appears above other content */
-    border-radius: 0; /* Keeping your square aesthetic */
-    padding: 5px 0;
-}
-
-.dropdown-menu.show { /* NEW: Class to be toggled by JavaScript to show the menu */
-    display: block;
-}
-
-.dropdown-item {
-    display: block; /* Makes each link take full width */
-    padding: 10px 15px;
-    text-decoration: none;
-    color: #333;
-    font-family: 'Franklin Gothic Medium', Arial, sans-serif; /* Ensure consistent font */
-    font-size: 16px; /* Adjust as needed */
-        border-bottom: 1px solid #ccc;
-}
-
-.dropdown-item:hover {
-    background-color: #f5f5f5;
-}
-
-.dropdown-menu .dropdown-item:last-child {
-    border-bottom: none; /* Don't show border on last item */
-}
-
-.settings-section {
-    margin-top: 30px;
-    padding-top: 10px;
-    border-top: 1px solid #ccc;
-}
-
-.danger-button {
-    background-color: #ff4d4d;
-    color: white;
-    border: none;
-    padding: 10px 20px;
-    font-weight: bold;
-    border-radius: 5px;
-    cursor: pointer;
-    transition: background-color 0.3s ease;
-}
-
-.danger-button:hover {
-    background-color: #d93636;
-}
-
-/* --- Rest of your CSS (unchanged, but moved for clarity) --- */
-
-/* Main Container */
-.container {
-    margin: 30px 50px;
-    display: flex;
-    flex-direction: column;
-    gap: 50px;
-    align-items: center;
-}
-
-.form-container {
-    width: calc(100vw - 100px);
-    background-color: white;
-    padding: 30px;
-    border-radius: 0;
-    box-shadow: 0 8px 10px rgba(0, 0, 0, 0.2);
-}
-
-/* Required field validation highlighting */
-.form-group.error input[type="text"],
-.form-group.error select {
-    background-color: #ffff99 !important;
-    border-color: #ffc107;
-}
-
-.form-group.error label {
-    color: #856404;
-}
-
-/* Form Sections */
-.section {
-    margin-bottom: 30px;
-}
-
-.section h2 {
-    font-size: 24px;
-    color: #333;
-    margin-bottom: 20px;
-    font-weight: bold;
-    font-family: 'Franklin Gothic Medium', Arial, sans-serif;
-}
-
-.section h3 {
-    font-size: 22px;
-    color: #69140e;
-    margin-bottom: 8px;
-    font-weight: bold;
-    font-family: 'Franklin Gothic Medium', Arial, sans-serif;
-}
-
-/* Pool Section Styles */
-.pool-section {
-    margin-bottom: 25px;
-}
-
-.pool-section-content {
-    padding-top: 10px;
-}
-
-/* Hidden secondary pool section */
-.pool-section.hidden {
-    display: none;
-}
-
-/* Form Elements */
-.form-row {
-    display: flex;
-    gap: 0px;
-    margin-bottom: 15px;
-}
-
-.form-group {
-    flex: 1;
-    max-width: 100%;
-    font-family: 'Franklin Gothic Medium', Arial, sans-serif;
-    font-weight: bold;
-}
-
-.form-group.full-width {
-    flex: none;
-    width: 100%;
-    max-width: 400px;
-}
-
-label {
-    display: block;
-    font-size: 16px;
-    color: #333;
-    margin-bottom: 5px;
-    font-family: 'Franklin Gothic Medium', Arial, sans-serif;
-}
-
-input[type="text"], select, input[type="password"] {
-    width: 100px;
-    padding: 10px;
-    border-bottom: 2px solid #69140e;
-    border-left:none;
-    border-right:none;
-    border-top:none;
-    border-radius:0px;
-    font-size: 14px;
-    font-family: 'Franklin Gothic Medium', Arial, sans-serif;
-    background-color: #C8C8C8;
-    color: #333;
-    -webkit-appearance: none;
-}
-
-#dateFilter {
-    color: black;
-    width: 80px;
-    height: 38px;
-    border: 2px solid #69140e;
-    border-radius:0px;
-    justify-content: center;
-    font-size: 12px;
-    font-family: 'Franklin Gothic Medium', Arial, sans-serif;
-    background-color: white;
-    -webkit-appearance: none;
-}
-
-/* Submit Button */
-.submit-btn {
-    background-color: #69140e;
-    color: white;
-    border: none;
-    border-radius: 0;
-    padding: 15px 30px;
-    font-size: 18px;
-    font-weight: bold;
-    width: auto;
-    max-width: 400px;
-    font-family: 'Franklin Gothic Medium', Arial, sans-serif;
-    cursor: pointer;
-    margin-top: 20px;
-    transition: background-color 0.3s;
-}
-
-.submit-btn:hover {
-    background-color: #521008;
-}
-
-.editAndSave {
-    background-color: #69140e;
-    color: white;
-    border: none;
-    border-radius: 0;
-    padding: 5px 10px;
-    font-size: 12px;
-    font-weight: bold;
-    width: auto;
-    max-width: 50px;
-    font-family: 'Franklin Gothic Medium', Arial, sans-serif;
-    cursor: pointer;
-    margin-top: 10px;
-    transition: background-color 0.3s;
-}
-
-.editAndSave:hover {
-    background-color: #521008;
-}
-
-/* Footer */
-.footer {
-    background-color: #666;
-    color: white;
-    width: 100%;
-    height: 100px;
-    bottom: 0;
-    left: 0;
-    text-align: center;
-    padding: 15px;
-    font-size: 14px;
-    font-style: italic;
-    font-family: 'Franklin Gothic Medium', Arial, sans-serif;
-    margin-top: 30px;
-}
-
-/* Modal Styles */
-.modal {
-    display: none;
-    position: fixed;
-    align-items: flex-start;
-    justify-content: center;
-    z-index: 1001;
-    left: 0;
-    top: 0;
-    width: 100vw;
-    height: 100vh;
-    background-color: rgba(0, 0, 0, 0.5);
-}
-
-.modal-content {
-    background-color: white;
-    margin-top: 200px;
-    margin-left: auto;
-    margin-right: auto;
-    padding: 30px;
-    border-radius: 0px;
-    width: 90%;
-    max-width: 400px;
-    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
-}
-
-#settingsModal {
-    display: none;
-    position: fixed;
-    top: 50%;
-    left: 50%;
-    transform: translateX(-50%) translateY(-50%);
-    z-index: 9999;
-    padding: 20px 30px 80px 30px;
-    border-radius: 0;
-    width: 90vw; /* NEW: use viewport width */
-    max-width: 1100px; /* NEW: set a practical limit */
-    height: auto;
-    text-align: left;
-    max-height: 90vh;
-    overflow-y: auto;
-}
-
-@media (max-width: 768px) {
-    #settingsModal {
-        width: 95vw;
-        max-width: 95vw;
-        height: 95vh;
-        padding: 15px;
+    // Check required fields, including pool location
+    const poolLocation = document.getElementById('poolLocation').value;
+    if (!poolLocation || poolLocation === '') {
+        showMessage('Please select a pool location.', 'error');
+        document.getElementById('poolLocation').closest('.form-group')?.classList.add('error');
+        return;
     }
 
-    .settings-modal-content {
+    if (!validateForm()) {
+        showMessage('Please fill in all required fields.', 'error');
+        return;
+    }
+
+    evaluateFormFeedback();
+
+    const submission = {
+        id: Date.now(),
+        timestamp: new Date(),
+        firstName: document.getElementById('firstName').value,
+        lastName: document.getElementById('lastName').value,
+        poolLocation: poolLocation,
+        mainPoolPH: document.getElementById('mainPoolPH').value,
+        mainPoolCl: document.getElementById('mainPoolCl').value,
+        secondaryPoolPH: poolLocation === 'Camden CC' ? 'N/A' : document.getElementById('secondaryPoolPH').value,
+        secondaryPoolCl: poolLocation === 'Camden CC' ? 'N/A' : document.getElementById('secondaryPoolCl').value
+    };
+
+    // Save to localStorage or Firebase...
+    saveFormSubmissions(submission);
+}
+
+window.submitForm = submitForm;
+
+function validateForm() {
+    let isValid = true;
+    const requiredInputs = document.querySelectorAll('#mainForm input[required], #mainForm select[required]');
+
+    requiredInputs.forEach(input => {
+        // Handle select elements specifically
+        if (input.tagName === 'SELECT') {
+            if (input.value === '' || input.value === 'default') { // Assuming 'default' is your placeholder value
+                input.closest('.form-group')?.classList.add('error');
+                isValid = false;
+            } else {
+                input.closest('.form-group')?.classList.remove('error');
+            }
+        } else {
+            // Handle text/number inputs
+            if (input.value.trim() === '') {
+                input.closest('.form-group')?.classList.add('error');
+                isValid = false;
+            } else {
+                input.closest('.form-group')?.classList.remove('error');
+            }
+        }
+    });
+
+    // Special handling for secondary pool inputs if visible
+    const poolLocationSelect = document.getElementById('poolLocation');
+    const secondaryPoolSection = document.getElementById('secondaryPoolSection');
+
+    if (poolLocationSelect && POOLS_WITH_SECONDARY.includes(poolLocationSelect.value) && secondaryPoolSection && !secondaryPoolSection.classList.contains('hidden')) {
+        const secondaryPHInput = document.getElementById('secondaryPoolPH');
+        const secondaryClInput = document.getElementById('secondaryPoolCl');
+
+        if (secondaryPHInput && secondaryPHInput.value.trim() === '') {
+            secondaryPHInput.closest('.form-group')?.classList.add('error');
+            isValid = false;
+        } else {
+            secondaryPHInput.closest('.form-group')?.classList.remove('error');
+        }
+
+        if (secondaryClInput && secondaryClInput.value.trim() === '') {
+            secondaryClInput.closest('.form-group')?.classList.add('error');
+            isValid = false;
+        } else {
+            secondaryClInput.closest('.form-group')?.classList.remove('error');
+        }
+    }
+
+    return isValid;
+}
+function openLoginModal() {
+    console.log('openLoginModal called');
+    
+    if (isLoggedIn) {
+        console.log('User already logged in, showing dashboard');
+        showDashboard();
+        return;
+    }
+
+    const modal = document.getElementById('loginModal');
+    if (!modal) {
+        console.error('Login modal not found in DOM');
+        showMessage('Login modal not found. Please refresh the page.', 'error');
+        return;
+    }
+    
+    // Create or show overlay
+    createOrShowOverlay();
+    
+    // Show modal
+    modal.style.display = 'block';
+    
+    // Focus on first input after a short delay
+    setTimeout(() => {
+        const firstInput = document.getElementById('inputEmail'); // This line is now correct
+        // The 'if' statement needs to be on its own line, after the declaration and any comments
+        if (firstInput) {
+            firstInput.focus();
+        }
+    }, 100);
+    
+    console.log('Login modal opened successfully');
+}
+window.openLoginModal = openLoginModal; 
+function handlePoolLocationChange() {
+    const poolLocation = document.getElementById('poolLocation').value;
+    const secondaryPoolSection = document.getElementById('secondaryPoolSection');
+    const secondaryPH = document.getElementById('secondaryPoolPH');
+    const secondaryCl = document.getElementById('secondaryPoolCl');
+    
+    if (poolLocation === 'Camden CC') {
+        secondaryPoolSection.classList.add('hidden');
+        secondaryPH.removeAttribute('required');
+        secondaryCl.removeAttribute('required');
+        secondaryPH.value = '';
+        secondaryCl.value = '';
+    } else {
+        secondaryPoolSection.classList.remove('hidden');
+        secondaryPH.setAttribute('required', '');
+        secondaryCl.setAttribute('required', '');
+    }
+}
+// In your script.js file
+
+function closeLoginModal() {
+    console.log('closeLoginModal called');
+    const modal = document.getElementById('loginModal');
+    if (modal) {
+        modal.style.display = 'none';
+    }
+
+    // Clear the input fields when the modal is closed
+    const emailInput = document.getElementById('inputEmail'); // Use the new ID here
+    const passwordInput = document.getElementById('password');
+
+    if (emailInput) {
+        emailInput.value = '';
+    }
+    if (passwordInput) {
+        passwordInput.value = '';
+    }
+
+    removeOverlay(); // Assuming this function is defined elsewhere to remove a dimming overlay
+}
+function handleLoginSubmit(event) {
+    event.preventDefault();
+    console.log('Login form submitted');
+    
+    const emailInput = document.getElementById('inputEmail');
+    const passwordInput = document.querySelector('#loginForm input[name="password"]');
+    
+    if (!emailInput || !passwordInput) {
+        console.error('Login inputs not found');
+        showMessage('Login form inputs not found.', 'error');
+        return;
+    }
+    
+    const email = emailInput.value.trim();
+    const password = passwordInput.value.trim();
+    
+    console.log('Login attempt with email:', email);
+    
+    if (email === supervisorCredentials.email && password === supervisorCredentials.password) {
+        console.log('Login successful');
+        
+        // Set login state
+        isLoggedIn = true;
+        
+        // Set persistent login token for 1 month
+        const expires = Date.now() + 30 * 24 * 60 * 60 * 1000;
+        localStorage.setItem('loginToken', JSON.stringify({ username: email, expires }));
+        
+        // Close modal and show dashboard
+        const dashboard = document.getElementById('supervisorDashboard');
+        if (dashboard) {
+            dashboard.classList.add('show');
+        }
+        
+        closeLoginModal();
+        showDashboard();
+        
+        // Update header buttons
+        updateHeaderButtons();
+        
+        showMessage('Login successful!', 'success');
+    } else {
+        console.log('Invalid credentials provided');
+        showMessage('Invalid credentials. Please try again.', 'error');
+    }
+}
+function showMessage(message, type) {
+    // Remove any existing message banner
+    const existingBanner = document.getElementById('messageBanner');
+    if (existingBanner) {
+        existingBanner.remove();
+    }
+    
+    // Create new message banner
+    const banner = document.createElement('div');
+    banner.id = 'messageBanner';
+    banner.textContent = message;
+    
+    // Style based on type
+    if (type === 'error') {
+        banner.style.backgroundColor = '#f8d7da';
+        banner.style.color = '#721c24';
+        banner.style.border = '1px solid #f5c6cb';
+    } else if (type === 'success') {
+        banner.style.backgroundColor = '#d4edda';
+        banner.style.color = '#155724';
+        banner.style.border = '1px solid #c3e6cb';
+    }
+    
+    banner.style.cssText += `
+        position: fixed;
+        top: 20px;
+        left: 50%;
+        transform: translateX(-50%);
+        z-index: 10000;
+        padding: 10px 20px;
+        border-radius: 0px;
+        font-family: 'Franklin Gothic Medium', Arial, sans-serif;
+        font-size: 14px;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.15);
+    `;
+    
+    document.body.appendChild(banner);
+    
+   // Auto-remove after 3 seconds
+    setTimeout(() => {
+        if (banner) {
+            banner.remove();
+        }
+    }, 3000);
+}
+function resetForm() {
+    document.getElementById('firstName').value = '';
+    document.getElementById('lastName').value = '';
+    document.getElementById('poolLocation').value = '';
+    document.getElementById('mainPoolPH').value = '';
+    document.getElementById('mainPoolCl').value = '';
+    document.getElementById('secondaryPoolPH').value = '';
+    document.getElementById('secondaryPoolCl').value = '';
+    
+    document.querySelectorAll('.form-group.error').forEach(group => {
+        group.classList.remove('error');
+    });
+    
+    // Reset secondary pool visibility
+    handlePoolLocationChange();
+}
+function saveFormSubmissions() {
+    localStorage.setItem('formSubmissions', JSON.stringify(formSubmissions));
+    console.log(`Saved ${formSubmissions.length} submissions to localStorage`);
+}
+function exportToCSV() {
+    if (filteredData.length === 0) {
+        showMessage('No data to export.', 'error');
+        return;
+    }
+    
+    const headers = ['Timestamp', 'First Name', 'Last Name', 'Pool Location', 'Main pH', 'Main Cl', 'Secondary pH', 'Secondary Cl'];
+    const csvContent = [
+        headers.join(','),
+        ...filteredData.map(row => [
+            `"${row.timestamp}"`,
+            `"${row.firstName}"`,
+            `"${row.lastName}"`,
+            `"${row.poolLocation}"`,
+            `"${row.mainPoolPH}"`,
+            `"${row.mainPoolCl}"`,
+            `"${row.secondaryPoolPH}"`,
+            `"${row.secondaryPoolCl}"`
+        ].join(','))
+    ].join('\n');
+    
+    const blob = new Blob([csvContent], { type: 'text/csv' });
+    const url = window.URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `pool-chemistry-data-${new Date().toISOString().split('T')[0]}.csv`;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    window.URL.revokeObjectURL(url);
+    
+    showMessage('Data exported successfully!', 'success');
+}
+function filterData() {
+    const poolFilter = document.getElementById('poolFilter')?.value || '';
+    const dateFilter = document.getElementById('dateFilter')?.value || '';
+    
+    // Apply filters to all submissions
+    const filtered = allSubmissions.filter(submission => {
+        let passes = true;
+
+        if (poolFilter && submission.poolLocation !== poolFilter) passes = false;
+
+        if (dateFilter) {
+            const filterDate = new Date(dateFilter);
+            const submissionDate = new Date(submission.timestamp);
+            if (submissionDate.toDateString() !== filterDate.toDateString()) passes = false;
+        }
+
+        return passes;
+    });
+
+    filteredSubmissions = filtered;
+    paginatedData = organizePaginatedData(filteredSubmissions);
+    currentPage = 0;
+    displayData();
+}
+
+function goToPreviousPage() {
+    if (currentPage > 1) {
+        currentPage--;
+        displayData();
+    }
+}
+function goToNextPage() {
+    const totalPages = Math.ceil(filteredSubmissions.length / itemsPerPage);
+    if (currentPage < totalPages) {
+        currentPage++;
+        displayData();
+    }
+}
+function closeSettings() {
+    document.getElementById('settingsModal').style.display = 'none';
+        removeOverlay();
+}
+async function handleSanitationChange(checkbox) {
+    const pool = checkbox.dataset.pool;
+    const method = checkbox.dataset.method;
+    
+    console.log(`Changing sanitation for ${pool} to ${method}, checked: ${checkbox.checked}`);
+    
+    if (checkbox.checked) {
+        // Uncheck the other method for this pool
+        const otherMethod = method === 'bleach' ? 'granular' : 'bleach';
+        const otherCheckbox = document.querySelector(`[data-pool="${pool}"][data-method="${otherMethod}"]`);
+        if (otherCheckbox) {
+            otherCheckbox.checked = false;
+        }
+        
+        // Update settings
+        sanitationSettings[pool] = method;
+    } else {
+        // If unchecking, default to bleach
+        sanitationSettings[pool] = 'bleach';
+        const bleachCheckbox = document.querySelector(`[data-pool="${pool}"][data-method="bleach"]`);
+        if (bleachCheckbox) {
+            bleachCheckbox.checked = true;
+        }
+    }
+    
+    console.log('Updated sanitationSettings:', sanitationSettings);
+    
+    // Always save to localStorage first for immediate persistence
+    localStorage.setItem('sanitationSettings', JSON.stringify(sanitationSettings));
+    console.log('Saved sanitation settings to localStorage');
+    
+    // Try to save to Firebase if available
+    try {
+        if (db && window.firebaseModules) {
+            const settingsRef = window.firebaseModules.doc(db, 'settings', 'sanitationMethods');
+            await window.firebaseModules.setDoc(settingsRef, sanitationSettings);
+            console.log('Successfully saved sanitation settings to Firebase v9');
+        } else {
+            console.log('Firebase not available, settings saved to localStorage only');
+        }
+    } catch (error) {
+        console.warn('Could not save to Firebase v9, but settings are saved to localStorage:', error);
+    }
+}
+function closeModal() {
+    const feedbackModal = document.getElementById('feedbackModal');
+    feedbackModal.style.display = 'none';
+}
+function chooseAndSendSMS() {
+    const checkboxes = document.querySelectorAll('#samOption, #haleyOption');
+    const selectedRecipients = [];
+    
+    checkboxes.forEach(checkbox => {
+        if (checkbox.checked) {
+            selectedRecipients.push(checkbox.value);
+        }
+    });
+
+    if (selectedRecipients.length === 0) {
+        alert('Please select at least one supervisor to notify.');
+        return;
+    }
+
+    if (formSubmissions.length === 0) {
+        alert("No form submission found to share.");
+        return;
+    }
+    
+    const latest = formSubmissions[formSubmissions.length - 1];
+
+    // Determine which values need highlighting
+    const mainPH = latest.mainPoolPH;
+    const secPH = latest.secondaryPoolPH;
+    const mainCl = latest.mainPoolCl;
+    const secCl = latest.secondaryPoolCl;
+    
+    // Create highlighted message parts
+    const mainPoolPHText = mainPH === '< 7.0' ? 
+        `⚠️ Main Pool pH: ${mainPH} - REQUIRES ATTENTION ⚠️` : 
+        `Main Pool pH: ${mainPH}`;
+        
+    const secPoolPHText = secPH === '< 7.0' ? 
+        `⚠️ Secondary Pool pH: ${secPH} - REQUIRES ATTENTION ⚠️` : 
+        `Secondary Pool pH: ${secPH}`;
+        
+    const mainPoolClText = (mainCl === '10' || mainCl === '> 10' || parseFloat(mainCl) > 10) ? 
+        `⚠️ Main Pool Cl: ${mainCl} - HIGH LEVEL ⚠️` : 
+        `Main Pool Cl: ${mainCl}`;
+        
+    const secPoolClText = (secCl === '10' || secCl === '> 10' || parseFloat(secCl) > 10) ? 
+        `⚠️ Secondary Pool Cl: ${secCl} - HIGH LEVEL ⚠️` : 
+        `Secondary Pool Cl: ${secCl}`;
+        
+    const message =
+        `Pool Chemistry Log\n\n` +
+        `Submitted by: ${latest.firstName} ${latest.lastName}\n` +
+        `Pool Location: ${latest.poolLocation}\n\n` +
+        `${mainPoolPHText}\n` +
+        `${mainPoolClText}\n` +
+        `${secPoolPHText}\n` +
+        `${secPoolClText}\n\n` +
+        `Time: ${latest.timestamp}`;
+
+    // Send to each selected recipient
+    selectedRecipients.forEach(recipient => {
+        window.location.href = `sms:${recipient}?body=${encodeURIComponent(message)}`;
+    });
+    
+    // Close modals and remove overlay
+    const feedbackModal = document.querySelector('.feedback-modal');
+    if (feedbackModal) feedbackModal.remove();
+    
+    removeOverlay();
+}
+function showFeedbackModal(messages, isGood, setpointImgNeeded) {
+    const modal = document.createElement('div');
+    modal.className = 'feedback-modal ' + (isGood ? 'good' : 'warning');
+
+    const closeBtn = document.createElement('button');
+    closeBtn.className = 'close-btn';
+    closeBtn.innerHTML = '×';
+    closeBtn.onclick = () => {
+        if (isGood || areAllCheckboxesChecked()) {
+            modal.remove();
+            removeOverlay();
+        } else {
+            showMessage('Please complete all water chemistry changes and check them off the list before closing.', 'error');
+        }
+    };
+
+    const feedbackContent = document.createElement('div');
+    feedbackContent.className = 'feedback-content';
+
+    const title = document.createElement('h2');
+    title.textContent = isGood
+        ? '✅ Water chemistry looks good!'
+        : '🚨 You need to make immediate changes to the water chemistry:';
+    feedbackContent.appendChild(title);
+
+    if (!isGood) {
+        const messageList = document.createElement('div');
+        messages.forEach(msg => {
+            if (msg.includes('setpoint.jpeg')) {
+                const chartContainer = document.createElement('div');
+                chartContainer.className = 'setpoint-container';
+                chartContainer.style.textAlign = 'center';
+                chartContainer.style.margin = '20px 0';
+
+                const chart = document.createElement('img');
+                chart.src = 'setpoint.jpeg';
+                chart.alt = 'Setpoint Chart';
+                chart.className = 'setpoint-chart';
+                chart.style.maxWidth = '100%';
+                chart.style.height = 'auto';
+
+                chartContainer.appendChild(chart);
+                messageList.appendChild(chartContainer);
+            } else {
+                const checkboxItem = document.createElement('div');
+                checkboxItem.className = 'checkbox-item';
+
+                const checkbox = document.createElement('input');
+                checkbox.type = 'checkbox';
+                checkbox.className = 'feedback-checkbox';
+
+                const label = document.createElement('label');
+                label.innerHTML = msg;
+
+                checkboxItem.appendChild(checkbox);
+                checkboxItem.appendChild(label);
+                messageList.appendChild(checkboxItem);
+            }
+        });
+        feedbackContent.appendChild(messageList);
+    } else {
+        const message = document.createElement('p');
+        message.textContent = messages[0];
+        feedbackContent.appendChild(message);
+    }
+
+    // Add Notify a Supervisor button only if messages contain "notify a supervisor"
+    const shouldShowNotifyButton = messages.some(msg => 
+        msg.toLowerCase().includes('notify a supervisor')
+    );
+    
+    if (shouldShowNotifyButton) {
+        const notifyBtn = document.createElement('button');
+        notifyBtn.className = 'notify-btn';
+        notifyBtn.textContent = 'Notify a Supervisor';
+        notifyBtn.onclick = () => {
+            showRecipientSelectionInModal(modal);
+        };
+        modal.appendChild(notifyBtn);
+    }
+
+    modal.appendChild(closeBtn);
+    modal.appendChild(feedbackContent);
+    document.body.appendChild(modal);
+}
+function createOrShowOverlay() {
+    let overlay = document.getElementById('modal-overlay');
+    if (!overlay) {
+        overlay = document.createElement('div');
+        overlay.id = 'modal-overlay';
+        overlay.className = 'modal-overlay';
+        document.body.appendChild(overlay);
+    }
+    overlay.style.display = 'block'; // Show the overlay
+    return overlay;
+}
+function removeOverlay() {
+    const overlay = document.getElementById('modal-overlay');
+    if (overlay) {
+        overlay.style.display = 'none'; // Hide the overlay
+    }
+}
+function getClResponse(poolLocation, isMainPool, clValue) {
+    if (poolLocation === 'Forest Lake' && !isMainPool) {
+        const sanitationMethod = sanitationSettings['Forest Lake Lap Pool'] || 'bleach';
+
+        if (sanitationMethod === 'granular') {
+            if (clValue === '0') {
+                return `<strong>Raise the Cl level in the Lap Pool.</strong><br>Make sure that a skimmer has suction, then add 5 scoops of granular/shock to the skimmer. Never add more than 5 scoops to the lap pool at one time.`;
+            }
+            if (clValue === '1') {
+                return `<strong>Raise the Cl level in the Lap Pool.</strong><br>Make sure that a skimmer has suction, then add 4 scoops of granular/shock to the skimmer. Never add more than 5 scoops to the lap pool at one time.`;
+            }
+            if (clValue === '2') {
+                return `<strong>Raise the Cl level in the Lap Pool.</strong><br>Make sure that a skimmer has suction, then add 3 scoops of granular/shock to the skimmer. Never add more than 5 scoops to the lap pool at one time.`;
+            }
+            if (clValue === '10') {
+                return `<strong>Lower the Cl level of the Lap Pool.</strong><br>Ensure that the waterline is at normal height, and turn the fill line on if it is low. Always set a timer when turning on the fill line.`;
+            }
+            if (clValue === '> 10') {
+                return `<strong>Notify a supervisor of the high Cl in the Lap Pool immediately. Lower the Cl level of the Main Pool.</strong><br>Ensure that the waterline is at normal height, and turn the fill line on if it is low. Always set a timer when turning on the fill line.`;
+            }
+        }
+    }
+    return null;
+}
+
+const firebaseConfig = {
+  apiKey: "AIzaSyCRxSL2uuH6O5MFvbq0FS02zF2K_lXGvqI",
+  authDomain: "chemlog-43c08.firebaseapp.com",
+  projectId: "chemlog-43c08",
+  storageBucket: "chemlog-43c08.firebasestorage.app",
+  messagingSenderId: "554394202059",
+  appId: "1:554394202059:web:a8d5824a1d7ccdd871d04e",
+  measurementId: "G-QF5ZQ88VS2"
+};
+
+// Global variables
+let app, db;
+let allSubmissions = [];
+let filteredSubmissions = [];
+let formSubmissions = [];
+let filteredData = [];
+let paginatedData = [];
+let currentPage = 1;
+const itemsPerPage = 20;
+let isLoggedIn = false;
+let sanitationSettings = {};
+let currentView = 'form';
+
+// Define pools with secondary pools ONCE
+const POOLS_WITH_SECONDARY = ['Forest Lake', 'Columbia CC', 'CC of Lexington', 'Wildewood', 'Quail Hollow', 'Rockbridge', 'Winchester'];
+
+// Default supervisor credentials
+const supervisorCredentials = {
+    email: 'capitalcity',
+    password: '$ummer2025'
+};
+
+// Add this right after your global variables:
+
+// Error handling to catch JavaScript errors
+window.addEventListener('error', function(e) {
+    console.error('JavaScript Error:', e.error);
+    console.error('At line:', e.lineno);
+    console.error('In file:', e.filename);
+});
+
+// Add console log to verify script is loading
+console.log('🔥 Pool Chemistry App - Script Starting to Load 🔥');
+
+// ===================================================
+// FIXED DASHBOARD DATA TABLE FUNCTIONS
+// ===================================================
+
+async function initializeSanitationSettings() {
+    const pools = ['Camden CC', 'CC of Lexington', 'Columbia CC', 'Forest Lake', 'Forest Lake Lap Pool', 'Quail Hollow', 'Rockbridge', 'Wildewood', 'Winchester'];
+    const statusDiv = document.getElementById('firebaseStatus');
+    
+    console.log('Initializing sanitation settings...');
+    updateFirebaseStatus('');
+    
+    // Set defaults first
+    pools.forEach(pool => {
+        sanitationSettings[pool] = 'bleach';
+    });
+
+    try {
+        if (db) {
+            // Use Firebase v9 syntax
+            const settingsRef = window.firebaseModules.doc(db, 'settings', 'sanitationMethods');
+            const settingsDoc = await window.firebaseModules.getDoc(settingsRef);
+            
+            if (settingsDoc.exists()) {
+                const firebaseSettings = settingsDoc.data();
+                Object.assign(sanitationSettings, firebaseSettings);
+                console.log('Successfully loaded sanitation settings from Firebase v9:', sanitationSettings);
+                updateFirebaseStatus('');
+            } else {
+                console.log('No Firebase settings found, saving defaults');
+                await window.firebaseModules.setDoc(settingsRef, sanitationSettings);
+                updateFirebaseStatus('Default settings saved to cloud');
+            }
+        } else {
+            throw new Error('Database not initialized');
+        }
+    } catch (error) {
+        console.warn('Could not load settings from Firebase v9, using localStorage fallback:', error);
+        updateFirebaseStatus('Using local settings (offline)');
+        
+        // Fallback to localStorage
+        const saved = localStorage.getItem('sanitationSettings');
+        if (saved) {
+            sanitationSettings = JSON.parse(saved);
+            console.log('Loaded sanitation settings from localStorage fallback:', sanitationSettings);
+        } else {
+            localStorage.setItem('sanitationSettings', JSON.stringify(sanitationSettings));
+            console.log('Saved default settings to localStorage');
+        }
+    }
+    
+    console.log('Final sanitationSettings after initialization:', sanitationSettings);
+    updateSanitationUI();
+    
+    // Hide status after 3 seconds
+    setTimeout(() => {
+        if (statusDiv) statusDiv.style.display = 'none';
+    }, 3000);
+}
+
+function startSanitationSettingsListener() {
+    if (!db || !window.firebaseModules) {
+        console.warn("Firebase not initialized for sanitation settings listener.");
+        return;
+    }
+
+    const settingsRef = window.firebaseModules.doc(db, 'settings', 'sanitationMethods');
+
+    window.firebaseModules.onSnapshot(settingsRef, (docSnapshot) => {
+        if (docSnapshot.exists()) {
+            sanitationSettings = docSnapshot.data();
+            console.log('Sanitation settings updated from Firestore:', sanitationSettings);
+            updateSanitationCheckboxesFromSettings();
+        } else {
+            console.warn('Sanitation settings document does not exist.');
+        }
+    });
+}
+
+function applySanitationSettingsToCheckboxes() {
+    Object.entries(sanitationSettings).forEach(([pool, method]) => {
+        const bleachCheckbox = document.querySelector(`[data-pool="${pool}"][data-method="bleach"]`);
+        const granularCheckbox = document.querySelector(`[data-pool="${pool}"][data-method="granular"]`);
+        if (bleachCheckbox && granularCheckbox) {
+            bleachCheckbox.checked = method === 'bleach';
+            granularCheckbox.checked = method === 'granular';
+        }
+    });
+}
+
+// Load form submissions from localStorage
+function loadFormSubmissions() {
+    const saved = localStorage.getItem('formSubmissions');
+    if (saved) {
+        try {
+            formSubmissions = JSON.parse(saved);
+            console.log(`Loaded ${formSubmissions.length} submissions from localStorage`);
+        } catch (error) {
+            console.error('Error loading saved submissions:', error);
+            formSubmissions = [];
+        }
+    } else {
+        console.log('No saved submissions found');
+    }
+}
+
+function cleanupTestSubmissions() {
+    const now = Date.now();
+    const FIVE_MINUTES = 5 * 60 * 1000;
+
+    // Filter and delete from localStorage
+    formSubmissions = formSubmissions.filter(submission => {
+        const isTest = submission.firstName === 'TEST';
+        const isExpired = now - new Date(submission.timestamp).getTime() > FIVE_MINUTES;
+
+        if (isTest && isExpired) {
+            console.log(`🧹 Deleted expired TEST submission (ID: ${submission.id})`);
+            return false; // Remove from list
+        }
+
+        return true;
+    });
+
+    localStorage.setItem('formSubmissions', JSON.stringify(formSubmissions));
+}
+
+function organizePaginatedData(data) {
+    if (data.length === 0) return [];
+
+    const sortedData = [...data].sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp));
+    
+    // Page 0: Most recent per pool, sorted alphabetically
+    const page0Map = new Map();
+    for (let item of sortedData) {
+        if (!page0Map.has(item.poolLocation)) {
+            page0Map.set(item.poolLocation, item);
+        }
+    }
+    const page0 = Array.from(page0Map.values()).sort((a, b) => a.poolLocation.localeCompare(b.poolLocation));
+
+    // Pages 1+: group by pool + date
+    const grouped = {};
+    for (let item of sortedData) {
+        const dateOnly = new Date(item.timestamp).toLocaleDateString();
+        const key = `${item.poolLocation}__${dateOnly}`;
+        if (!grouped[key]) grouped[key] = [];
+        grouped[key].push(item);
+    }
+
+    const groupKeys = Object.keys(grouped).sort((a, b) => {
+        const [poolA, dateA] = a.split('__');
+        const [poolB, dateB] = b.split('__');
+
+        // Sort by pool alphabetically first, then by date descending
+        const poolCompare = poolA.localeCompare(poolB);
+        if (poolCompare !== 0) return poolCompare;
+        return new Date(dateB) - new Date(dateA);
+    });
+
+    const pages = [page0];
+    for (let key of groupKeys) {
+        const submissions = grouped[key];
+        const sortedSubmissions = submissions.sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp));
+        pages.push(sortedSubmissions);
+    }
+
+    return pages;
+}
+
+// Initialize form submissions on app start
+function initializeFormSubmissions() {
+    loadFormSubmissions(); // Load from localStorage
+
+    // Remove test entries first
+    cleanupTestSubmissions();
+
+    // Remove entries with missing or blank pool names
+    formSubmissions = formSubmissions.filter(sub => sub.poolLocation && sub.poolLocation.trim() !== '');
+
+    // Save cleaned data back to localStorage
+    localStorage.setItem('formSubmissions', JSON.stringify(formSubmissions));
+
+    console.log(`Initialized with ${formSubmissions.length} cleaned form submissions`);
+}
+
+
+// Firebase v9 initialization using globally available modules
+function initializeFirebase() {
+    try {
+        // Check if Firebase v9 modules are loaded
+        if (typeof window.firebaseModules === 'undefined') {
+            updateFirebaseStatus('Firebase v9 SDK not loaded', true);
+            console.error('Firebase v9 not loaded - check script tags');
+            return false;
+        }
+        
+        // Initialize Firebase app using v9 syntax
+        app = window.firebaseModules.initializeApp(firebaseConfig);
+        
+        // Initialize Firestore using v9 syntax
+        db = window.firebaseModules.getFirestore(app);
+        
+        updateFirebaseStatus('✅ Firebase v9 connected successfully');
+        console.log('Firebase v9 initialized successfully');
+        
+        // Load and sync sanitation settings
+        initializeSanitationSettings();
+        startSanitationSettingsListener();
+
+        return true;
+    } catch (error) {
+        console.error('Firebase v9 initialization error:', error);
+        updateFirebaseStatus(`❌ Firebase error: ${error.message}`, true);
+        return false;
+    }
+}
+
+// Updated loadDashboardData to work with both Firebase and localStorage
+function loadDashboardData() {
+    console.log('Loading dashboard data...');
+    
+    // First, ensure we have local data loaded
+    loadFormSubmissions();
+    
+    if (db) {
+        try {
+            // Create query using v9 syntax
+            const q = window.firebaseModules.query(
+                window.firebaseModules.collection(db, 'poolSubmissions'),
+                window.firebaseModules.orderBy('timestamp', 'desc')
+            );
+            
+            // Set up real-time listener using v9 syntax
+            const unsubscribe = window.firebaseModules.onSnapshot(q, (querySnapshot) => {
+                const firebaseSubmissions = [];
+                querySnapshot.forEach((docSnapshot) => {
+                    const data = docSnapshot.data();
+                    data.id = docSnapshot.id;
+                    // Convert Firestore timestamp to JavaScript Date
+                    if (data.timestamp && data.timestamp.toDate) {
+                        data.timestamp = data.timestamp.toDate();
+                    }
+                    firebaseSubmissions.push(data);
+                });
+                
+                console.log('Loaded from Firebase v9:', firebaseSubmissions.length);
+                
+                // Combine Firebase data with local formSubmissions
+                allSubmissions = [...firebaseSubmissions];
+                
+                // Add local submissions that might not be in Firebase yet
+                formSubmissions.forEach(localSubmission => {
+                    const exists = allSubmissions.find(sub => sub.id === localSubmission.id);
+                    if (!exists) {
+                        // Convert timestamp string to Date object if needed
+                        if (typeof localSubmission.timestamp === 'string') {
+                            localSubmission.timestamp = new Date(localSubmission.timestamp);
+                        }
+                        allSubmissions.push(localSubmission);
+                    }
+                });
+                
+                updateFirebaseStatus(`Loaded ${allSubmissions.length} total submissions`);
+                
+                // Apply current filters and update display
+                if (isLoggedIn) {
+                    filterAndDisplayData();
+                }
+            }, (error) => {
+                console.error('Error loading from Firebase v9: ', error);
+                updateFirebaseStatus('Using local data only', true);
+                // Fall back to local data only
+                useLocalDataOnly();
+            });
+            
+        } catch (error) {
+            console.error('Error setting up Firebase v9 listener: ', error);
+            updateFirebaseStatus('Using local data only', true);
+            useLocalDataOnly();
+        }
+    } else {
+        console.log('No Firebase connection, using local data only');
+        useLocalDataOnly();
+    }
+}
+
+async function confirmClearData() {
+    const input = prompt(
+        'WARNING: This will permanently delete ALL chemistry log data.\n\nType "DELETE" (in all caps) to confirm.'
+    );
+
+    if (input !== "DELETE") {
+        alert("Data purge cancelled.");
+        return;
+    }
+
+    try {
+        if (!db || !window.firebaseModules) {
+            throw new Error("Firebase is not initialized.");
+        }
+
+        const collectionRef = window.firebaseModules.collection(db, 'formSubmissions');
+
+        let totalDeleted = 0;
+        let deletedThisRound;
+
+        do {
+            const snapshot = await window.firebaseModules.getDocs(
+                window.firebaseModules.query(
+                    collectionRef,
+                    window.firebaseModules.orderBy('timestamp'),
+                    window.firebaseModules.limit(500)
+                )
+            );
+
+            if (snapshot.empty) break;
+
+            const batch = window.firebaseModules.writeBatch(db);
+
+            snapshot.docs.forEach((doc) => {
+                batch.delete(doc.ref);
+            });
+
+            await batch.commit();
+            deletedThisRound = snapshot.size;
+            totalDeleted += deletedThisRound;
+
+            console.log(`Deleted ${deletedThisRound} documents in this batch...`);
+
+        } while (deletedThisRound === 500); // Keep going if maxed out
+
+        alert(`Deleted ${totalDeleted} chemistry log entries successfully.`);
+        
+        // Optional: Refresh dashboard view
+        if (typeof fetchAndRenderData === 'function') {
+            loadDashboardData();
+        }
+
+    } catch (error) {
+        console.error("Error clearing dashboard data:", error);
+        alert("Failed to delete data. Check the console for details.");
+    }
+}
+
+// Fallback function for local data only
+function useLocalDataOnly() {
+    loadFormSubmissions();
+    allSubmissions = [...formSubmissions];
+    
+    // Convert timestamp strings to Date objects if needed
+    allSubmissions.forEach(submission => {
+        if (typeof submission.timestamp === 'string') {
+            submission.timestamp = new Date(submission.timestamp);
+        }
+    });
+    
+    console.log('Using local data:', allSubmissions.length, 'submissions');
+    updateFirebaseStatus(`Using local data: ${allSubmissions.length} submissions`);
+    
+    if (isLoggedIn) {
+        filterAndDisplayData();
+    }
+}
+
+// Updated filter and display function
+function filterAndDisplayData() {
+    console.log('Filtering and displaying data...');
+    
+    // Apply filters
+    const poolFilter = document.getElementById('poolFilter')?.value || '';
+    const dateFilter = document.getElementById('dateFilter')?.value || '';
+    const dashboard = document.getElementById('supervisorDashboard');
+        if (dashboard) {
+            dashboard.style.display = 'block'; // or 'flex' or whatever it should be
+        }
+
+    filteredSubmissions = allSubmissions.filter(submission => {
+        let passesFilter = true;
+        
+        // Pool filter
+        if (poolFilter && submission.poolLocation !== poolFilter) {
+            passesFilter = false;
+        }
+        
+        // Date filter
+        if (dateFilter) {
+            const filterDate = new Date(dateFilter);
+            const submissionDate = new Date(submission.timestamp);
+            if (submissionDate.toDateString() !== filterDate.toDateString()) {
+                passesFilter = false;
+            }
+        }
+        
+        return true;
+    });
+    
+    console.log('Filtered submissions:', filteredSubmissions.length);
+    
+    // Create paginated data
+    paginatedData = organizePaginatedData(filteredSubmissions);
+    currentPage = 0; // Start with page 0 (most recent)
+    
+    console.log('Paginated data pages:', paginatedData.length);
+    
+    // Display the data
+    displayData();
+    updatePaginationControls();
+}
+
+function getHighlightColor(value, type) {
+    if (!value || value === 'N/A' || value === '') return null;
+    
+    const valueStr = value.toString().trim();
+    
+    if (type === 'pH') {
+        if (valueStr.startsWith('< 7.0' || valueStr === '< 7.0' || 
+            valueStr.startsWith('> 8.0') || valueStr === '> 8.0' ||
+            valueStr === '7.8' || valueStr === '8.0')) {
+            return 'red';
+        }
+        const numValue = parseFloat(valueStr.replace(/[<>]/g, ''));
+        if (!isNaN(numValue)) {
+            if (numValue < 7.0 || numValue === 7.8 || numValue === 8.0 || numValue > 8.0) return 'red';
+            if (numValue === 7.0 || numValue === 7.6) return 'yellow';
+        }
+        return null;
+    }
+    
+    if (type === 'cl') {
+        if (valueStr.startsWith('> 10' || valueStr === '> 10' ||
+            valueStr.startsWith('>10') || valueStr === '>10' ||
+            valueStr === '0' || valueStr === '10')) {
+            return 'red';
+        }
+        const numValue = parseFloat(valueStr.replace(/[<>]/g, ''));
+        if (!isNaN(numValue)) {
+            if (numValue === 0 || numValue === 10 || numValue > 10) return 'red';
+            if ((numValue > 0 && numValue < 3) || (numValue > 5 && numValue < 10)) return 'yellow';
+        }
+        return null;
+    }
+    
+    return null;
+}
+
+function getPoolWarningLevel(mainPH, mainCl, secondaryPH, secondaryCl) {
+    const values = [
+        { value: mainPH, type: 'pH' },
+        { value: mainCl, type: 'cl' },
+        { value: secondaryPH, type: 'pH' },
+        { value: secondaryCl, type: 'cl' }
+    ];
+    
+    let hasRed = false;
+    let hasYellow = false;
+    
+    values.forEach(item => {
+        const color = getHighlightColor(item.value, item.type);
+        if (color === 'red') hasRed = true;
+        if (color === 'yellow') hasYellow = true;
+    });
+    
+    if (hasRed) return 'red';
+    if (hasYellow) return 'yellow';
+    return null;
+}
+
+function isMoreThan3HoursOld(timestamp) {
+    const now = new Date();
+    const submissionTime = new Date(timestamp);
+    const threeHoursAgo = new Date(now.getTime() - (3 * 60 * 60 * 1000));
+    return submissionTime < threeHoursAgo;
+}
+
+function updateTimestampNote() {
+    const existingNote = document.getElementById('timestampNote');
+    if (existingNote) {
+        // Show the note only on page 0 (most recent)
+        existingNote.style.display = currentPage === 0 ? 'block' : 'none';
+    }
+}
+
+function updatePaginationControls() {
+    const prevBtn = document.getElementById('prevBtn');
+    const nextBtn = document.getElementById('nextBtn');
+    const pageInfo = document.getElementById('pageInfo');
+    
+    if (!prevBtn || !nextBtn || !pageInfo) return;
+    
+    if (paginatedData.length <= 1) {
+        document.getElementById('pagination').style.display = 'none';
+        return;
+    }
+    
+    document.getElementById('pagination').style.display = 'flex';
+    
+    // Update button states
+    prevBtn.disabled = currentPage === 0;
+    prevBtn.style.opacity = currentPage === 0 ? '0.5' : '1';
+    prevBtn.style.cursor = currentPage === 0 ? 'not-allowed' : 'pointer';
+    
+    nextBtn.disabled = currentPage >= paginatedData.length - 1;
+    nextBtn.style.opacity = currentPage >= paginatedData.length - 1 ? '0.5' : '1';
+    nextBtn.style.cursor = currentPage >= paginatedData.length - 1 ? 'not-allowed' : 'pointer';
+    
+    // Update page info
+    const currentPageData = paginatedData[currentPage];
+    const pageDisplayText = currentPage === 0 
+        ? `Recent (${currentPageData.length})` 
+        : `${new Date(currentPageData[0].timestamp).toLocaleDateString()} (${currentPageData.length})`;
+    
+    pageInfo.textContent = pageDisplayText;
+}
+
+// Updated displayData function
+function displayData() {
+    console.log('displayData called');
+    console.log('allSubmissions length:', allSubmissions.length);
+    console.log('paginatedData length:', paginatedData.length);
+    console.log('currentPage:', currentPage);
+    
+    const tbody1 = document.getElementById('dataTableBody1');
+    const tbody2 = document.getElementById('dataTableBody2');
+
+    // 🧼 Clear previous rows
+    tbody1.innerHTML = '';
+    tbody2.innerHTML = '';
+
+    console.log('tbody1 found:', !!tbody1);
+    console.log('tbody2 found:', !!tbody2);
+
+    if (paginatedData.length === 0 || !paginatedData[currentPage]) {
+        tbody1.innerHTML = '<tr><td colspan="4" style="text-align: center; padding: 30px; color: #666;">No data found</td></tr>';
+        tbody2.innerHTML = '<tr><td colspan="4" style="text-align: center; padding: 30px; color: #666;">No data found</td></tr>';
+        return;
+    }
+
+    // ... (rest of your existing loop and rendering logic)
+}
+
+
+function evaluateFormFeedback() { // Remove formData parameter
+    const poolLocation = document.getElementById('poolLocation').value;
+    const mainPH = document.getElementById('mainPoolPH').value;
+    const mainCl = document.getElementById('mainPoolCl').value;
+    const secPH = document.getElementById('secondaryPoolPH').value;
+    const secCl = document.getElementById('secondaryPoolCl').value;
+    const mainSanitizer = document.querySelector(
+        `.sanitation-checkbox[data-pool="${poolLocation}"]:checked`
+        )?.dataset.method || '';
+    const secondarySanitizer = document.getElementById('secondarySanitizerMethod')?.value || '';
+    
+    // DEBUG LOGS - Remove after testing
+    console.log('=== DEBUG INFO ===');
+    console.log('Pool Location:', `"${poolLocation}"`);
+    console.log('Secondary pH:', `"${secPH}"`);
+    console.log('Pool Location === "Quail Hollow":', poolLocation === 'Quail Hollow');
+    console.log('Secondary pH === "7.8":', secPH === '7.8');
+    
+    // Initialize messages array locally
+    const messages = [];
+    let isGood = true;
+    let setpointImgNeeded = false;
+
+    // Check main pool pH (7.0 is acceptable, 7.6 and 7.8 require lowering for main pools)
+    if (mainPH === '< 7.0' || mainPH === '7.6' || mainPH === '7.8' || mainPH === '8.0' || mainPH === '> 8.0') {
+        isGood = false;
+        if (mainPH === '< 7.0') {
+            messages.push('<strong>Notify a supervisor of the low pH in the Main Pool immediately.<br>Raise the pH of the Main Pool.</strong><br>Ensure that the waterline is at normal height, and turn the fill line on if it is low. Always set a timer when turning on the fill line.');
+        } else if (mainPH === '7.6' || mainPH === '7.8') {
+            messages.push('<strong>Lower the pH of the Main Pool.</strong><br>Add 1 gallon of acid below a skimmer basket. Always check for suction before pouring.');
+        } else if (mainPH === '8.0' || mainPH === '> 8.0') {
+            messages.push('<strong>Lower the pH of the Main Pool.</strong><br>Add 2 gallons of acid below a skimmer basket. Always check for suction before pouring.');
+        }
+    }
+    
+// Check main pool Cl using granular/bleach logic
+const granularMainResponse = getClResponse(poolLocation, true, mainCl);
+// Main pool Cl granular method feedback
+if (mainSanitizer === 'granular') {
+    if (mainCl === '0') {
+        messages.push('<strong>Raise the Cl level in the Main Pool.</strong><br>Make sure that a skimmer has suction, then add 6 scoops of granular/shock to the skimmer. Never add more than 6 scoops at one time.');
+        isGood = false;
+    } else if (mainCl === '1') {
+        messages.push('<strong>Raise the Cl level in the Main Pool.</strong><br>Make sure that a skimmer has suction, then add 5 scoops of granular/shock to the skimmer. Never add more than 6 scoops at one time.');
+        isGood = false;
+    } else if (mainCl === '2') {
+        messages.push('<strong>Raise the Cl level in the Main Pool.</strong><br>Make sure that a skimmer has suction, then add 4 scoops of granular/shock to the skimmer. Never add more than 6 scoops at one time.');
+        isGood = false;
+    } else if (mainCl === '10') {
+        messages.push('<strong>Lower the Cl level of the Main Pool.</strong><br>Turn the Cl feeder off, and set a timer to turn it back on. Ensure that the waterline is at normal height, and turn the fill line on if it is low. Always set a timer when turning on the fill line.');
+        isGood = false;
+        setpointImgNeeded = true;
+    } else if (mainCl === '> 10') {
+        messages.push('<strong>Notify a supervisor of the high Cl in the Main Pool immediately. Lower the Cl level of the Main Pool.</strong><br>Turn the Cl feeder off, and set a timer to turn it back on. Ensure that the waterline is at normal height, and turn the fill line on if it is low. Always set a timer when turning on the fill line.');
+        isGood = false;
+        setpointImgNeeded = true;
+    }
+
+} else {
+    // Bleach method fallback for main pool Cl
+    if (mainCl === '0' || mainCl === '1' || mainCl === '2') {
+        messages.push('<strong>Raise the Cl level in the Main Pool.</strong><br>If not handled the previous hour, change the Cl feeder rate according to the setpoint chart to raise the Cl level.');
+        messages.push('<img src="setpoint.jpeg" alt="Setpoint Chart" style="max-width: 100%; height: auto; margin-top: 10px;">');
+        isGood = false;
+        setpointImgNeeded = true;
+    } else if (mainCl === '10') {
+        messages.push('<strong>Lower the Cl level of the Main Pool.</strong><br>Turn the Cl feeder off, and set a timer to turn it back on. Ensure that the waterline is at normal height, and turn the fill line on if it is low. Always set a timer when turning on the fill line.');
+        isGood = false;
+        setpointImgNeeded = true;
+    } else if (mainCl === '> 10') {
+        messages.push('<strong>Notify a supervisor of the high Cl in the Main Pool immediately. Lower the Cl level of the Main Pool.</strong><br>Turn the Cl feeder off, and set a timer to turn it back on. Ensure that the waterline is at normal height, and turn the fill line on if it is low. Always set a timer when turning on the fill line.');
+        isGood = false;
+        setpointImgNeeded = true;
+    }
+}
+
+    
+    // Check secondary pool if not Camden CC
+    if (poolLocation !== 'Camden CC') {
+        // Check secondary pH - different rules for Forest Lake vs other pools
+        if (poolLocation === 'Forest Lake') {
+            // For Forest Lake secondary pool: 7.0 is acceptable, 7.6 and 7.8 require lowering (same as main pools)
+            if (secPH === '< 7.0' || secPH === '7.6' || secPH === '7.8' || secPH === '8.0' || secPH === '> 8.0') {
+                isGood = false;
+                if (secPH === '< 7.0') {
+                    messages.push('<strong>Notify a supervisor of the low pH in the lap pool immediately. Raise the pH of the Lap Pool.</strong><br>Ensure that the waterline is at normal height, and turn the fill line on if it is low. Always set a timer when turning on the fill line.');
+                } else if (secPH === '7.6' || secPH === '7.8') {
+                    messages.push('<strong>Lower the pH of the Lap Pool.</strong><br>Add 1 gallon of acid below a skimmer basket. Always check for suction before pouring.');
+                } else if (secPH === '8.0' || secPH === '> 8.0') {
+                    messages.push('<strong>Lower the pH of the Lap Pool.</strong><br>Add 2 gallons of acid below a skimmer basket. Always check for suction before pouring.');
+                }
+            }
+        } else {
+            // For all other secondary pools: 7.0 and 7.6 are acceptable, only 7.8 and higher require lowering
+            if (secPH === '< 7.0' || secPH === '7.8' || secPH === '8.0' || secPH === '> 8.0') {
+                isGood = false;
+                if (secPH === '< 7.0') {
+                    // Handle low pH cases
+                    if (poolLocation === 'Columbia CC') {
+                        messages.push('<strong>Raise the pH of the Baby Pool.</strong><br>Sprinkle 1.5 tablespoons of soda ash in the pool itself. It is not harmful.');
+                    } else if (poolLocation === 'Wildewood') {
+                        messages.push('<strong>Notify a supervisor of the low pH in the Splash Pad immediately. Wait for assistance.</strong><br>');
+                    } else {
+                        messages.push('<strong>Raise the pH of the Baby Pool.</strong><br>Ensure that the waterline is at normal height, and turn the fill line on if it is low. Always set a timer when turning on the fill line.');
+                    }
+                } else if (secPH === '7.8') { 
+                    // Handle 7.8 pH cases
+                    if (poolLocation === 'CC of Lexington') {
+                        messages.push('<strong>Lower the pH of the Baby Pool.</strong><br>Add a small splash (~1.5 tablespoons of acid) below a skimmer basket. Always check for suction before pouring.');
+                    } else if (poolLocation === 'Columbia CC') {
+                        messages.push('<strong>Lower the pH of the Baby Pool.</strong><br>Add 1/8 scoop of acid below a skimmer basket. Always check for suction before pouring.');
+                    } else if (poolLocation === 'Quail Hollow') {
+                        messages.push('<strong>Lower the pH of the Baby Pool.</strong><br>Add 1/8 scoop of acid below a skimmer basket. Always check for suction before pouring.');
+                    } else if (poolLocation === 'Rockbridge') {
+                        messages.push('<strong>Lower the pH of the Baby Pool.</strong><br>Add a small splash (~1.5 tablespoons) of acid below a skimmer basket. Always check for suction before pouring.');
+                    } else if (poolLocation === 'Wildewood') {
+                        messages.push('<strong>Lower the pH of the Splash Pad.</strong><br>Add 1/6 scoop of acid into the Splash Pad tank. Always ensure that the pump is on before pouring.');
+                    } else if (poolLocation === 'Winchester') {
+                        messages.push('<strong>Lower the pH of the Baby Pool.</strong><br>Add 1/6 scoop of acid below a skimmer basket. Always check for suction before pouring.');
+                    } else {
+                        // Fallback for any other pools
+                        messages.push('<strong>Lower the pH of the Baby Pool.</strong><br>Add 1 gallon of acid below a skimmer basket. Always check for suction before pouring.');
+                    }
+                } else if (secPH === '8.0' || secPH === '> 8.0') {
+                    // Double the acid amounts for 8.0 and > 8.0
+                    if (poolLocation === 'CC of Lexington') {
+                        messages.push('<strong>Lower the pH of the Baby Pool.</strong><br>Add a medium splash of acid below a skimmer basket. Always check for suction before pouring.');
+                    } else if (poolLocation === 'Columbia CC') {
+                        messages.push('<strong>Lower the pH of the Baby Pool.</strong><br>Add 1/4 scoop of acid below a skimmer basket. Always check for suction before pouring.');
+                    } else if (poolLocation === 'Quail Hollow') {
+                        messages.push('<strong>Lower the pH of the Baby Pool.</strong><br>Add 1/4 scoop of acid below a skimmer basket. Always check for suction before pouring.');
+                    } else if (poolLocation === 'Rockbridge') {
+                        messages.push('<strong>Lower the pH of the Baby Pool.</strong><br>Add a medium splash of acid below a skimmer basket. Always check for suction before pouring.');
+                    } else if (poolLocation === 'Wildewood') {
+                        messages.push('<strong>Lower the pH of the Splash Pad.</strong><br>Add 1/3 scoop of acid into the Splash Pad tank. Always ensure that the pump is on before pouring.');
+                    } else if (poolLocation === 'Winchester') {
+                        messages.push('<strong>Lower the pH of the Baby Pool.</strong><br>Add 1/3 scoop of acid basket. Always check for suction before pouring.');
+                    } else {
+                        // Fallback for any other pools
+                        messages.push('<strong>Lower the pH of the Secondary Pool.</strong><br>Add 2 gallons of acid below a skimmer basket. Always check for suction before pouring.');
+                    }
+                }
+            }
+        }
+        
+        // Check secondary Cl (only for Forest Lake)
+        if (poolLocation === 'Forest Lake') {
+            const granularSecResponse = getClResponse(poolLocation, false, secCl);
+            if (granularSecResponse) {
+                messages.push(granularSecResponse);
+                isGood = false;
+                if (granularSecResponse.includes('notify a supervisor')) {
+                    setpointImgNeeded = true;
+                }
+            } else {
+                // Bleach method for Forest Lake secondary pool - RESTORED ORIGINAL MESSAGES
+                if (secCl === '0' || secCl === '1' || secCl === '2') {
+                    messages.push('<strong>Raise the Cl level in the Lap Pool.</strong><br>If not handled the previous hour, change the Cl feeder rate according to the setpoint chart.');
+                    messages.push('<img src="setpoint.jpeg" alt="Setpoint Chart" style="max-width: 100%; height: auto; margin-top: 10px;">');
+                    isGood = false;
+                    setpointImgNeeded = true;
+                } else if (secCl === '10') {
+                    messages.push('<strong>Lower the Cl level of the lap pool.</strong><br>Turn the Cl feeder off, and set a timer to turn it back on. Ensure that the waterline is at normal height, and turn the fill line on if it is low. Always set a timer when turning on the fill line.');
+                    isGood = false;
+                    setpointImgNeeded = true;
+                } else if (secCl === '> 10') {
+                    messages.push('<strong>Notify a supervisor of the high Cl in the Lap Pool immediately. Lower the Cl level of the lap pool.</strong><br>Turn the Cl feeder off, and set a timer to turn it back on. Ensure that the waterline is at normal height, and turn the fill line on if it is low. Always set a timer when turning on the fill line.');
+                    isGood = false;
+                    setpointImgNeeded = true;
+                }
+            }
+        } else {
+            // General rules for secondary pools (excluding Forest Lake)
+            switch (secCl) {
+                case '0':
+                    switch (poolLocation) {
+                        case 'Columbia CC':
+                            messages.push('<strong>Raise the Cl level in the Baby Pool.</strong><br>Ensure that there are 2 total Cl tablets below a skimmer basket.');
+                            break;
+                        case 'CC of Lexington':
+                            messages.push('<strong>Raise the Cl level in the Baby Pool.</strong><br>Ensure that there is 1 total Cl tablet below a skimmer basket.');
+                            break;
+                        case 'Quail Hollow':
+                            messages.push('<strong>Raise the Cl level in the Baby Pool.</strong><br>Ensure that there are 1.5 total Cl tablets below a skimmer basket.');
+                            break;
+                        case 'Rockbridge':
+                            messages.push('<strong>Raise the Cl level in the Baby Pool.</strong><br>Ensure that there are 1.5 total Cl tablets below a skimmer basket.');
+                            break;
+                        case 'Wildewood':
+                            messages.push('<strong>Raise the Cl level in the Baby Pool.</strong><br>Ensure that there are 1.5 total Cl tablets below a skimmer basket.');
+                            break;
+                        case 'Rockbridge':
+                            messages.push('<strong>Raise the Cl level in the Baby Pool.</strong><br>Ensure that there are 1.5 total Cl tablets below a skimmer basket.');
+                            break;
+                        case 'Wildewood':
+                            messages.push('<strong>Raise the Cl level in the Splash Pad.</strong><br>Add 1/4 scoop of shock/granular Cl to an empty bucket, then fill it with water. Carefully swirl the water to dissolve the shock, then pour it into the Splash Pad tank.');
+                            break;
+                        case 'Winchester':
+                            messages.push('<strong>Raise the Cl level in the Baby Pool.</strong><br>Ensure that there are 4 total Cl tablets below a skimmer basket.');
+                            break;
+                    }
+                    break;
+
+                case '10':
+                    switch (poolLocation) {
+                        case 'Columbia CC':
+                        case 'CC of Lexington':
+                        case 'Quail Hollow':
+                        case 'Rockbridge':
+                        case 'Winchester':
+                            messages.push('<strong>Lower the Cl level in the Baby Pool.</strong><br>Remove all Cl tablets from the skimmers until Cl levels have subsided.');
+                            break;
+                        case 'Wildewood':
+                            messages.push('<strong>Do not add any more shock/granular to the Splash Pad tank.</strong><br>Cl levels should subside within two hours.');
+                            break;
+                    }
+                    break;
+
+                case '> 10':
+                    switch (poolLocation) {
+                        case 'Columbia CC':
+                        case 'CC of Lexington':
+                        case 'Quail Hollow':
+                        case 'Rockbridge':
+                        case 'Winchester':
+                            messages.push('<strong>Notify a supervisor of the high Cl in the Baby Pool immediately. Lower the Cl level in the Baby Pool.</strong><br>Remove all Cl tablets from the skimmers until Cl levels have subsided.');
+                            break;
+                        case 'Wildewood':
+                            messages.push('<strong>Notify a supervisor of the high Cl in the Splash Pad immediately. Do not add any more shock/granular to the Splash Pad tank.</strong><br>Cl levels should subside within two hours.');
+                            break;
+                    }
+                    break;
+            }
+        }
+    }
+    
+    // Show feedback modal
+    if (messages.length > 0) {
+        // If there are messages, show the modal with checkboxes
+        showFeedbackModal(messages, false, setpointImgNeeded);
+    } else if (isGood) {
+        // If all values are good, show the modal without checkboxes
+        showFeedbackModal(['All water chemistry values are within acceptable ranges.'], true);
+    }
+    
+    // Create submission object
+    const submission = {
+        id: Date.now(),
+        timestamp: new Date(),
+        firstName: document.getElementById('firstName').value,
+        lastName: document.getElementById('lastName').value,
+        poolLocation: document.getElementById('poolLocation').value,
+        mainPoolPH: document.getElementById('mainPoolPH').value,
+        mainPoolCl: document.getElementById('mainPoolCl').value,
+        secondaryPoolPH: poolLocation === 'Camden CC' ? 'N/A' : document.getElementById('secondaryPoolPH').value,
+        secondaryPoolCl: poolLocation === 'Camden CC' ? 'N/A' : document.getElementById('secondaryPoolCl').value
+    };
+    
+    // Save to local storage first
+    formSubmissions.push(submission);
+    saveFormSubmissions();
+    
+    // Try to save to Firebase v9
+    if (db) {
+        try {
+            window.firebaseModules.addDoc(
+            window.firebaseModules.collection(db, 'poolSubmissions'), 
+            {
+             ...submission,
+              timestamp: window.firebaseModules.Timestamp.fromDate(submission.timestamp)
+            }
+            ).then(() => {
+    console.log('Submission saved to Firebase v9');
+}).catch((error) => {
+    console.warn('Could not save to Firebase v9:', error);
+});
+        } catch (error) {
+            console.warn('Could not save to Firebase v9:', error);
+        }
+    }
+    
+    showMessage('Submission saved successfully!', 'success');
+    
+    if (document.getElementById('supervisorDashboard').style.display === 'block') {
+        loadDashboardData();
+    }
+    
+    resetForm();
+}
+
+// ===================================================
+// FIREBASE INITIALIZATION
+// ===================================================
+
+// Validate Firebase config
+function validateFirebaseConfig() {
+    const requiredFields = ['apiKey', 'authDomain', 'projectId', 'storageBucket', 'messagingSenderId', 'appId'];
+    for (const field of requiredFields) {
+        if (!firebaseConfig[field] || firebaseConfig[field].startsWith('YOUR_')) {
+            return false;
+        }
+    }
+    return true;
+}
+
+// ===================================================
+// SANITATION SETTINGS MANAGEMENT
+// ===================================================
+
+// Save sanitation settings to Firebase and localStorage
+async function saveSanitationSettings() {
+    try {
+        if (db) {
+            const settingsRef = window.firebaseModules.doc(db, 'settings', 'sanitationMethods');
+            await window.firebaseModules.setDoc(settingsRef, sanitationSettings);
+            console.log('Saved sanitation settings to Firebase');
+        }
+    } catch (error) {
+        console.warn('Could not save to Firebase:', error);
+    }
+    
+    // Always save to localStorage as backup
+    localStorage.setItem('sanitationSettings', JSON.stringify(sanitationSettings));
+    console.log('Saved sanitation settings to localStorage');
+}
+
+// Update UI checkboxes based on settings
+function updateSanitationUI() {
+    Object.keys(sanitationSettings).forEach(pool => {
+        const method = sanitationSettings[pool];
+        const bleachCheckbox = document.querySelector(`input[data-pool="${pool}"][data-method="bleach"]`);
+        const granularCheckbox = document.querySelector(`input[data-pool="${pool}"][data-method="granular"]`);
+        
+        if (bleachCheckbox) bleachCheckbox.checked = (method === 'bleach');
+        if (granularCheckbox) granularCheckbox.checked = (method === 'granular');
+    });
+}
+
+// Load sanitation settings into the checkboxes
+function loadSanitationSettings() {
+    console.log('Loading sanitation settings into checkboxes:', sanitationSettings);
+    const checkboxes = document.querySelectorAll('.sanitation-checkbox');
+    checkboxes.forEach(checkbox => {
+        const pool = checkbox.dataset.pool;
+        const method = checkbox.dataset.method;
+        const shouldBeChecked = sanitationSettings[pool] === method;
+        checkbox.checked = shouldBeChecked;
+        console.log(`${pool} - ${method}: ${shouldBeChecked ? 'checked' : 'unchecked'}`);
+    });
+}
+
+// ===================================================
+// FORM SUBMISSION
+// ===================================================
+
+function setupEventHandlers() {
+    // Pool location change handler
+    const poolLocation = document.getElementById('poolLocation');
+    if (poolLocation) {
+        poolLocation.addEventListener('change', handlePoolLocationChange);
+        console.log('✅ Pool location change handler attached');
+    } else {
+        console.warn('⚠️ poolLocation not found');
+    }
+
+    // Form submission button handler
+    const submitBtn = document.getElementById('submitBtn');
+    if (submitBtn) {
+        submitBtn.addEventListener('click', (e) => {
+            e.preventDefault();
+            submitForm();
+        });
+        console.log('✅ Submit button handler attached');
+    } else {
+        console.warn('⚠️ submitBtn not found');
+    }
+
+    // Clear All Data button
+    const clearDataBtn = document.getElementById('clearAllData');
+    if (clearDataBtn) {
+        clearDataBtn.addEventListener('click', confirmClearData);
+        console.log('✅ Clear All Data button handler attached');
+    } else {
+        console.warn('⚠️ clearAllData button not found');
+    }
+
+    // Export to CSV button
+    const exportCsvBtn = document.getElementById('exportCsvBtn');
+    if (exportCsvBtn) {
+        exportCsvBtn.addEventListener('click', exportToCSV);
+        console.log('✅ Export to CSV button handler attached');
+    } else {
+        console.warn('⚠️ exportCsvBtn not found');
+    }
+
+    // Close login modal on outside click
+    document.addEventListener('click', (e) => {
+        const modal = document.getElementById('loginModal');
+        if (modal && e.target === modal) {
+            closeLoginModal();
+            console.log('ℹ️ Closed login modal via outside click');
+        }
+    });
+
+    // Close login modal on Escape key
+    document.addEventListener('keydown', (e) => {
+        if (e.key === 'Escape') {
+            const modal = document.getElementById('loginModal');
+            if (modal && modal.style.display === 'block') {
+                closeLoginModal();
+                console.log('ℹ️ Closed login modal via Escape key');
+            }
+        }
+    });
+
+    console.log('✅ All event handlers set up');
+}
+
+
+
+// ===================================================
+// COMPREHENSIVE GLOBAL ASSIGNMENTS (62 Functions - Corrected)
+// ===================================================
+
+// Core form and submission functions (6)
+window.loadFormSubmissions = loadFormSubmissions;
+window.saveFormSubmissions = saveFormSubmissions;
+window.initializeFormSubmissions = initializeFormSubmissions;
+window.evaluateFormFeedback = evaluateFormFeedback;
+window.validateForm = validateForm; // Expose new validation function
+
+// Form handling (3)
+window.resetForm = resetForm;
+window.handlePoolLocationChange = handlePoolLocationChange;
+window.handleLocationChange = handleLocationChange;
+
+// Authentication and login (6)
+window.closeLoginModal = closeLoginModal;
+window.handleLoginSubmit = handleLoginSubmit;
+window.checkLogin = checkLogin;
+window.checkLoginStatus = checkLoginStatus;
+window.logout = logout;
+
+// Dashboard and data display (6)
+window.showDashboard = showDashboard;
+window.loadDashboardData = loadDashboardData;
+window.displayData = displayData;
+window.filterAndDisplayData = filterAndDisplayData;
+window.filterData = filterData;
+window.useLocalDataOnly = useLocalDataOnly;
+
+// Pagination (5)
+window.goToPreviousPage = goToPreviousPage;
+window.goToNextPage = goToNextPage;
+window.updatePagination = updatePagination;
+window.updatePaginationControls = updatePaginationControls;
+window.changePage = changePage;
+
+// Data management (4)
+window.deleteSubmission = deleteSubmission;
+window.clearAllData = clearAllData;
+window.exportToCSV = exportToCSV;
+window.organizePaginatedData = organizePaginatedData;
+
+// UI and utility functions (5)
+window.getHighlightColor = getHighlightColor;
+window.getPoolWarningLevel = getPoolWarningLevel;
+window.isMoreThan3HoursOld = isMoreThan3HoursOld;
+window.updateTimestampNote = updateTimestampNote;
+window.getClResponse = getClResponse;
+
+// Modals and overlays (5)
+window.createOrShowOverlay = createOrShowOverlay;
+window.removeOverlay = removeOverlay;
+window.closeModal = closeModal;
+window.showFeedbackModal = showFeedbackModal;
+window.showRecipientSelectionInModal = showRecipientSelectionInModal;
+
+// Messages and feedback (4)
+window.showMessage = showMessage;
+window.showFeedback = showFeedback;
+window.notifySupervisor = notifySupervisor;
+window.areAllCheckboxesChecked = areAllCheckboxesChecked;
+
+// Settings management (7)
+window.openSettings = openSettings;
+window.closeSettings = closeSettings;
+window.handleSanitationChange = handleSanitationChange;
+window.initializeSanitationSettings = initializeSanitationSettings;
+window.saveSanitationSettings = saveSanitationSettings;
+window.loadSanitationSettings = loadSanitationSettings;
+window.updateSanitationUI = updateSanitationUI;
+
+// SMS and notifications (3)
+window.sendSMSNotification = sendSMSNotification;
+window.chooseAndSendSMS = chooseAndSendSMS;
+window.checkForCriticalAlerts = checkForCriticalAlerts;
+
+// Menu and navigation (1)
+window.toggleMenu = toggleMenu;
+
+// Firebase functions (3)
+window.initializeFirebase = initializeFirebase;
+window.updateFirebaseStatus = updateFirebaseStatus;
+window.validateFirebaseConfig = validateFirebaseConfig;
+
+// Event handlers and setup (2)
+window.setupEventHandlers = setupEventHandlers;
+window.updateHeaderButtons = updateHeaderButtons;
+
+// Debug functions (2)
+window.debugApp = debugApp;
+window.debugLoginState = debugLoginState;
+
+console.log('✅ All 62 unique functions exposed globally');
+
+// ===================================================
+// FINAL COUNT VERIFICATION:
+// 6+3+6+6+5+4+5+5+4+7+3+1+3+2+2 = 62 functions total
+// ===================================================
+
+document.addEventListener("DOMContentLoaded", () => {
+    console.log('🔥🔥🔥 UNIFIED APP.JS LOADED - Firebase v9 🔥🔥🔥');
+
+ const dashboard = document.getElementById('supervisorDashboard');
+    if (dashboard) {
+        dashboard.classList.remove('show'); // make sure hidden on load
+        console.log('Dashboard force hidden on load');
+    }
+
+    const firebaseInitialized = initializeFirebase();
+
+    checkLogin();
+    initializeFormSubmissions();
+
+    // Login form
+    const loginForm = document.getElementById('loginForm');
+    if (loginForm) {
+        loginForm.addEventListener('submit', handleLoginSubmit);
+        console.log('✅ Login form handler attached');
+    }
+
+    // Pool location dropdown
+    const poolLocation = document.getElementById('poolLocation');
+    if (poolLocation) {
+        poolLocation.addEventListener('change', handlePoolLocationChange);
+        console.log('✅ Pool location handler attached');
+    }
+
+    // Login modal
+    const loginButton = document.querySelector('.supervisor-login-btn');
+    if (loginButton) {
+        loginButton.removeAttribute('onclick');
+        loginButton.addEventListener('click', openLoginModal);
+    }
+
+    const mainSanitizerDropdown = document.getElementById('mainSanitizerMethod');
+    if (mainSanitizerDropdown) {
+        mainSanitizerDropdown.addEventListener('change', function () {
+            const poolLocation = document.getElementById('poolLocation')?.value;
+            if (poolLocation) {
+                sanitationSettings[poolLocation] = this.value;
+                localStorage.setItem('sanitationSettings', JSON.stringify(sanitationSettings));
+                console.log(`Updated sanitationSettings[${poolLocation}] to:`, this.value);
+            }
+        });
+    }
+
+    // Submit button
+    const submitButton = document.querySelector('.submit-btn');
+    if (submitButton) {
+        submitButton.removeAttribute('onclick');
+        submitButton.addEventListener('click', submitForm);
+    }
+
+    // Clear data + export
+    const clearDataBtn = document.getElementById("clearAllData");
+    const exportCsvBtn = document.getElementById("exportCsvBtn");
+
+    if (clearDataBtn) {
+        clearDataBtn.addEventListener("click", confirmClearData);
+    }
+
+    if (exportCsvBtn) {
+        exportCsvBtn.addEventListener("click", exportToCSV);
+    }
+
+    setupEventHandlers();
+    updateHeaderButtons();
+
+    const editBtn = document.getElementById('editSanitationBtn');
+const saveBtn = document.getElementById('saveSanitationBtn');
+const sanitationCheckboxes = document.querySelectorAll('.sanitation-checkbox');
+
+// Disable all checkboxes on load
+sanitationCheckboxes.forEach(cb => cb.disabled = true);
+
+editBtn.addEventListener('click', () => {
+    sanitationCheckboxes.forEach(cb => cb.disabled = false);
+    editBtn.disabled = true;
+    saveBtn.disabled = false;
+});
+
+saveBtn.addEventListener('click', () => {
+    // Apply checked values to sanitationSettings
+    sanitationCheckboxes.forEach(cb => {
+        const pool = cb.dataset.pool;
+        const method = cb.dataset.method;
+        if (cb.checked) {
+            sanitationSettings[pool] = method;
+        }
+    });
+
+    // Save and re-disable checkboxes
+    saveSanitationSettings();
+    sanitationCheckboxes.forEach(cb => cb.disabled = true);
+    editBtn.disabled = false;
+    saveBtn.disabled = true;
+
+    console.log('✅ Sanitation settings saved and checkboxes disabled again');
+    });
+
+
+    console.log('🚀 App initialization complete');
+});
+
+function updateSanitationCheckboxesFromSettings() {
+    for (const pool in sanitationSettings) {
+        const method = sanitationSettings[pool];
+        const bleachCheckbox = document.querySelector(`[data-pool="${pool}"][data-method="bleach"]`);
+        const granularCheckbox = document.querySelector(`[data-pool="${pool}"][data-method="granular"]`);
+
+        if (bleachCheckbox && granularCheckbox) {
+            bleachCheckbox.checked = (method === 'bleach');
+            granularCheckbox.checked = (method === 'granular');
+        }
+    }
+}
+
+// Add all other functions you're calling in onclick attributes
+
+function createAndAppendMenu(parentElement) {
+    const menuContainer = document.createElement('div');
+    menuContainer.className = 'menu-container'; // Keep this class for styling
+
+    const menuBtn = document.createElement('button');
+    menuBtn.className = 'menu-btn';
+    menuBtn.innerHTML = '☰';
+    menuBtn.addEventListener('click', toggleMenu);
+    menuContainer.appendChild(menuBtn);
+
+    const dropdownMenu = document.createElement('div');
+    dropdownMenu.id = 'dropdownMenu';
+    dropdownMenu.className = 'dropdown-menu';
+    dropdownMenu.style.display = 'none'; // Initially hidden
+
+    const settingsDiv = document.createElement('div');
+    settingsDiv.textContent = 'Settings';
+    settingsDiv.addEventListener('click', openSettings);
+    dropdownMenu.appendChild(settingsDiv);
+
+    const clearDataDiv = document.createElement('div');
+    clearDataDiv.textContent = 'Clear All Data';
+    clearDataDiv.addEventListener('click', clearAllData);
+    dropdownMenu.appendChild(clearDataDiv);
+
+    const logoutDiv = document.createElement('div');
+    logoutDiv.textContent = 'Logout';
+    logoutDiv.addEventListener('click', logout);
+    dropdownMenu.appendChild(logoutDiv);
+
+    menuContainer.appendChild(dropdownMenu);
+    parentElement.appendChild(menuContainer); // Append to the designated parent
+}
+
+function updateHeaderButtons() {
+    console.log('Updating header buttons. isLoggedIn:', isLoggedIn, 'currentView:', currentView);
+
+    const staticFormLoginBtn = document.querySelector('.supervisor-login-btn');
+    const dashboardMenuContainer = document.getElementById('dashboardMenuContainer');
+    const dashboardHeaderRight = document.querySelector('#supervisorDashboard .header-right');
+
+    // Always show login button when on form page
+    if (currentView === 'form') {
+        if (staticFormLoginBtn) {
+            staticFormLoginBtn.style.display = 'block';
+            staticFormLoginBtn.style.visibility = 'visible';
+            // Change button text based on login status
+            staticFormLoginBtn.textContent = isLoggedIn ? 'View Dashboard' : 'Supervisor Login';
+            console.log('Login button shown on form page');
+        }
+        // Clear dashboard elements when on form
+        if (dashboardMenuContainer) dashboardMenuContainer.innerHTML = '';
+        if (dashboardHeaderRight) dashboardHeaderRight.innerHTML = '';
+        
+    } else if (currentView === 'dashboard') {
+        // Hide login button when on dashboard
+        if (staticFormLoginBtn) {
+            staticFormLoginBtn.style.display = 'none';
+            console.log('Login button hidden on dashboard');
+        }
+        
+        // Show dashboard menu if logged in
+        if (isLoggedIn) {
+            if (dashboardMenuContainer) {
+                createAndAppendMenu(dashboardMenuContainer);
+                console.log('Menu button appended to dashboard.');
+            }
+            // Note: Removed the separate logout button creation since logout is now in the dropdown
+        }
+    }
+}
+
+
+// ===================================================
+// UTILITY FUNCTIONS
+// ===================================================
+
+// Initialize the app
+function updateFirebaseStatus(message, isError = false) {
+    const statusElement = document.getElementById('firebaseStatus');
+    if (statusElement) {
+        statusElement.textContent = message;
+        statusElement.style.color = isError ? '#ff0000' : '#666';
+    }
+}
+
+function showForm() {
+    console.log('Showing Form View');
+    currentView = 'form';
+
+    const mainForm = document.getElementById('mainForm'); // Corrected ID from 'mainFormContainer'
+    const supervisorDashboard = document.getElementById('supervisorDashboard');
+
+    // Modals (added checks for existence)
+    const loginModal = document.getElementById('loginModal');
+    const feedbackModal = document.getElementById('feedbackModal');
+    const settingsModal = document.getElementById('settingsModal');
+    const exportModal = document.getElementById('exportModal'); // No ID exists in HTML for this
+    const emailSelectionModal = document.getElementById('emailSelectionModal'); // No ID exists in HTML for this
+    
+    // Apply display styles with checks
+    if (mainForm) mainForm.style.display = 'block'; else console.error("Main form element (id='mainForm') not found!");
+    if (supervisorDashboard) {
+        supervisorDashboard.classList.remove('show'); // ADD THIS LINE
+        supervisorDashboard.style.display = 'none'; // YOUR EXISTING LINE
+    } else console.warn("Supervisor dashboard element (id='supervisorDashboard') not found when showing form!");
+
+    if (loginModal) loginModal.style.display = 'none';
+    if (feedbackModal) feedbackModal.style.display = 'none';
+    if (settingsModal) settingsModal.style.display = 'none';
+    if (exportModal) exportModal.style.display = 'none'; // Only hide if element exists
+    if (emailSelectionModal) emailSelectionModal.style.display = 'none'; // Only hide if element exists
+    
+    removeOverlay();
+    updateHeaderButtons();
+}
+
+// Check login status
+function checkLoginStatus() {
+    const token = localStorage.getItem('loginToken');
+    if (token) {
+        try {
+            const { username, expires } = JSON.parse(token);
+            if (Date.now() < expires) {
+                isLoggedIn = true;
+                console.log('User previously logged in:', username);
+                showDashboard(); // Directly show dashboard if logged in and token valid
+                return;
+            } else {
+                console.log('Login token expired.');
+                localStorage.removeItem('loginToken');
+            }
+        } catch (e) {
+            console.warn('Error parsing login token:', e);
+            localStorage.removeItem('loginToken');
+        }
+    }
+    isLoggedIn = false; // Ensure it's false if no valid token
+    showForm(); // Always show form if not logged in
+}
+
+// Replace the existing checkLogin function:
+// In your script.js
+function checkLogin() {
+    const token = localStorage.getItem('loginToken');
+    if (token) {
+        try {
+            const { username, expires } = JSON.parse(token);
+            if (Date.now() < expires) {
+                console.log('Valid login token found');
+                isLoggedIn = true;
+                showDashboard(); // If valid token, show dashboard
+                return true;
+            } else {
+                console.log('Login token expired');
+                localStorage.removeItem('loginToken');
+            }
+        } catch (error) {
+            console.error('Error parsing login token:', error);
+            localStorage.removeItem('loginToken');
+        }
+    }
+
+    // Ensure we're in logged out state and show form
+    isLoggedIn = false;
+    showForm(); // Crucial: ensure form is shown and buttons updated
+    return false;
+}
+
+function debugLoginState() {
+    console.log('=== LOGIN DEBUG INFO ===');
+    console.log('isLoggedIn:', isLoggedIn);
+    console.log('currentView:', currentView);
+    console.log('Login modal exists:', !!document.getElementById('loginModal'));
+    console.log('Login form exists:', !!document.getElementById('loginForm'));
+    console.log('Header right exists:', !!document.querySelector('.header-right'));
+    console.log('Supervisor login button exists:', !!document.querySelector('.supervisor-login-btn'));
+    console.log('Login token:', localStorage.getItem('loginToken'));
+    console.log('========================');
+}
+
+window.debugLoginState = debugLoginState;
+
+console.log('🔧 Login functionality fixes applied');
+
+// ===================================================
+// DATA MANAGEMENT & DASHBOARD
+// ===================================================
+
+// --- View Management Functions ---
+// These are responsible for showing/hiding the main content areas
+
+function showDashboard() {
+    console.log('Showing Dashboard View');
+    currentView = 'dashboard';
+
+    const mainForm = document.getElementById('mainForm');
+    const supervisorDashboard = document.getElementById('supervisorDashboard');
+
+    // Hide main form
+    if (mainForm) {
+        mainForm.style.display = 'none';
+    }
+
+    // Show dashboard
+    if (supervisorDashboard) {
+        supervisorDashboard.classList.add('show');
+        supervisorDashboard.style.display = 'block'; // optional backup
+    }
+
+    removeOverlay();
+    loadDashboardData();
+    updateHeaderButtons();
+}
+
+
+// ===================================================
+// PAGINATION
+// ===================================================
+
+function updatePagination() {
+    const totalPages = Math.ceil(filteredSubmissions.length / itemsPerPage);
+    const pageInfo = document.getElementById('pageInfo');
+    const prevBtn = document.getElementById('prevBtn');
+    const nextBtn = document.getElementById('nextBtn');
+    
+    if (pageInfo) pageInfo.textContent = `Page ${currentPage} of ${totalPages}`;
+    if (prevBtn) prevBtn.disabled = currentPage === 1;
+    if (nextBtn) nextBtn.disabled = currentPage === totalPages;
+}
+
+// ===================================================
+// LOGIN & AUTHENTICATION
+// ===================================================
+
+// Logout function
+// Replace the existing logout function:
+function logout() {
+    console.log('logout called');
+    
+    // Close the dropdown menu first
+    const dropdown = document.getElementById('dropdownMenu');
+    if (dropdown) dropdown.style.display = 'none';
+    
+    // Reset state
+    isLoggedIn = false;
+    currentView = 'form';
+    
+    // Remove login token
+    localStorage.removeItem('loginToken');
+    
+    // Hide dashboard and remove 'show' class just in case
+    const dashboard = document.getElementById('supervisorDashboard');
+    if (dashboard) {
+        dashboard.style.display = 'none';
+        dashboard.classList.remove('show'); // <== CRUCIAL
+    }
+
+    // Show form
+    const form = document.getElementById('mainForm');
+    if (form) form.style.display = 'block';
+
+    // Clear any filters
+    const poolFilter = document.getElementById('poolFilter');
+    const dateFilter = document.getElementById('dateFilter');
+    if (poolFilter) poolFilter.value = '';
+    if (dateFilter) dateFilter.value = '';
+    
+    // Reset page
+    currentPage = 1;
+    
+    // Update header buttons AFTER setting isLoggedIn to false
+    updateHeaderButtons();
+    
+    console.log('Logged out successfully, returned to main form');
+}
+
+
+// ===================================================
+// FEEDBACK & NOTIFICATIONS
+// ===================================================
+
+function showFeedback(message, type = 'info') {
+    console.log(`${type.toUpperCase()}: ${message}`);
+    
+    // Create or get existing message container
+    let messageContainer = document.getElementById('messageContainer');
+    if (!messageContainer) {
+        messageContainer = document.createElement('div');
+        messageContainer.id = 'messageContainer';
+        messageContainer.style.cssText = `
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            z-index: 10000;
+            max-width: 400px;
+        `;
+        document.body.appendChild(messageContainer);
+    }
+    
+    // Create message element
+    const messageElement = document.createElement('div');
+    messageElement.style.cssText = `
+        padding: 15px 20px;
+        margin-bottom: 10px;
+        border-radius: 5px;
+        font-weight: bold;
+        box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+        animation: slideIn 0.3s ease-out;
+        ${type === 'error' ? 'background-color: #ffebee; color: #c62828; border-left: 4px solid #c62828;' : ''}
+        ${type === 'success' ? 'background-color: #e8f5e8; color: #2e7d32; border-left: 4px solid #2e7d32;' : ''}
+        ${type === 'warning' ? 'background-color: #fff3e0; color: #f57c00; border-left: 4px solid #f57c00;' : ''}
+        ${type === 'info' ? 'background-color: #e3f2fd; color: #1976d2; border-left: 4px solid #1976d2;' : ''}
+    `;
+    messageElement.textContent = message;
+    
+    // Add animation keyframes
+    if (!document.getElementById('messageAnimations')) {
+        const style = document.createElement('style');
+        style.id = 'messageAnimations';
+        style.textContent = `
+            @keyframes slideIn {
+                from { transform: translateX(100%); opacity: 0; }
+                to { transform: translateX(0); opacity: 1; }
+            }
+        `;
+        document.head.appendChild(style);
+    }
+    
+    messageContainer.appendChild(messageElement);
+    
+    // Auto-remove after 5 seconds
+    setTimeout(() => {
+        if (messageElement.parentNode) {
+            messageElement.style.animation = 'slideIn 0.3s ease-out reverse';
+            setTimeout(() => {
+                if (messageElement.parentNode) {
+                    messageElement.remove();
+                }
+            }, 300);
+        }
+    }, 5000);
+}
+
+function notifySupervisor() {
+    const feedbackModal = document.getElementById('feedbackModal');
+    feedbackModal.style.display = 'block';
+}
+
+function handleLocationChange() {
+    const poolLocation = document.getElementById('poolLocation').value;
+    const secondarySection = document.getElementById('secondaryPoolSection');
+    
+    if (POOLS_WITH_SECONDARY.includes(poolLocation)) {
+        if (secondarySection) {
+            secondarySection.style.display = 'block';
+        }
+    } else {
+        if (secondarySection) {
+            secondarySection.style.display = 'none';
+        }
+    }
+}
+
+// ===================================================
+// DATA PERSISTENCE
+// ===================================================
+
+// Optional: Clear all data function for supervisors
+function clearAllData() {
+    if (confirm('Are you sure you want to clear all form submission data? This cannot be undone.')) {
+        formSubmissions = [];
+        filteredData = [];
+        paginatedData = [];
+        saveFormSubmissions(); // Save empty array
+        loadDashboardData();
+        showMessage('All data cleared successfully.', 'success');
+    }
+}
+
+// Add these missing functions to app.js
+
+function deleteSubmission(submissionId) {
+    if (confirm('Are you sure you want to delete this submission?')) {
+        // Remove from formSubmissions array
+        formSubmissions = formSubmissions.filter(submission => submission.id !== submissionId);
+        saveFormSubmissions();
+        loadDashboardData();
+        showMessage('Submission deleted successfully!', 'success');
+    }
+}
+
+function changePage(pageNumber) {
+    currentPage = pageNumber;
+    displayData();
+    updatePaginationControls();
+}
+
+function checkForCriticalAlerts() {
+    if (!formSubmissions || formSubmissions.length === 0) return;
+    
+    const criticalAlerts = [];
+    const now = new Date();
+    
+    formSubmissions.forEach(submission => {
+        const submissionTime = new Date(submission.timestamp);
+        const hoursOld = (now - submissionTime) / (1000 * 60 * 60);
+        
+        // Check for old submissions (over 3 hours)
+        if (hoursOld > 3) {
+            criticalAlerts.push(`${submission.poolLocation}: Last reading is ${Math.floor(hoursOld)} hours old`);
+        }
+        
+        // Check for critical chemical levels
+        if (submission.mainPoolPH === '< 7.0' || submission.mainPoolPH === '> 8.0') {
+            criticalAlerts.push(`${submission.poolLocation}: Critical pH level (${submission.mainPoolPH})`);
+        }
+        
+        if (submission.mainPoolCl === '0' || submission.mainPoolCl === '> 10') {
+            criticalAlerts.push(`${submission.poolLocation}: Critical chlorine level (${submission.mainPoolCl})`);
+        }
+    });
+    
+    if (criticalAlerts.length > 0) {
+        showMessage(`${criticalAlerts.length} critical alert(s) found`, 'warning');
+    }
+}
+
+function areAllCheckboxesChecked() {
+    const checkboxes = document.querySelectorAll('.feedback-checkbox');
+    return Array.from(checkboxes).every(checkbox => checkbox.checked);
+}
+
+// Replace the entire showRecipientSelectionInModal function (around lines 1890-1979) with this:
+function showRecipientSelectionInModal(modal) {
+    modal.innerHTML = ''; // Clear existing modal content
+
+    const closeBtn = document.createElement('button');
+    closeBtn.className = 'close-btn';
+    closeBtn.innerHTML = '×';
+    closeBtn.style.cssText = `
+        position: absolute;
+        top: 10px;
+        right: 15px;
+        background: none;
+        border: none;
+        font-size: 24px;
+        cursor: pointer;
+        color: #666;
+    `;
+    closeBtn.onclick = () => {
+        modal.remove();
+        removeOverlay();
+    };
+    modal.appendChild(closeBtn);
+
+    const feedbackContent = document.createElement('div');
+    feedbackContent.className = 'feedback-content';
+    feedbackContent.style.cssText = `
+        margin-top: 30px;
         padding: 10px;
+    `;
+
+    const title = document.createElement('h2');
+    title.textContent = 'Select recipient:';
+    title.style.cssText = `
+        margin: 0 0 20px 0;
+        color: #dc3545;
+        text-align: center;
+    `;
+    feedbackContent.appendChild(title);
+
+    const messageList = document.createElement('div');
+    messageList.style.cssText = `
+        margin: 20px 0;
+    `;
+    
+    // Sam Harmon checkbox
+    const samCheckboxItem = document.createElement('div');
+    samCheckboxItem.className = 'checkbox-item';
+    samCheckboxItem.style.cssText = `
+        display: flex;
+        align-items: flex-start;
+        margin: 15px 0;
+        padding: 10px;
+        border: 1px solid #e0e0e0;
+        border-radius: 4px;
+        background-color: #f9f9f9;
+    `;
+    
+    const samCheckbox = document.createElement('input');
+    samCheckbox.type = 'checkbox';
+    samCheckbox.className = 'feedback-checkbox';
+    samCheckbox.id = 'samOption';
+    samCheckbox.value = '+18644096231';
+    samCheckbox.style.cssText = `
+        margin-right: 10px;
+        margin-top: 4px;
+        transform: scale(1.2);
+    `;
+    
+    const samLabel = document.createElement('label');
+    samLabel.textContent = 'Sam Harmon';
+    samLabel.htmlFor = 'samOption';
+    samLabel.style.cssText = `
+        flex: 1;
+        font-size: 14px;
+        line-height: 1.4;
+        cursor: pointer;
+    `;
+    samLabel.onclick = () => {
+        samCheckbox.checked = !samCheckbox.checked;
+    };
+    
+    samCheckboxItem.appendChild(samCheckbox);
+    samCheckboxItem.appendChild(samLabel);
+    messageList.appendChild(samCheckboxItem);
+    
+    // Haley Wilson checkbox
+    const haleyCheckboxItem = document.createElement('div');
+    haleyCheckboxItem.className = 'checkbox-item';
+    haleyCheckboxItem.style.cssText = `
+        display: flex;
+        align-items: flex-start;
+        margin: 15px 0;
+        padding: 10px;
+        border: 1px solid #e0e0e0;
+        border-radius: 4px;
+        background-color: #f9f9f9;
+    `;
+    
+    const haleyCheckbox = document.createElement('input');
+    haleyCheckbox.type = 'checkbox';
+    haleyCheckbox.className = 'feedback-checkbox';
+    haleyCheckbox.id = 'haleyOption';
+    haleyCheckbox.value = '+18036738396';
+    haleyCheckbox.style.cssText = `
+        margin-right: 10px;
+        margin-top: 4px;
+        transform: scale(1.2);
+    `;
+    
+    const haleyLabel = document.createElement('label');
+    haleyLabel.textContent = 'Haley Wilson';
+    haleyLabel.htmlFor = 'haleyOption';
+    haleyLabel.style.cssText = `
+        flex: 1;
+        font-size: 14px;
+        line-height: 1.4;
+        cursor: pointer;
+    `;
+    haleyLabel.onclick = () => {
+        haleyCheckbox.checked = !haleyCheckbox.checked;
+    };
+    
+    haleyCheckboxItem.appendChild(haleyCheckbox);
+    haleyCheckboxItem.appendChild(haleyLabel);
+    messageList.appendChild(haleyCheckboxItem);
+    
+    feedbackContent.appendChild(messageList);
+    modal.appendChild(feedbackContent);
+
+    const sendBtn = document.createElement('button');
+    sendBtn.textContent = 'Send Message';
+    sendBtn.className = 'notify-btn';
+    sendBtn.style.cssText = `
+        background-color: #dc3545;
+        color: white;
+        border: none;
+        padding: 10px 20px;
+        border-radius: 4px;
+        cursor: pointer;
+        font-size: 14px;
+        margin: 10px 5px;
+        font-family: 'Franklin Gothic Medium', Arial, sans-serif;
+    `;
+    sendBtn.onclick = chooseAndSendSMS;
+    feedbackContent.appendChild(sendBtn);
+}
+
+function toggleMenu() {
+    const menu = document.getElementById('dropdownMenu');
+    if (!menu) return;
+    
+    if (menu.style.display === 'none' || menu.style.display === '') {
+        menu.style.display = 'block';
+    } else {
+        menu.style.display = 'none';
     }
-}
-
-/* Settings Modal Content - Centered */
-.settings-modal-content {
-    margin-top: 50px !important;
-    max-width: 800px !important;
-    width: 95% !important;
-    max-height: 80vh;
-    overflow-y: auto;
-    padding: 20px;
-    border: 4px solid #69140e; /* Add red border */
-    border-radius: 0px;
-    background-color: white;
-}
-
-/* Overlay for dimming background */
-.modal-overlay {
-    display: none; /* Initially hidden */
-    position: fixed;
-    top: 0;
-    left: 0;
-    width: 100vw;
-    height: 100vh;
-    background-color: rgba(0, 0, 0, 0.5); /* Semi-transparent black */
-    z-index: 998; /* Below modal but above other content */
-}
-
-#settingsModal h3 {
-    font-size: 24px;
-}
-
-/* Login modal header styling */
-#loginModal .modal-header {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    margin-bottom: 20px;
-    padding: 0; /* Remove padding for login modal */
-    border-bottom: none; /* Remove border for login modal */
-    background-color: transparent; /* Remove background for login modal */
-}
-
-#loginModal .modal-header h2 {
-    color: #69140e;
-    font-size: 24px;
-    font-family: 'Franklin Gothic Medium', Arial, sans-serif;
-    margin: 0;
-}
-
-#loginModal .modal-header .close {
-    color: #aaa;
-    font-size: 28px;
-    font-weight: bold;
-    cursor: pointer;
-    font-family: 'Franklin Gothic Medium', Arial, sans-serif;
-}
-
-#loginModal .modal-header .close:hover {
-    color: #000;
-}
-
-/* Settings modal header styling */
-#settingsModal .modal-header {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    padding: 20px;
-    border-bottom: 1px solid #ddd;
-    background-color: #f8f9fabd;
-}
-
-#settingsModal .modal-header h2 {
-    margin: 0;
-    color: #69140e;
-    font-family: 'Franklin Gothic Medium', Arial, sans-serif;
-}
-
-#settingsModal .modal-header .close {
-    font-size: 36px;
-    font-weight: bold;
-    color: #aaa;
-    cursor: pointer;
-}
-
-#settingsModal .modal-header .close:hover {
-    color: #000;
-}
-
-/* Make sure the login button styling is preserved */
-#loginModal .login-btn {
-    width: 100%;
-    background-color: #69140e;
-    color: white;
-    border: none;
-    border-radius: 0;
-    padding: 12px;
-    font-size: 16px;
-    font-family: 'Franklin Gothic Medium', Arial, sans-serif;
-    cursor: pointer;
-    margin-top: 10px;
-}
-
-#loginModal .login-btn:hover {
-    background-color: #521008;
-}
-
-/* Ensure form inputs in login modal work properly */
-#loginModal input[type="text"],
-#loginModal input[type="password"] {
-    width: 100%;
-    padding: 10px;
-    border-bottom: 2px solid #69140e;
-    border-left: none;
-    border-right: none;
-    border-top: none;
-    border-radius: 0;
-    font-size: 14px;
-    font-family: 'Franklin Gothic Medium', Arial, sans-serif;
-    background-color: #C8C8C8;
-    color: #333;
-    -webkit-appearance: none;
-    margin-bottom: 15px;
-}
-
-.modal-header {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    margin-bottom: 20px;
-}
-
-.modal-header h2 {
-    color: #69140e;
-    font-size: 24px;
-    font-family: 'Franklin Gothic Medium', Arial, sans-serif;
-}
-
-.close {
-    color: #aaa;
-    font-size: 28px;
-    font-weight: bold;
-    cursor: pointer;
-    font-family: 'Franklin Gothic Medium', Arial, sans-serif;
-}
-
-.close:hover {
-    color: #000;
-}
-
-.modal-form .form-group {
-    margin-bottom: 15px;
-}
-
-.login-btn {
-    width: 100%;
-    background-color: #69140e;
-    color: white;
-    border: none;
-    border-radius: 0;
-    padding: 12px;
-    font-size: 16px;
-    font-family: 'Franklin Gothic Medium', Arial, sans-serif;
-    cursor: pointer;
-    margin-top: 10px;
-}
-
-.login-btn:hover {
-    background-color: #521008;
-}
-
-/* Dashboard Styles */
-
-#supervisorDashboard {
-    display: none;
-}
-
-#supervisorDashboard.show {
-    display: block !important;
-}
-
-.dashboard-header {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    margin-bottom: 30px;
-}
-
-.logout-btn {
-    background-color: rgba(255, 255, 255, 0.2);
-    color: white;
-    border: 2px solid white;
-    border-radius: 0;
-    padding: 10px 20px;
-    cursor: pointer;
-    font-size: 14px;
-    font-family: 'Franklin Gothic Medium', Arial, sans-serif;
-    transition: background-color 0.3s;
-    /* Remove position, top, right */
-    /* position: absolute;
-    top: 20px;
-    right: 120px; */
-}
-
-.logout-btn:hover {
-    background-color: rgba(255, 255, 255, 0.3);
-}
-
-.dashboard-controls {
-    display: flex;
-    gap: 15px;
-    margin-bottom: 20px;
-    flex-wrap: wrap;
-}
-
-.data-table {
-    width: 100%;
-    border-collapse: collapse;
-    background-color: white;
-    font-family: 'Franklin Gothic Medium', Arial, sans-serif;
-}
-
-.data-table th,
-.data-table td {
-    border: 1px solid #ddd;
-    padding: 12px;
-    text-align: left;
-    font-size: 12px;
-}
-
-.data-table th {
-    background-color: #69140e;
-    color: white;
-    font-weight: bold;
-}
-
-/* Fixed column widths for table alignment */
-.data-table th:nth-child(1),
-.data-table td:nth-child(1) {
-    width: 25%; /* Timestamp column */
-}
-
-.data-table th:nth-child(2),
-.data-table td:nth-child(2) {
-    width: 25%; /* Pool Location column */
-}
-
-.data-table th:nth-child(3),
-.data-table td:nth-child(3) {
-    width: 25%; /* pH column */
-}
-
-.data-table th:nth-child(4),
-.data-table td:nth-child(4) {
-    width: 25%; /* Cl column */
-}
-
-.data-table tr:nth-child(even) {
-    background-color: #f9f9f9;
-}
-
-/* Feedback modal styles */
-.feedback-modal {
-    position: fixed;
-    top: 50%;
-    left: 50%;
-    transform: translateX(-50%) translateY(-50%);
-    z-index: 9999;
-    padding: 20px 30px 80px 30px; /* Increased bottom padding to 80px */
-    border: 4px solid #69140e; /* Add red border */
-    border-radius: 0; /* No rounded corners */
-    box-shadow: 0 0 10px rgba(0, 0, 0, 0.3); /* Original shadow */
-    max-width: 550px; /* Original max-width */
-    width: 90%;
-    background: white;
-    text-align: left;
-    max-height: 80vh; /* Add max height for scrolling */
-    overflow: hidden; /* Hide overflow on main modal */
-}
-
-/* Make the content area scrollable instead of the entire modal */
-.feedback-modal .feedback-content {
-    max-height: calc(80vh - 120px); /* Subtract padding and button space */
-    overflow-y: auto; /* Enable scrolling on content only */
-    padding-right: 10px; /* Add padding for scrollbar */
-}
-
-/* Header spacing */
-.feedback-modal h2 {
-    margin-bottom: 15px; /* Add space between header and text */
-}
-
-/* Checkbox item spacing */
-.feedback-modal .checkbox-item {
-    margin-bottom: 10px; /* Add space between checkbox items */
-    display: flex;
-    align-items: flex-start;
-}
-
-/* Checkbox styling (like settings modal) */
-.feedback-modal .checkbox-item input[type="checkbox"] {
-    appearance: none; /* Remove default browser styling */
-    -webkit-appearance: none; /* Remove Safari default styling */
-    -moz-appearance: none; /* Remove Firefox default styling */
-    margin-right: 10px; /* Space between checkbox and text */
-    width: 18px; /* Ensure consistent width */
-    height: 18px; /* Ensure consistent height */
-    cursor: pointer;
-    border: 1px solid #69140e; /* 1px border of header red color */
-    background-color: white; /* Default white background */
-    border-radius: 0; /* Ensure perfect squares */
-    display: inline-block; /* Prevent layout issues */
-    position: relative; /* For positioning the checkmark */
-    flex-shrink: 0; /* Prevent shrinking */
-}
-
-.feedback-modal .checkbox-item input[type="checkbox"]:checked {
-    background-color: #69140e; /* Header red color when checked */
-    border-color: black; /* Header red border when checked */
-}
-
-/* White checkmark for checked state */
-.feedback-modal .checkbox-item input[type="checkbox"]:checked::after {
-    content: '✓'; /* Checkmark symbol */
-    color: white; /* White checkmark */
-    font-size: 14px; /* Size of checkmark */
-    font-weight: bold; /* Bold checkmark */
-    position: absolute; /* Position relative to checkbox */
-    top: 50%; /* Center vertically */
-    left: 50%; /* Center horizontally */
-    transform: translate(-50%, -50%); /* Perfect centering */
-    line-height: 1; /* Remove extra line spacing */
-}
-
-/* Notify a Supervisor button styles */
-.feedback-modal .notify-btn {
-    position: absolute; /* Place button in the lower margin */
-    bottom: 20px; /* Add space below the button */
-    right: 20px; /* Add space to the left of the button */
-    background-color: #69140e; /* Match header red color */
-    color: white;
-    border: none;
-    border-radius: 0px; /* Set border-radius to 0 */
-    padding: 10px 20px;
-    font-size: 16px;
-    font-weight: bold;
-    cursor: pointer;
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15); /* Same shadow as notify supervisor button */
-    z-index: 10000; /* Ensure button is above content */
-    /* Ensure button doesn't move with content scroll */
-    pointer-events: auto; /* Ensure button remains clickable */
-}
-
-.feedback-modal .notify-btn:hover {
-    background-color: #521008; /* Darker red on hover */
-}
-
-/* Send message button styling */
-.supervisor-contact-modal .send-message-btn {
-    background-color: #69140e; /* Match header red color */
-    color: white;
-    border: none;
-    border-radius: 0; /* Same as notify supervisor button */
-    padding: 10px 20px;
-    font-size: 16px;
-    font-weight: bold;
-    cursor: pointer;
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15); /* Same shadow as notify supervisor button */
-    position: relative; /* Ensure proper placement */
-    margin-top: 20px; /* Add space above the button */
-    width: auto; /* Ensure it matches the notify supervisor button */
-}
-
-.supervisor-contact-modal .send-message-btn:hover {
-    background-color: #521008; /* Darker red on hover */
-}
-
-/* Close button styles */
-.feedback-modal .close-btn {
-    position: absolute; /* Place it in the top-right corner */
-    top: 10px; /* Space from the top */
-    right: 10px; /* Space from the right */
-    background-color: transparent; /* No background */
-    color: #69140e; /* Match header red color */
-    border: none; /* Remove border */
-    font-size: 28px; /* Make it larger */
-    font-weight: bold; /* Bold text */
-    cursor: pointer; /* Pointer cursor for interactivity */
-    z-index: 10001; /* Ensure it is above other modal content */
-}
-
-.feedback-modal .close-btn:hover {
-    color: #521008; /* Darker red on hover */
-}
-
-/* Setpoint chart styling */
-.setpoint-container {
-    text-align: center;
-    margin: 20px 0;
-    padding: 10px;
-}
-
-.setpoint-chart {
-    max-width: 100%;
-    height: auto;
-    border: 1px solid #ddd;
-    border-radius: 0%;
-    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-}
-
-/* Sanitation Table Styles */
-.sanitation-table {
-    width: 100%;
-    border-collapse: collapse;
-    margin-top: 20px;
-    background-color: white;
-    font-family: 'Franklin Gothic Medium', Arial, sans-serif;
-}
-
-.sanitation-table th,
-.sanitation-table td {
-    border: 1px solid #ddd;
-    padding: 12px;
-    text-align: left;
-    font-size: 14px;
-}
-
-.sanitation-table th {
-    background-color: #69140e;
-    color: white;
-    font-weight: bold;
-}
-
-.sanitation-checkbox:disabled {
-    opacity: 0.6;
-    cursor: not-allowed;
-}
-
-
-.sanitation-table tr:nth-child(even) {
-    background-color: #f9f9f9;
-}
-
-.sanitation-table td {
-    text-align: center;
-}
-
-.sanitation-table td:first-child {
-    text-align: left;
-    font-weight: bold;
-}
-
-/* Sanitation Checkbox Styles */
-.sanitation-checkbox {
-    appearance: none;
-    -webkit-appearance: none;
-    -moz-appearance: none;
-    width: 18px;
-    height: 18px;
-    cursor: pointer;
-    border: 1px solid #69140e;
-    background-color: white;
-    border-radius: 0;
-    display: inline-block;
-    position: relative;
-    flex-shrink: 0;
-    margin: 0;
-}
-
-.sanitation-checkbox:checked {
-    background-color: #69140e;
-    border-color: #69140e;
-}
-
-.sanitation-checkbox:checked::after {
-    content: '✓';
-    color: white;
-    font-size: 14px;
-    font-weight: bold;
-    position: absolute;
-    top: 50%;
-    left: 50%;
-    transform: translate(-50%, -50%);
-    line-height: 1;
-}
-
-/* Pagination Styles */
-.pagination {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    gap: 15px;
-    margin-top: 20px;
-}
-
-.pagination button {
-    padding: 8px 12px;
-    border: 1px solid #ccc;
-    background: #f9f9f9;
-    color: #333;
-    border-radius: 0;
-    cursor: pointer;
-    font-size: 16px;
-    font-family: 'Franklin Gothic Medium', Arial, sans-serif;
-    transition: background-color 0.2s;
-}
-
-.pagination button:hover:not(:disabled) {
-    background-color: #e9e9e9;
-}
-
-.pagination button:disabled {
-    background: #f0f0f0;
-    color: #999;
-    cursor: not-allowed;
-    opacity: 0.5;
-}
-
-.pagination span {
-    padding: 8px 16px;
-    background: #69140e;
-    color: white;
-    border-radius: 0;
-    font-weight: bold;
-    font-family: 'Franklin Gothic Medium', Arial, sans-serif;
-    min-width: 200px;
-    text-align: center;
-}
+    
+    // Close menu when clicking outside
+    document.addEventListener('click', function closeMenu(e) {
+        if (!e.target.closest('.menu-container')) {
+            menu.style.display = 'none';
+            document.removeEventListener('click', closeMenu);
+        }
+    });
+}
+
+async function openSettings() {
+    // Close the dropdown menu first
+    document.getElementById('dropdownMenu').style.display = 'none';
+    
+    // Refresh settings from Firebase before showing modal (if available)
+    try {
+        if (db && window.firebaseModules) {
+            console.log('Refreshing settings from Firebase v9 before showing modal...');
+            const settingsRef = window.firebaseModules.doc(db, 'settings', 'sanitationMethods');
+            const settingsDoc = await window.firebaseModules.getDoc(settingsRef);
+            
+            if (settingsDoc.exists()) {
+                const firebaseSettings = settingsDoc.data();
+                Object.assign(sanitationSettings, firebaseSettings);
+                console.log('Refreshed sanitation settings from Firebase v9:', sanitationSettings);
+            } else {
+                console.log('No Firebase settings found when refreshing');
+            }
+        } else {
+            console.log('Firebase not ready when showing settings, using current in-memory settings');
+        }
+    } catch (error) {
+        console.warn('Could not refresh from Firebase v9 when showing settings:', error);
+    }
+    
+    createOrShowOverlay();
+
+    // Show the settings modal
+    document.getElementById('settingsModal').style.display = 'block';
+    loadSanitationSettings();
+}
+
+function sendSMSNotification(message, phoneNumber) {
+    console.log(`SMS would be sent to ${phoneNumber}: ${message}`);
+    showMessage('SMS notification sent successfully!', 'success');
+}
+
+function debugApp() {
+    console.log('=== APP DEBUG INFO ===');
+    console.log('Firebase app:', !!app);
+    console.log('Firebase db:', !!db);
+    console.log('isLoggedIn:', isLoggedIn);
+    console.log('currentView:', currentView);
+    console.log('formSubmissions length:', formSubmissions.length);
+    console.log('allSubmissions length:', allSubmissions.length);
+    console.log('Login modal exists:', !!document.getElementById('loginModal'));
+    console.log('Login form exists:', !!document.getElementById('loginForm'));
+    console.log('openLoginModal function exists:', typeof openLoginModal);
+    console.log('submitForm function exists:', typeof submitForm);
+    console.log('=====================');
+}
+
+function debugViews() {
+    console.log('=== VIEW DEBUG ===');
+    console.log('currentView:', currentView);
+    console.log('isLoggedIn:', isLoggedIn);
+    
+    const mainForm = document.getElementById('mainForm');
+    const dashboard = document.getElementById('supervisorDashboard');
+    
+    console.log('mainForm element:', !!mainForm);
+    console.log('mainForm display:', mainForm ? mainForm.style.display : 'not found');
+    console.log('mainForm computed display:', mainForm ? getComputedStyle(mainForm).display : 'not found');
+    
+    console.log('dashboard element:', !!dashboard);
+    console.log('dashboard display:', dashboard ? dashboard.style.display : 'not found');
+    console.log('dashboard computed display:', dashboard ? getComputedStyle(dashboard).display : 'not found');
+}
+window.debugViews = debugViews;
+
+window.debugApp = debugApp;
