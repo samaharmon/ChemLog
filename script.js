@@ -1025,7 +1025,7 @@ function filterAndDisplayData() {
             }
         }
         
-        return passesFilter;
+        return true;
     });
     
     console.log('Filtered submissions:', filteredSubmissions.length);
