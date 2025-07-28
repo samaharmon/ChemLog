@@ -34,8 +34,8 @@ body {
 }
 
 #logo {
-    height: 175px; 
-    width: 175px;/* Adjusted height for better visibility */
+    height: 150px; 
+    width: 150px;/* Adjusted height for better visibility */
     filter: drop-shadow(0 4px 15px rgba(0, 0, 0, 0.4));
 }
 
