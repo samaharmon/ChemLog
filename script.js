@@ -2014,25 +2014,26 @@ console.log('🔧 Login functionality fixes applied');
 function showDashboard() {
     console.log('Showing Dashboard View');
     currentView = 'dashboard';
-    
+
     const mainForm = document.getElementById('mainForm');
     const supervisorDashboard = document.getElementById('supervisorDashboard');
-    
+
     // Hide main form
     if (mainForm) {
         mainForm.style.display = 'none';
     }
-    
+
     // Show dashboard
     if (supervisorDashboard) {
         supervisorDashboard.classList.add('show');
-        supervisorDashboard.style.display = 'block'; // Force display as backup
+        supervisorDashboard.style.display = 'block'; // optional backup
     }
-    
+
     removeOverlay();
     loadDashboardData();
     updateHeaderButtons();
 }
+
 
 // ===================================================
 // PAGINATION
