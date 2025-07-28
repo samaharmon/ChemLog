@@ -50,7 +50,6 @@ body {
 
 .header-right {
     display: flex;
-    flex-direction: column; /* Keep this if you want elements in header-right to stack vertically */
     justify-content: flex-end;
     align-items: center;
     margin-left: 20px;
