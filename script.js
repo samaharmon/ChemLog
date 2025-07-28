@@ -1173,7 +1173,78 @@ function displayData() {
         return;
     }
 
-    // ... (rest of your existing loop and rendering logic)
+    const data = paginatedData[currentPage];
+    let hasSecondaryData = false;
+    
+    console.log('Displaying', data.length, 'items for page', currentPage);
+    
+    data.forEach(submission => {
+        const mainPHColor = getHighlightColor(submission.mainPoolPH, 'pH');
+        const mainClColor = getHighlightColor(submission.mainPoolCl, 'cl');
+        const secondaryPHColor = getHighlightColor(submission.secondaryPoolPH, 'pH');
+        const secondaryClColor = getHighlightColor(submission.secondaryPoolCl, 'cl');
+        const warningLevel = getPoolWarningLevel(submission.mainPoolPH, submission.mainPoolCl, submission.secondaryPoolPH, submission.secondaryPoolCl);
+        
+        let poolNameDisplay = submission.poolLocation;
+        if (warningLevel === 'red') {
+            poolNameDisplay = `<u>${submission.poolLocation}</u><span style="color: red;">!!!</span>`;
+        } else if (warningLevel === 'yellow') {
+            poolNameDisplay = `<u>${submission.poolLocation}</u><span style="color: red;">!</span>`;
+        }
+        
+        // Format timestamp
+        let timestampDisplay = submission.timestamp;
+        if (submission.timestamp instanceof Date) {
+            timestampDisplay = submission.timestamp.toLocaleString();
+        } else {
+            timestampDisplay = new Date(submission.timestamp).toLocaleString();
+        }
+        
+        if (currentPage === 0 && isMoreThan3HoursOld(submission.timestamp)) {
+            timestampDisplay = `<span style="color: red; font-weight: bold;">${timestampDisplay}</span>`;
+        }
+        
+        const createCell = (value, color) => {
+            if (color === 'red') {
+                return `<td style="background-color: #ffcccc; color: #cc0000; font-weight: bold;">${value || 'N/A'}</td>`;
+            } else if (color === 'yellow') {
+                return `<td style="background-color: #fff2cc; color: #b8860b; font-weight: bold;">${value || 'N/A'}</td>`;
+            } else {
+                return `<td>${value || 'N/A'}</td>`;
+            }
+        };
+        
+        // Main Pool Table Row
+        const row1 = document.createElement('tr');
+        row1.innerHTML = `
+            <td>${timestampDisplay}</td>
+            <td>${poolNameDisplay}</td>
+            ${createCell(submission.mainPoolPH, mainPHColor)}
+            ${createCell(submission.mainPoolCl, mainClColor)}
+        `;
+        tbody1.appendChild(row1);
+        
+        // Secondary Pool Table Row (only if not Camden CC)
+        if (submission.poolLocation !== 'Camden CC' && (submission.secondaryPoolPH || submission.secondaryPoolCl)) {
+            hasSecondaryData = true;
+            const row2 = document.createElement('tr');
+            row2.innerHTML = `
+                <td>${timestampDisplay}</td>
+                <td>${poolNameDisplay}</td>
+                ${createCell(submission.secondaryPoolPH, secondaryPHColor)}
+                ${createCell(submission.secondaryPoolCl, secondaryClColor)}
+            `;
+            tbody2.appendChild(row2);
+        }
+    });
+    
+    // If no secondary pool data, show a message
+    if (!hasSecondaryData) {
+        tbody2.innerHTML = '<tr><td colspan="4" style="text-align: center; padding: 30px; color: #666;">No secondary pool data for current selection</td></tr>';
+    }
+    
+    updateTimestampNote();
+    console.log('Data display completed');
 }
 
 
