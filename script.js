@@ -196,6 +196,11 @@ function handleLoginSubmit(event) {
         localStorage.setItem('loginToken', JSON.stringify({ username: email, expires }));
         
         // Close modal and show dashboard
+        const dashboard = document.getElementById('supervisorDashboard');
+        if (dashboard) {
+            dashboard.classList.add('show');
+        }
+        
         closeLoginModal();
         showDashboard();
         
@@ -1697,9 +1702,9 @@ console.log('✅ All 62 unique functions exposed globally');
 document.addEventListener("DOMContentLoaded", () => {
     console.log('🔥🔥🔥 UNIFIED APP.JS LOADED - Firebase v9 🔥🔥🔥');
 
-    const dashboard = document.getElementById('supervisorDashboard');
+ const dashboard = document.getElementById('supervisorDashboard');
     if (dashboard) {
-        dashboard.style.display = 'none';
+        dashboard.classList.remove('show'); // make sure hidden on load
         console.log('Dashboard force hidden on load');
     }
 
