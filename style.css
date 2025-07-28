@@ -51,8 +51,7 @@ body {
 .header-right {
     display: flex;
     justify-content: flex-end;
-    align-items: center;
-    margin-right: -3%;
+    align-items: center;;
 }
 
 .header h1 {
