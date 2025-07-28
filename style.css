@@ -38,6 +38,8 @@ body {
     width: 80px;/* Adjusted height for better visibility */
     margin-right: 20px; /* Space between logo and header content */
     box-shadow: 0 8px 10px rgba(0, 0, 0, 0.2);
+    justify-content: right; /* Aligns logo to the right */
+    position: absolute;
 }
 
 .header-left {
