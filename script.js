@@ -2017,6 +2017,11 @@ function showDashboard() {
     const mainForm = document.getElementById('mainForm');
     const supervisorDashboard = document.getElementById('supervisorDashboard');
 
+    console.log('✅ supervisorDashboard element found:', supervisorDashboard);
+    console.log('✅ Current style.display:', supervisorDashboard?.style.display);
+    console.log('✅ Has class "show"?', supervisorDashboard?.classList.contains('show'));
+
+
     // Hide main form
     if (mainForm) {
         mainForm.style.display = 'none';
