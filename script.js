@@ -642,7 +642,7 @@ async function initializeSanitationSettings() {
     const statusDiv = document.getElementById('firebaseStatus');
     
     console.log('Initializing sanitation settings...');
-    updateFirebaseStatus('Loading settings from Firebase v9...');
+    updateFirebaseStatus('');
     
     // Set defaults first
     pools.forEach(pool => {
@@ -658,7 +658,7 @@ async function initializeSanitationSettings() {
             if (settingsDoc.exists()) {
                 const firebaseSettings = settingsDoc.data();
                 Object.assign(sanitationSettings, firebaseSettings);
-                console.log('', sanitationSettings);
+                console.log('Successfully loaded sanitation settings from Firebase v9:', sanitationSettings);
                 updateFirebaseStatus('');
             } else {
                 console.log('No Firebase settings found, saving defaults');
