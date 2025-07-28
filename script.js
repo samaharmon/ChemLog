@@ -38,7 +38,7 @@ function submitForm() {
     };
 
     // Save to localStorage or Firebase...
-    saveSubmission(submission);
+    saveFormSubmissions(submission);
 }
 
 
