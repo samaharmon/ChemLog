@@ -38,6 +38,10 @@ body {
     width: 225px;/* Adjusted height for better visibility */
     filter: drop-shadow(0 4px 15px rgba(0, 0, 0, 0.4));
     margin-left: auto;
+    position: sticky;
+    top: 8.178px;
+    right: -15%;
+    z-index: 1000; /* Ensures it stays above other content */
 }
 
 .header-left {
@@ -51,10 +55,6 @@ body {
     display: flex;
     justify-content: flex-end;
     align-items: center;
-    position: sticky;
-    top: 22.5px;
-    right: 0px;
-    z-index: 1000; /* Ensures it stays above other content */
 }
 
 .header h1 {
