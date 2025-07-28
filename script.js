@@ -1922,7 +1922,6 @@ function showForm() {
     if (mainForm) mainForm.style.display = 'block'; else console.error("Main form element (id='mainForm') not found!");
     if (supervisorDashboard) {
         supervisorDashboard.classList.remove('show'); // ADD THIS LINE
-        supervisorDashboard.style.display = 'none'; // YOUR EXISTING LINE
     } else console.warn("Supervisor dashboard element (id='supervisorDashboard') not found when showing form!");
 
     if (loginModal) loginModal.style.display = 'none';
@@ -2030,7 +2029,6 @@ function showDashboard() {
     // Show dashboard
     if (supervisorDashboard) {
         supervisorDashboard.classList.add('show');
-        supervisorDashboard.style.display = 'block'; // optional backup
     }
 
     removeOverlay();
@@ -2077,7 +2075,6 @@ function logout() {
     // Hide dashboard and remove 'show' class just in case
     const dashboard = document.getElementById('supervisorDashboard');
     if (dashboard) {
-        dashboard.style.display = 'none';
         dashboard.classList.remove('show'); // <== CRUCIAL
     }
 
