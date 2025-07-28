@@ -658,8 +658,8 @@ async function initializeSanitationSettings() {
             if (settingsDoc.exists()) {
                 const firebaseSettings = settingsDoc.data();
                 Object.assign(sanitationSettings, firebaseSettings);
-                console.log('Successfully loaded sanitation settings from Firebase v9:', sanitationSettings);
-                updateFirebaseStatus('Settings synced with cloud ✓');
+                console.log('', sanitationSettings);
+                updateFirebaseStatus('');
             } else {
                 console.log('No Firebase settings found, saving defaults');
                 await window.firebaseModules.setDoc(settingsRef, sanitationSettings);
