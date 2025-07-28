@@ -52,8 +52,8 @@ body {
     justify-content: flex-end;
     align-items: center;
     position: sticky;
-    top: -15.5px;
-    right: -15.5px;
+    top: 22.5px;
+    right: 0px;
     z-index: 1000; /* Ensures it stays above other content */
 }
 
