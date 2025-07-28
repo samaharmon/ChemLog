@@ -34,10 +34,9 @@ body {
 }
 
 #logo {
-    height: 225px; 
-    width: 225px;/* Adjusted height for better visibility */
+    height: 175px; 
+    width: 175px;/* Adjusted height for better visibility */
     filter: drop-shadow(0 4px 15px rgba(0, 0, 0, 0.4));
-    margin-left: auto;
 }
 
 .header-left {
@@ -48,11 +47,9 @@ body {
 }
 
 .header-right {
+    margin-left: auto;
+    display: flex;
     align-items: center;
-    position: sticky;
-    top: 8.178%;
-    right: -100%;
-    z-index: 1000; /* Ensures it stays above other content */
 }
 
 .header h1 {
