@@ -2014,6 +2014,7 @@ function showDashboard() {
     currentView = 'dashboard';
 
     const mainForm = document.getElementById('mainForm');
+    console.log('✅ showDashboard called');
     const supervisorDashboard = document.getElementById('supervisorDashboard');
 
     console.log('✅ supervisorDashboard element found:', supervisorDashboard);
