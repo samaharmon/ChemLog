@@ -750,10 +750,18 @@ function cleanupTestSubmissions() {
     formSubmissions = formSubmissions.filter(submission => {
         const isTest = submission.firstName === 'TEST';
         const isExpired = now - new Date(submission.timestamp).getTime() > FIVE_MINUTES;
+        
+        // Check if poolLocation is blank or only whitespace
+        const poolNameBlank = !submission.poolLocation || submission.poolLocation.trim() === '';
 
         if (isTest && isExpired) {
             console.log(`🧹 Deleted expired TEST submission (ID: ${submission.id})`);
             return false; // Remove from list
+        }
+
+        if (poolNameBlank) {
+            console.log(`🧹 Deleted submission with blank pool name (ID: ${submission.id})`);
+            return false; // Remove submissions with blank pool name
         }
 
         return true;
