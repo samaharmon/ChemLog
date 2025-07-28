@@ -37,7 +37,6 @@ body {
     height: 225px; 
     width: 225px;/* Adjusted height for better visibility */
     filter: drop-shadow(0 8px 10px rgba(0, 0, 0, 0.3));
-    margin-left: auto;
     position: relative;
 }
 
