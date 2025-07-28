@@ -866,6 +866,7 @@ function loadDashboardData() {
     console.log('Loading dashboard data...');
     
     // First, ensure we have local data loaded
+    cleanupTestSubmissions();
     loadFormSubmissions();
     
     if (db) {
@@ -1788,6 +1789,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
     const firebaseInitialized = initializeFirebase();
 
+    cleanupTestSubmissions();
     checkLogin();
     initializeFormSubmissions();
 
