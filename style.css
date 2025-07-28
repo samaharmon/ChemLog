@@ -52,7 +52,7 @@ body {
     display: flex;
     justify-content: flex-end;
     align-items: center;
-    margin-right: -1%;
+    margin-right: -5%;
 }
 
 .header h1 {
