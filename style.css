@@ -36,7 +36,7 @@ body {
 #logo {
     height: 100px; 
     width: 100px;/* Adjusted height for better visibility */
-    box-shadow: 0 8px 10px rgba(0, 0, 0, 0.2);
+    filter: drop-shadow(0 8px 10px rgba(0, 0, 0, 0.3));
     margin-left: auto;
     position: relative;
 }
