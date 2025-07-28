@@ -1601,7 +1601,7 @@ function setupEventHandlers() {
     }
 
     // Form submission button handler
-    const submitBtn = document.getElementById('submit-Btn');
+    const submitBtn = document.getElementById('submitBtn');
     if (submitBtn) {
         submitBtn.addEventListener('click', (e) => {
             e.preventDefault();
@@ -1609,7 +1609,7 @@ function setupEventHandlers() {
         });
         console.log('✅ Submit button handler attached');
     } else {
-        console.warn('⚠️ submit-Btn not found');
+        console.warn('⚠️ submitBtn not found');
     }
 
     // Clear All Data button
