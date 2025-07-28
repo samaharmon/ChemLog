@@ -1003,7 +1003,11 @@ function filterAndDisplayData() {
     // Apply filters
     const poolFilter = document.getElementById('poolFilter')?.value || '';
     const dateFilter = document.getElementById('dateFilter')?.value || '';
-    
+    const dashboard = document.getElementById('supervisorDashboard');
+        if (dashboard) {
+            dashboard.style.display = 'block'; // or 'flex' or whatever it should be
+        }
+
     filteredSubmissions = allSubmissions.filter(submission => {
         let passesFilter = true;
         
