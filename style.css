@@ -50,8 +50,8 @@ body {
 .header-right {
     align-items: center;
     position: sticky;
-    top: 8.178px;
-    right: -15%;
+    top: 8.178%;
+    right: -100%;
     z-index: 1000; /* Ensures it stays above other content */
 }
 
