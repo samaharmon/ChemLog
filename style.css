@@ -254,13 +254,16 @@ body {
     max-width: 100%;
     font-family: 'Franklin Gothic Medium', Arial, sans-serif;
     font-weight: bold;
-    box-shadow: 0 8px 10px rgba(0, 0, 0, 0.2);
 }
 
 .form-group.full-width {
     flex: none;
     width: 100%;
     max-width: 400px;
+}
+
+.button-shadow {
+    box-shadow: 0 8px 10px rgba(0, 0, 0, 0.2);
 }
 
 label {
