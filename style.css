@@ -254,6 +254,7 @@ body {
     max-width: 100%;
     font-family: 'Franklin Gothic Medium', Arial, sans-serif;
     font-weight: bold;
+    box-shadow: 0 8px 10px rgba(0, 0, 0, 0.2);
 }
 
 .form-group.full-width {
@@ -628,6 +629,7 @@ input[type="text"], select, input[type="password"] {
     border-collapse: collapse;
     background-color: white;
     font-family: 'Franklin Gothic Medium', Arial, sans-serif;
+    box-shadow: 0 8px 10px rgba(0, 0, 0, 0.2);
 }
 
 .data-table th,
