@@ -220,8 +220,8 @@
         <div class="container" style="max-width: calc(100vw - 100px);">
             <div class="dashboard-controls">
                 <div class="form-group" style="flex: none; width: 200px;">
-                    <label class="button-shadow" for="poolFilter">Filter by Pool:</label>
-                    <select id="poolFilter" onchange="filterData()" style="width: 99.999%">
+                    <label for="poolFilter">Filter by Pool:</label>
+                    <select id="poolFilter" class="button-shadow" onchange="filterData()" style="width: 99.999%">
                         <option value="">All Pools</option>
                         <option value="Camden CC">Camden CC</option>
                         <option value="Columbia CC">Columbia CC</option>
@@ -234,8 +234,8 @@
                     </select>
                 </div>
                 <div class="form-group" style="flex: none; width: 50px">
-                    <label class="button-shadow" for="dateFilter">Date:</label>
-                    <input type="date" id="dateFilter" onchange="filterData()">
+                    <label for="dateFilter">Date:</label>
+                    <input type="date" class="button-shadow" id="dateFilter" onchange="filterData()">
                 </div>
             </div>
 
