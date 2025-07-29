@@ -746,22 +746,34 @@ function cleanupTestSubmissions() {
     const now = Date.now();
     const FIVE_MINUTES = 5 * 60 * 1000;
 
-    // Filter and delete from localStorage
     formSubmissions = formSubmissions.filter(submission => {
         const isTest = submission.firstName === 'TEST';
         const isExpired = now - new Date(submission.timestamp).getTime() > FIVE_MINUTES;
-        
-        // Check if poolLocation is blank or only whitespace
         const poolNameBlank = !submission.poolLocation || submission.poolLocation.trim() === '';
+
+        const mainPH = submission.mainPoolPH;
+        const mainCl = submission.mainPoolCl;
+        const secondaryPH = submission.secondaryPoolPH;
+        const secondaryCl = submission.secondaryPoolCl;
+
+        // Check if all values are missing or "N/A"
+        const allFieldsNA = [mainPH, mainCl, secondaryPH, secondaryCl].every(value =>
+            value === undefined || value === null || value === '' || value === 'N/A'
+        );
 
         if (isTest && isExpired) {
             console.log(`🧹 Deleted expired TEST submission (ID: ${submission.id})`);
-            return false; // Remove from list
+            return false;
         }
 
         if (poolNameBlank) {
             console.log(`🧹 Deleted submission with blank pool name (ID: ${submission.id})`);
-            return false; // Remove submissions with blank pool name
+            return false;
+        }
+
+        if (isExpired && allFieldsNA) {
+            console.log(`🧹 Deleted expired empty submission (ID: ${submission.id})`);
+            return false;
         }
 
         return true;
