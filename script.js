@@ -1193,26 +1193,35 @@ function displayData() {
         const secondaryPHColor = getHighlightColor(submission.secondaryPoolPH, 'pH');
         const secondaryClColor = getHighlightColor(submission.secondaryPoolCl, 'cl');
         const warningLevel = getPoolWarningLevel(submission.mainPoolPH, submission.mainPoolCl, submission.secondaryPoolPH, submission.secondaryPoolCl);
-        
-        let poolNameDisplay = submission.poolLocation;
-        if (warningLevel === 'red') {
-            poolNameDisplay = `<u>${submission.poolLocation}</u><span style="color: red;">!!!</span>`;
-        } else if (warningLevel === 'yellow') {
-            poolNameDisplay = `<u>${submission.poolLocation}</u><span style="color: red;">!</span>`;
-        }
-        
-        // Format timestamp
+
+        // ⏰ Format timestamp
         let timestampDisplay = submission.timestamp;
         if (submission.timestamp instanceof Date) {
             timestampDisplay = submission.timestamp.toLocaleString();
         } else {
             timestampDisplay = new Date(submission.timestamp).toLocaleString();
         }
-        
+
         if (currentPage === 0 && isMoreThan3HoursOld(submission.timestamp)) {
             timestampDisplay = `<span style="color: red; font-weight: bold;">${timestampDisplay}</span>`;
         }
-        
+
+        // 🟡 Handle pool name + Monday logic
+        const today = new Date().getDay(); // 1 = Monday
+        let poolNameDisplay = submission.poolLocation;
+
+        if (warningLevel === 'red') {
+            poolNameDisplay = `<u>${submission.poolLocation}</u><span style="color: red;">!!!</span>`;
+        } else if (warningLevel === 'yellow') {
+            poolNameDisplay = `<u>${submission.poolLocation}</u><span style="color: red;">!</span>`;
+        }
+
+        // Add “Closed today” under Columbia CC every Monday
+        if (submission.poolLocation === 'Columbia CC' && today === 1) {
+            poolNameDisplay += `<br><span style="font-size: 0.85em; color: #888;">Closed today</span>`;
+        }
+
+        // 🔳 Helper to color table cells
         const createCell = (value, color) => {
             if (color === 'red') {
                 return `<td style="background-color: #ffcccc; color: #cc0000; font-weight: bold;">${value || 'N/A'}</td>`;
@@ -1222,8 +1231,8 @@ function displayData() {
                 return `<td>${value || 'N/A'}</td>`;
             }
         };
-        
-        // Main Pool Table Row
+
+        // 🏊 Main Pool Row
         const row1 = document.createElement('tr');
         row1.innerHTML = `
             <td>${timestampDisplay}</td>
@@ -1232,8 +1241,8 @@ function displayData() {
             ${createCell(submission.mainPoolCl, mainClColor)}
         `;
         tbody1.appendChild(row1);
-        
-        // Secondary Pool Table Row (only if not Camden CC)
+
+        // 🌊 Secondary Pool Row
         if (submission.poolLocation !== 'Camden CC' && (submission.secondaryPoolPH || submission.secondaryPoolCl)) {
             hasSecondaryData = true;
             const row2 = document.createElement('tr');
@@ -1246,16 +1255,15 @@ function displayData() {
             tbody2.appendChild(row2);
         }
     });
-    
-    // If no secondary pool data, show a message
+
+    // If no secondary pool data, show message
     if (!hasSecondaryData) {
         tbody2.innerHTML = '<tr><td colspan="4" style="text-align: center; padding: 30px; color: #666;">No secondary pool data for current selection</td></tr>';
     }
-    
+
     updateTimestampNote();
     console.log('Data display completed');
 }
-
 
 function evaluateFormFeedback() { // Remove formData parameter
     const poolLocation = document.getElementById('poolLocation').value;
