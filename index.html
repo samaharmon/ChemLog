@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Hourly Pool Chemistry Log - Capital City Aquatics</title>
+    <title>ChemLog - Capital City Aquatics</title>
     <link rel="stylesheet" href="style.css">
     
     <meta name="mobile-web-app-capable" content="yes">
@@ -19,30 +19,71 @@
     <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png" />
     <link rel="manifest" href="/site.webmanifest" />
     
+    <head>
+    <script src="https://www.google.com/recaptcha/enterprise.js?render=6LeuRpIrAAAAAPg8Z6ni-eDSkWSoT8eKCz83m7oQ"></script>
     <script type="module">
-  // Import Firebase v9 modules and make them globally available
-  import { initializeApp } from 'https://www.gstatic.com/firebasejs/9.23.0/firebase-app.js';
-  import { getFirestore, collection, doc, addDoc, setDoc, getDoc, onSnapshot, orderBy, query, Timestamp, writeBatch } from 'https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore.js';
-  
-  // Make Firebase modules available globally for your app files
-  window.firebaseModules = {
-    initializeApp,
-    getFirestore,
-    collection,
-    doc,
-    addDoc,
-    setDoc,
-    getDoc,
-    onSnapshot,
-    orderBy,
-    query,
-    Timestamp,
-    writeBatch
-  };
-</script>
+    // Import Firebase core
+        import { initializeApp } from 'https://www.gstatic.com/firebasejs/9.23.0/firebase-app.js';
+
+    // Firestore
+    import {
+        getFirestore,
+        collection,
+        doc,
+        addDoc,
+        setDoc,
+        getDoc,
+        onSnapshot,
+        orderBy,
+        query,
+        Timestamp,
+        writeBatch
+    } from 'https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore.js';
+
+    // Auth
+    import {
+        getAuth,
+        onAuthStateChanged,
+        signInWithEmailAndPassword,
+        signOut
+    } from 'https://www.gstatic.com/firebasejs/9.23.0/firebase-auth.js';
+
+    // Make Firebase modules available globally
+    window.firebaseModules = {
+        initializeApp,
+        getFirestore,
+        collection,
+        doc,
+        addDoc,
+        setDoc,
+        getDoc,
+        onSnapshot,
+        orderBy,
+        query,
+        Timestamp,
+        writeBatch,
+        getAuth,
+        onAuthStateChanged,
+        signInWithEmailAndPassword,
+        signOut
+    };
+    </script>
+
 
 <script type="module" src="script.js"></script>
 </head>
+
+
+<script>
+  function onClick(e) {
+    e.preventDefault();
+    grecaptcha.enterprise.ready(async () => {
+      const token = await grecaptcha.enterprise.execute('6LeuRpIrAAAAAPg8Z6ni-eDSkWSoT8eKCz83m7oQ', {action: 'LOGIN'});
+    });
+  }
+</script>
+
+
 <body>
 
     <div id="mainForm">
@@ -271,6 +312,9 @@
                 <button id="prevBtn" class="button-shadow" onclick="goToPreviousPage()">←</button>
                 <span id="pageInfo" class="button-shadow"></span>
                 <button id="nextBtn" class="button-shadow" onclick="goToNextPage()">→</button>
+            </div>
+            <div class="footer">
+                <em>Developed by Sam Harmon | 2025<br>v2.1</em>
             </div>
         </div>
     </div> <div id="settingsModal">
