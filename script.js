@@ -1801,33 +1801,46 @@ console.log('✅ All 62 unique functions exposed globally');
 document.addEventListener("DOMContentLoaded", () => {
     console.log('🔥🔥🔥 UNIFIED APP.JS LOADED - Firebase v9 🔥🔥🔥');
 
- const dashboard = document.getElementById('supervisorDashboard');
+    // === Dark Mode Toggle Setup ===
+    const darkModeToggle = document.getElementById('darkModeToggle');
+    const savedTheme = localStorage.getItem('theme');
+    if (savedTheme === 'dark') {
+        document.body.classList.add('dark-mode');
+        if (darkModeToggle) darkModeToggle.checked = true;
+    }
+
+    if (darkModeToggle) {
+        darkModeToggle.addEventListener('change', () => {
+            document.body.classList.toggle('dark-mode');
+            const newTheme = document.body.classList.contains('dark-mode') ? 'dark' : 'light';
+            localStorage.setItem('theme', newTheme);
+        });
+    }
+
+    // === App Init Functions ===
+    const dashboard = document.getElementById('supervisorDashboard');
     if (dashboard) {
-        dashboard.classList.remove('show'); // make sure hidden on load
+        dashboard.classList.remove('show');
         console.log('Dashboard force hidden on load');
     }
 
     const firebaseInitialized = initializeFirebase();
-
     cleanupTestSubmissions();
     checkLogin();
     initializeFormSubmissions();
 
-    // Login form
     const loginForm = document.getElementById('loginForm');
     if (loginForm) {
         loginForm.addEventListener('submit', handleLoginSubmit);
         console.log('✅ Login form handler attached');
     }
 
-    // Pool location dropdown
     const poolLocation = document.getElementById('poolLocation');
     if (poolLocation) {
         poolLocation.addEventListener('change', handlePoolLocationChange);
         console.log('✅ Pool location handler attached');
     }
 
-    // Login modal
     const loginButton = document.querySelector('.supervisor-login-btn');
     if (loginButton) {
         loginButton.removeAttribute('onclick');
@@ -1846,63 +1859,54 @@ document.addEventListener("DOMContentLoaded", () => {
         });
     }
 
-    // Submit button
     const submitButton = document.querySelector('.submit-btn');
     if (submitButton) {
         submitButton.removeAttribute('onclick');
         submitButton.addEventListener('click', submitForm);
     }
 
-    // Clear data + export
     const clearDataBtn = document.getElementById("clearAllData");
     const exportCsvBtn = document.getElementById("exportCsvBtn");
 
-    if (clearDataBtn) {
-        clearDataBtn.addEventListener("click", confirmClearData);
-    }
-
-    if (exportCsvBtn) {
-        exportCsvBtn.addEventListener("click", exportToCSV);
-    }
+    if (clearDataBtn) clearDataBtn.addEventListener("click", confirmClearData);
+    if (exportCsvBtn) exportCsvBtn.addEventListener("click", exportToCSV);
 
     setupEventHandlers();
     updateHeaderButtons();
 
     const editBtn = document.getElementById('editSanitationBtn');
-const saveBtn = document.getElementById('saveSanitationBtn');
-const sanitationCheckboxes = document.querySelectorAll('.sanitation-checkbox');
+    const saveBtn = document.getElementById('saveSanitationBtn');
+    const sanitationCheckboxes = document.querySelectorAll('.sanitation-checkbox');
 
-// Disable all checkboxes on load
-sanitationCheckboxes.forEach(cb => cb.disabled = true);
-
-editBtn.addEventListener('click', () => {
-    sanitationCheckboxes.forEach(cb => cb.disabled = false);
-    editBtn.disabled = true;
-    saveBtn.disabled = false;
-});
-
-saveBtn.addEventListener('click', () => {
-    // Apply checked values to sanitationSettings
-    sanitationCheckboxes.forEach(cb => {
-        const pool = cb.dataset.pool;
-        const method = cb.dataset.method;
-        if (cb.checked) {
-            sanitationSettings[pool] = method;
-        }
-    });
-
-    // Save and re-disable checkboxes
-    saveSanitationSettings();
     sanitationCheckboxes.forEach(cb => cb.disabled = true);
-    editBtn.disabled = false;
-    saveBtn.disabled = true;
 
-    console.log('✅ Sanitation settings saved and checkboxes disabled again');
+    editBtn.addEventListener('click', () => {
+        sanitationCheckboxes.forEach(cb => cb.disabled = false);
+        editBtn.disabled = true;
+        saveBtn.disabled = false;
     });
 
+    saveBtn.addEventListener('click', () => {
+        sanitationCheckboxes.forEach(cb => {
+            const pool = cb.dataset.pool;
+            const method = cb.dataset.method;
+            if (cb.checked) {
+                sanitationSettings[pool] = method;
+            }
+        });
+
+        saveSanitationSettings();
+        sanitationCheckboxes.forEach(cb => cb.disabled = true);
+        editBtn.disabled = false;
+        saveBtn.disabled = true;
+
+        console.log('✅ Sanitation settings saved and checkboxes disabled again');
+    });
 
     console.log('🚀 App initialization complete');
 });
+
+
 
 function updateSanitationCheckboxesFromSettings() {
     for (const pool in sanitationSettings) {
