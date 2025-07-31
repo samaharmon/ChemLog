@@ -976,6 +976,8 @@ body.dark-mode .dropdown-item,
 body.dark-mode .submit-btn,
 body.dark-mode .editAndSave,
 body.dark-mode .login-btn,
+body.dark-mode label,
+body.dark-mode .slider,
 body.dark-mode .supervisor-contact-modal .send-message-btn {
     color: white !important;
 }
