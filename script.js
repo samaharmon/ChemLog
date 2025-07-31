@@ -2143,6 +2143,9 @@ function showDashboard() {
     removeOverlay();
     loadDashboardData();
     updateHeaderButtons();
+
+    console.log('🤖 Logo still exists after updateHeaderButtons:', !!document.getElementById('logo'));
+
 }
 
 
