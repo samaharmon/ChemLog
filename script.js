@@ -745,6 +745,7 @@ function loadFormSubmissions() {
 function cleanupTestSubmissions() {
     const now = Date.now();
     const FIVE_MINUTES = 5 * 60 * 1000;
+    const badTimestamp = "7/24/2025, 4:58:31 PM";
 
     formSubmissions = formSubmissions.filter(submission => {
         const isTest = submission.firstName === 'TEST';
@@ -756,8 +757,12 @@ function cleanupTestSubmissions() {
         const secondaryPH = submission.secondaryPoolPH;
         const secondaryCl = submission.secondaryPoolCl;
 
-        // Remove any submission where any pH or Cl value is explicitly "N/A"
         const hasInvalidChemistry = [mainPH, mainCl, secondaryPH, secondaryCl].some(value => value === "N/A");
+
+        if (submission.timestamp === badTimestamp) {
+            console.log(`🧹 Deleted submission with bad timestamp: ${badTimestamp} (ID: ${submission.id})`);
+            return false;
+        }
 
         if (isTest && isExpired) {
             console.log(`🧹 Deleted expired TEST submission (ID: ${submission.id})`);
@@ -779,7 +784,6 @@ function cleanupTestSubmissions() {
 
     localStorage.setItem('formSubmissions', JSON.stringify(formSubmissions));
 }
-
 
 function organizePaginatedData(data) {
     if (data.length === 0) return [];
