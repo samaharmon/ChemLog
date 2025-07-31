@@ -35,11 +35,12 @@ body {
 
 #logo {
     position: absolute;
-    display: block;
-    top: 37.75px;
-    right: 20px;
-    height: 125px;
-    width: 125px;
+    display: block !important;
+    visibility: visible !important;
+    top: 37.75px !important;
+    right: 20px !important;
+    height: 125px !important;
+    width: 125px !important;
     filter: drop-shadow(0 4px 15px rgba(0, 0, 0, 0.4));
     z-index: 10; /* ensures it appears on top of other content */
     pointer-events: none; /* optional: prevents it from blocking clicks */
