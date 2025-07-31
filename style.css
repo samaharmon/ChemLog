@@ -953,7 +953,6 @@ body.dark-mode {
 body.dark-mode .form-container,
 body.dark-mode .modal-content,
 body.dark-mode .settings-modal-content,
-body.dark-mode #settingsModal,
 body.dark-mode #loginModal,
 body.dark-mode .feedback-modal,
 body.dark-mode .sanitation-table,
@@ -1016,6 +1015,10 @@ body.dark-mode .dropdown-item:hover {
 
 body.dark-mode .feedback-modal .close-btn {
     color: white;
+}
+
+body.dark-mode #settingsModal .modal-header {
+    background-color: #000000;
 }
 
 /* =========================
