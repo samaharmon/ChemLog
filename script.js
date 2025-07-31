@@ -756,10 +756,8 @@ function cleanupTestSubmissions() {
         const secondaryPH = submission.secondaryPoolPH;
         const secondaryCl = submission.secondaryPoolCl;
 
-        // Check if all values are missing or "N/A"
-        const allFieldsNA = [mainPH, mainCl, secondaryPH, secondaryCl].every(value =>
-            value === undefined || value === null || value === '' || value === 'N/A'
-        );
+        // Remove any submission where any pH or Cl value is explicitly "N/A"
+        const hasInvalidChemistry = [mainPH, mainCl, secondaryPH, secondaryCl].some(value => value === "N/A");
 
         if (isTest && isExpired) {
             console.log(`🧹 Deleted expired TEST submission (ID: ${submission.id})`);
@@ -771,8 +769,8 @@ function cleanupTestSubmissions() {
             return false;
         }
 
-        if (isExpired && allFieldsNA) {
-            console.log(`🧹 Deleted expired empty submission (ID: ${submission.id})`);
+        if (hasInvalidChemistry) {
+            console.log(`🧹 Deleted submission with "N/A" chemistry values (ID: ${submission.id})`);
             return false;
         }
 
@@ -781,6 +779,7 @@ function cleanupTestSubmissions() {
 
     localStorage.setItem('formSubmissions', JSON.stringify(formSubmissions));
 }
+
 
 function organizePaginatedData(data) {
     if (data.length === 0) return [];
