@@ -1799,7 +1799,7 @@ console.log('✅ All 62 unique functions exposed globally');
 // ===================================================
 
 document.addEventListener("DOMContentLoaded", () => {
-    console.log('🔥🔥🔥 UNIFIED APP.JS LOADED - Firebase v9 🔥🔥🔥');
+    console.log(' UNIFIED APP.JS LOADED - Firebase v9 ');
 
     // === Dark Mode Toggle Setup ===
     const darkModeToggle = document.getElementById('darkModeToggle');
@@ -1973,7 +1973,6 @@ function updateHeaderButtons() {
         }
         // Clear dashboard elements when on form
         if (dashboardMenuContainer) dashboardMenuContainer.innerHTML = '';
-        if (dashboardHeaderRight) dashboardHeaderRight.innerHTML = '';
         
     } else if (currentView === 'dashboard') {
         // Hide login button when on dashboard
