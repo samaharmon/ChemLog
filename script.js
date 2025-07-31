@@ -2127,6 +2127,14 @@ function showDashboard() {
     // Show dashboard
     if (supervisorDashboard) {
         supervisorDashboard.classList.add('show');
+
+        const dashboard = document.getElementById('supervisorDashboard');
+        const header = dashboard.querySelector('.header');
+        const headerRight = dashboard.querySelector('.header-right');
+
+        console.log('📦 supervisorDashboard display:', window.getComputedStyle(dashboard)?.display);
+        console.log('📦 .header display:', window.getComputedStyle(header)?.display);
+        console.log('📦 .header-right display:', window.getComputedStyle(headerRight)?.display);
     }
 
     // Run logo visibility check AFTER the dashboard is made visible
