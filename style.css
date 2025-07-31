@@ -37,6 +37,7 @@ body {
     position: absolute;
     display: block !important;
     visibility: visible !important;
+    opacity: 1 !important;
     top: 37.75px !important;
     right: 20px !important;
     height: 125px !important;
