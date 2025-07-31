@@ -1906,8 +1906,6 @@ document.addEventListener("DOMContentLoaded", () => {
     console.log('🚀 App initialization complete');
 });
 
-
-
 function updateSanitationCheckboxesFromSettings() {
     for (const pool in sanitationSettings) {
         const method = sanitationSettings[pool];
@@ -2119,13 +2117,7 @@ function showDashboard() {
     currentView = 'dashboard';
 
     const mainForm = document.getElementById('mainForm');
-    console.log('✅ showDashboard called');
     const supervisorDashboard = document.getElementById('supervisorDashboard');
-
-    console.log('✅ supervisorDashboard element found:', supervisorDashboard);
-    console.log('✅ Current style.display:', supervisorDashboard?.style.display);
-    console.log('✅ Has class "show"?', supervisorDashboard?.classList.contains('show'));
-
 
     // Hide main form
     if (mainForm) {
@@ -2137,10 +2129,22 @@ function showDashboard() {
         supervisorDashboard.classList.add('show');
     }
 
+    // Run logo visibility check AFTER the dashboard is made visible
+    const logo = document.getElementById('logo');
+    if (logo) {
+        const style = window.getComputedStyle(logo);
+        console.log('👀 Logo display:', style.display);
+        console.log('👀 Logo visibility:', style.visibility);
+        console.log('👀 Logo offsetParent (visible?):', logo.offsetParent !== null);
+    } else {
+        console.warn('⚠️ Logo element not found in DOM');
+    }
+
     removeOverlay();
     loadDashboardData();
     updateHeaderButtons();
 }
+
 
 
 // ===================================================
