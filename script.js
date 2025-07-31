@@ -2139,6 +2139,9 @@ function showDashboard() {
 
     // Run logo visibility check AFTER the dashboard is made visible
     const logo = document.getElementById('logo');
+
+    console.log('Logo width:', logo.offsetWidth, 'height:', logo.offsetHeight);
+
     if (logo) {
         const style = window.getComputedStyle(logo);
         console.log('👀 Logo display:', style.display);
