@@ -1070,3 +1070,32 @@ body.dark-mode #settingsModal .modal-header {
 .theme-toggle input[type="checkbox"]:checked::before {
     transform: translateX(20px);
 }
+
+/* Highlight styles — Light Mode (default) */
+.highlight-red {
+    background-color: #ffcccc;
+    color: #cc0000;
+    font-weight: bold;
+}
+
+.highlight-yellow {
+    background-color: #fff2cc;
+    color: #b8860b;
+    font-weight: bold;
+}
+
+/* Highlight styles — Dark Mode override */
+body.dark-mode .highlight-red {
+    background-color: #7b1e1e; /* Dark maroon */
+    color: #ff6666; /* Light red text */
+}
+
+body.dark-mode .highlight-yellow {
+    background-color: #8a6d00; /* Golden mustard */
+    color: #ffe98a; /* Soft gold text */
+}
+
+.highlight-red,
+.highlight-yellow {
+    transition: background-color 0.3s, color 0.3s;
+}
