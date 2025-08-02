@@ -336,9 +336,10 @@ function filterData() {
 }
 
 function goToPreviousPage() {
-    if (currentPage > 1) {
+    if (currentPage > 0) {
         currentPage--;
         displayData();
+        updatePagination();
     }
 }
 function goToNextPage() {
@@ -2165,14 +2166,16 @@ function showDashboard() {
 
 function updatePagination() {
     const totalPages = Math.ceil(filteredSubmissions.length / itemsPerPage);
+    currentPage = Math.max(0, Math.min(currentPage, totalPages - 1));
     const pageInfo = document.getElementById('pageInfo');
     const prevBtn = document.getElementById('prevBtn');
     const nextBtn = document.getElementById('nextBtn');
     
-    if (pageInfo) pageInfo.textContent = `Page ${currentPage} of ${totalPages}`;
-    if (prevBtn) prevBtn.disabled = currentPage === 1;
-    if (nextBtn) nextBtn.disabled = currentPage === totalPages;
+    if (pageInfo) pageInfo.textContent = `Page ${currentPage + 1} of ${totalPages}`;
+    if (prevBtn) prevBtn.disabled = currentPage === 0;
+    if (nextBtn) nextBtn.disabled = currentPage >= totalPages - 1;
 }
+
 
 // ===================================================
 // LOGIN & AUTHENTICATION
