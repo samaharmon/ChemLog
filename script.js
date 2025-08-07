@@ -845,7 +845,6 @@ function initializeFormSubmissions() {
     console.log(`Initialized with ${formSubmissions.length} cleaned form submissions`);
 }
 
-
 // Firebase v9 initialization using globally available modules
 function initializeFirebase() {
     try {
@@ -1874,6 +1873,31 @@ document.addEventListener("DOMContentLoaded", () => {
     setupEventHandlers();
     updateHeaderButtons();
 
+        // === Supervisor Dashboard Pagination Buttons ===
+    const prevBtn = document.getElementById('prevBtn');
+    const nextBtn = document.getElementById('nextBtn');
+
+    if (prevBtn) {
+        prevBtn.addEventListener('click', () => {
+            if (currentPage > 0) {
+                currentPage--;
+                displayData();
+                updatePagination();
+            }
+        });
+    }
+
+    if (nextBtn) {
+        nextBtn.addEventListener('click', () => {
+            const totalPages = Math.ceil(filteredSubmissions.length / itemsPerPage);
+            if (currentPage < totalPages - 1) {
+                currentPage++;
+                displayData();
+                updatePagination();
+            }
+        });
+    }
+
     const editBtn = document.getElementById('editSanitationBtn');
     const saveBtn = document.getElementById('saveSanitationBtn');
     const sanitationCheckboxes = document.querySelectorAll('.sanitation-checkbox');
@@ -2175,7 +2199,6 @@ function updatePagination() {
     if (prevBtn) prevBtn.disabled = currentPage === 0;
     if (nextBtn) nextBtn.disabled = currentPage >= totalPages - 1;
 }
-
 
 // ===================================================
 // LOGIN & AUTHENTICATION
