@@ -1136,6 +1136,44 @@ function updateTimestampNote() {
     }
 }
 
+function updatePaginationControls() {
+    const prevBtn = document.getElementById('prevBtn');
+    const nextBtn = document.getElementById('nextBtn');
+    const pageInfo = document.getElementById('pageInfo');
+    const pagination = document.getElementById('pagination');
+
+    if (!prevBtn || !nextBtn || !pageInfo || !pagination) return;
+
+    const totalPages = Math.ceil(filteredSubmissions.length / itemsPerPage);
+
+    // Hide pagination if only one page
+    if (totalPages <= 1) {
+        pagination.style.display = 'none';
+        return;
+    }
+
+    pagination.style.display = 'flex';
+
+    // Enable/disable buttons
+    prevBtn.disabled = currentPage === 0;
+    prevBtn.style.opacity = prevBtn.disabled ? '0.5' : '1';
+    prevBtn.style.cursor = prevBtn.disabled ? 'not-allowed' : 'pointer';
+
+    nextBtn.disabled = currentPage >= totalPages - 1;
+    nextBtn.style.opacity = nextBtn.disabled ? '0.5' : '1';
+    nextBtn.style.cursor = nextBtn.disabled ? 'not-allowed' : 'pointer';
+
+    // Show date from first item on the current page
+    const startIndex = currentPage * itemsPerPage;
+    const currentPageData = filteredSubmissions.slice(startIndex, startIndex + itemsPerPage);
+    if (currentPageData.length > 0) {
+        const dateString = new Date(currentPageData[0].timestamp).toLocaleDateString();
+        pageInfo.textContent = dateString;
+    } else {
+        pageInfo.textContent = '';
+    }
+}
+
 // Updated displayData function
 function displayData() {
     if (!paginatedData.length) {
@@ -2073,45 +2111,22 @@ function showDashboard() {
 // PAGINATION
 // ===================================================
 
-function updatePaginationControls() {
+function updatePagination() {
     const totalPages = Math.ceil(filteredSubmissions.length / itemsPerPage);
-    currentPage = Math.max(0, Math.min(currentPage, totalPages - 1));
 
-    const prevBtn = document.getElementById('prevBtn');
-    const nextBtn = document.getElementById('nextBtn');
-    const pageInfo = document.getElementById('pageInfo');
-    const paginationContainer = document.getElementById('pagination');
-
-    if (!prevBtn || !nextBtn || !pageInfo || !paginationContainer) return;
-
-    // Hide pagination if only one page
-    if (totalPages <= 1) {
-        paginationContainer.style.display = 'none';
-        return;
+    // Prevent going out of bounds
+    if (currentPage >= totalPages) {
+        currentPage = totalPages - 1;
     }
-    paginationContainer.style.display = 'flex';
-
-    // Enable/disable buttons
-    prevBtn.disabled = currentPage === 0;
-    prevBtn.style.opacity = prevBtn.disabled ? '0.5' : '1';
-    prevBtn.style.cursor = prevBtn.disabled ? 'not-allowed' : 'pointer';
-    
-    nextBtn.disabled = currentPage >= totalPages - 1;
-    nextBtn.style.opacity = nextBtn.disabled ? '0.5' : '1';
-    nextBtn.style.cursor = nextBtn.disabled ? 'not-allowed' : 'pointer';
-
-    // Get current page's slice of data
-    const startIdx = currentPage * itemsPerPage;
-    const endIdx = startIdx + itemsPerPage;
-    const currentPageData = filteredSubmissions.slice(startIdx, endIdx);
-
-    // Show date for first entry in current page, or fallback to Page X of Y
-    if (currentPageData.length > 0 && currentPageData[0].timestamp) {
-        pageInfo.textContent = new Date(currentPageData[0].timestamp)
-            .toLocaleDateString(undefined, { month: '2-digit', day: '2-digit', year: 'numeric' });
-    } else {
-        pageInfo.textContent = `Page ${currentPage + 1} of ${totalPages}`;
+    if (currentPage < 0) {
+        currentPage = 0;
     }
+
+    // Display the current page's data
+    displayData();
+
+    // Update the prev/next button states and page info
+    updatePaginationControls(totalPages);
 }
 
 
