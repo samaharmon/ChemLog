@@ -339,16 +339,19 @@ function goToPreviousPage() {
     if (currentPage > 0) {
         currentPage--;
         displayData();
-        updatePagination();
+        updatePaginationControls(); // was updatePagination()
     }
 }
+
 function goToNextPage() {
-    const totalPages = Math.ceil(filteredSubmissions.length / itemsPerPage);
+    const totalPages = Math.ceil(filteredSubmissions.length / itemsPerPage) - 1;
     if (currentPage < totalPages) {
         currentPage++;
         displayData();
+        updatePaginationControls(); // add this so it updates
     }
 }
+
 function closeSettings() {
     document.getElementById('settingsModal').style.display = 'none';
         removeOverlay();
@@ -1026,47 +1029,39 @@ function useLocalDataOnly() {
 
 // Updated filter and display function
 function filterAndDisplayData() {
-    console.log('Filtering and displaying data...');
-    
-    // Apply filters
-    const poolFilter = document.getElementById('poolFilter')?.value || '';
-    const dateFilter = document.getElementById('dateFilter')?.value || '';
-    const dashboard = document.getElementById('supervisorDashboard');
-        if (dashboard) {
-            dashboard.style.display = 'block'; // or 'flex' or whatever it should be
-        }
+    // Filter data based on search term
+    const searchTerm = searchBox.value.toLowerCase();
+    const filteredData = allData.filter(item =>
+        Object.values(item).some(val =>
+            String(val).toLowerCase().includes(searchTerm)
+        )
+    );
 
-        filteredSubmissions = allSubmissions.filter(submission => {
-        let passesFilter = true;
-        
-        if (poolFilter && submission.poolLocation !== poolFilter) {
-            passesFilter = false;
-        }
+    // Sort newest first
+    filteredData.sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp));
 
-        if (dateFilter) {
-            const filterDate = new Date(dateFilter);
-            const submissionDate = new Date(submission.timestamp);
-            if (submissionDate.toDateString() !== filterDate.toDateString()) {
-                passesFilter = false;
-            }
+    // Group by date
+    const groupedByDate = {};
+    filteredData.forEach(item => {
+        const dateStr = new Date(item.timestamp).toLocaleDateString();
+        if (!groupedByDate[dateStr]) {
+            groupedByDate[dateStr] = [];
         }
-
-        return passesFilter;
+        groupedByDate[dateStr].push(item);
     });
 
-    
-    console.log('Filtered submissions:', filteredSubmissions.length);
-    
-    // Create paginated data
-    paginatedData = organizePaginatedData(filteredSubmissions);
-    currentPage = 0; // Start with page 0 (most recent)
-    
-    console.log('Paginated data pages:', paginatedData.length);
-    
-    // Display the data
+    // Turn into array of arrays (each "page" = one date's entries)
+    paginatedData = Object.keys(groupedByDate)
+        .sort((a, b) => new Date(b) - new Date(a)) // newest date first
+        .map(date => groupedByDate[date]);
+
+    totalPages = paginatedData.length;
+    currentPage = 0;
+
     displayData();
     updatePaginationControls();
 }
+
 
 function getHighlightColor(value, type) {
     if (!value || value === 'N/A' || value === '') return null;
@@ -1145,135 +1140,64 @@ function updatePaginationControls() {
     const prevBtn = document.getElementById('prevBtn');
     const nextBtn = document.getElementById('nextBtn');
     const pageInfo = document.getElementById('pageInfo');
-    
-    if (!prevBtn || !nextBtn || !pageInfo) return;
-    
+    const paginationContainer = document.getElementById('pagination');
+
+    if (!prevBtn || !nextBtn || !pageInfo || !paginationContainer) return;
+
+    // Hide pagination if only one page
     if (paginatedData.length <= 1) {
-        document.getElementById('pagination').style.display = 'none';
+        paginationContainer.style.display = 'none';
         return;
     }
-    
-    document.getElementById('pagination').style.display = 'flex';
-    
-    // Update button states
+
+    paginationContainer.style.display = 'flex';
+
+    // Enable/disable buttons
     prevBtn.disabled = currentPage === 0;
-    prevBtn.style.opacity = currentPage === 0 ? '0.5' : '1';
-    prevBtn.style.cursor = currentPage === 0 ? 'not-allowed' : 'pointer';
+    prevBtn.style.opacity = prevBtn.disabled ? '0.5' : '1';
+    prevBtn.style.cursor = prevBtn.disabled ? 'not-allowed' : 'pointer';
     
     nextBtn.disabled = currentPage >= paginatedData.length - 1;
-    nextBtn.style.opacity = currentPage >= paginatedData.length - 1 ? '0.5' : '1';
-    nextBtn.style.cursor = currentPage >= paginatedData.length - 1 ? 'not-allowed' : 'pointer';
-    
-    // Update page info
+    nextBtn.style.opacity = nextBtn.disabled ? '0.5' : '1';
+    nextBtn.style.cursor = nextBtn.disabled ? 'not-allowed' : 'pointer';
+
+    // Show the date for the current page
     const currentPageData = paginatedData[currentPage];
-    const pageDisplayText = currentPage === 0 
-        ? `Recent (${currentPageData.length})` 
-        : `${new Date(currentPageData[0].timestamp).toLocaleDateString()} (${currentPageData.length})`;
-    
-    pageInfo.textContent = pageDisplayText;
+    if (currentPageData && currentPageData.length > 0) {
+        // Format: MM/DD/YYYY
+        pageInfo.textContent = new Date(currentPageData[0].timestamp)
+            .toLocaleDateString(undefined, { month: '2-digit', day: '2-digit', year: 'numeric' });
+    } else {
+        pageInfo.textContent = '';
+    }
 }
+
+
 
 // Updated displayData function
 function displayData() {
-    console.log('displayData called');
-    console.log('allSubmissions length:', allSubmissions.length);
-    console.log('paginatedData length:', paginatedData.length);
-    console.log('currentPage:', currentPage);
-    
-    const tbody1 = document.getElementById('dataTableBody1');
-    const tbody2 = document.getElementById('dataTableBody2');
-
-    // 🧼 Clear previous rows
-    tbody1.innerHTML = '';
-    tbody2.innerHTML = '';
-
-    console.log('tbody1 found:', !!tbody1);
-    console.log('tbody2 found:', !!tbody2);
-
-    if (paginatedData.length === 0 || !paginatedData[currentPage]) {
-        tbody1.innerHTML = '<tr><td colspan="4" style="text-align: center; padding: 30px; color: #666;">No data found</td></tr>';
-        tbody2.innerHTML = '<tr><td colspan="4" style="text-align: center; padding: 30px; color: #666;">No data found</td></tr>';
+    if (!paginatedData.length) {
+        tableBody.innerHTML = `<tr><td colspan="999">No results found.</td></tr>`;
+        pageIndicator.textContent = "";
         return;
     }
 
-    const data = paginatedData[currentPage];
-    let hasSecondaryData = false;
-    
-    console.log('Displaying', data.length, 'items for page', currentPage);
-    
-    data.forEach(submission => {
-        const mainPHColor = getHighlightColor(submission.mainPoolPH, 'pH');
-        const mainClColor = getHighlightColor(submission.mainPoolCl, 'cl');
-        const secondaryPHColor = getHighlightColor(submission.secondaryPoolPH, 'pH');
-        const secondaryClColor = getHighlightColor(submission.secondaryPoolCl, 'cl');
-        const warningLevel = getPoolWarningLevel(submission.mainPoolPH, submission.mainPoolCl, submission.secondaryPoolPH, submission.secondaryPoolCl);
+    const currentEntries = paginatedData[currentPage];
+    const currentDate = new Date(currentEntries[0].timestamp).toLocaleDateString();
 
-        // ⏰ Format timestamp
-        let timestampDisplay = submission.timestamp;
-        if (submission.timestamp instanceof Date) {
-            timestampDisplay = submission.timestamp.toLocaleString();
-        } else {
-            timestampDisplay = new Date(submission.timestamp).toLocaleString();
-        }
+    // Update header with the date
+    pageIndicator.textContent = `Entries for ${currentDate}`;
 
-        if (currentPage === 0 && isMoreThan3HoursOld(submission.timestamp)) {
-            timestampDisplay = `<span style="color: red; font-weight: bold;">${timestampDisplay}</span>`;
-        }
-
-        // 🟡 Handle pool name + Monday logic
-        const today = new Date().getDay(); // 1 = Monday
-        let poolNameDisplay = submission.poolLocation;
-
-        if (warningLevel === 'red') {
-            poolNameDisplay = `<u>${submission.poolLocation}</u><span style="color: red;">!!!</span>`;
-        } else if (warningLevel === 'yellow') {
-            poolNameDisplay = `<u>${submission.poolLocation}</u><span style="color: red;">!</span>`;
-        }
-
-        // Add “Closed today” under Columbia CC every Monday
-        if (submission.poolLocation === 'Columbia CC' && today === 1) {
-            poolNameDisplay += `<br><span style="font-size: 0.85em; color: #888;">Closed today</span>`;
-        }
-
-        // 🔳 Helper to color table cells
-        const createCell = (value, color) => {
-            const className = color ? `highlight-${color}` : '';
-            return `<td class="${className}">${value || 'N/A'}</td>`;
-        };
-
-
-        // 🏊 Main Pool Row
-        const row1 = document.createElement('tr');
-        row1.innerHTML = `
-            <td>${timestampDisplay}</td>
-            <td>${poolNameDisplay}</td>
-            ${createCell(submission.mainPoolPH, mainPHColor)}
-            ${createCell(submission.mainPoolCl, mainClColor)}
-        `;
-        tbody1.appendChild(row1);
-
-        // 🌊 Secondary Pool Row
-        if (submission.poolLocation !== 'Camden CC' && (submission.secondaryPoolPH || submission.secondaryPoolCl)) {
-            hasSecondaryData = true;
-            const row2 = document.createElement('tr');
-            row2.innerHTML = `
-                <td>${timestampDisplay}</td>
-                <td>${poolNameDisplay}</td>
-                ${createCell(submission.secondaryPoolPH, secondaryPHColor)}
-                ${createCell(submission.secondaryPoolCl, secondaryClColor)}
-            `;
-            tbody2.appendChild(row2);
-        }
-    });
-
-    // If no secondary pool data, show message
-    if (!hasSecondaryData) {
-        tbody2.innerHTML = '<tr><td colspan="4" style="text-align: center; padding: 30px; color: #666;">No secondary pool data for current selection</td></tr>';
-    }
-
-    updateTimestampNote();
-    console.log('Data display completed');
+    // Render table rows
+    tableBody.innerHTML = currentEntries.map(item => `
+        <tr>
+            <td>${item.name}</td>
+            <td>${item.pool}</td>
+            <td>${item.timestamp}</td>
+        </tr>
+    `).join('');
 }
+
 
 function evaluateFormFeedback() { // Remove formData parameter
     const poolLocation = document.getElementById('poolLocation').value;
