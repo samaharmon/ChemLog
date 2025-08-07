@@ -1036,15 +1036,13 @@ function filterAndDisplayData() {
             dashboard.style.display = 'block'; // or 'flex' or whatever it should be
         }
 
-    filteredSubmissions = allSubmissions.filter(submission => {
+        filteredSubmissions = allSubmissions.filter(submission => {
         let passesFilter = true;
         
-        // Pool filter
         if (poolFilter && submission.poolLocation !== poolFilter) {
             passesFilter = false;
         }
-        
-        // Date filter
+
         if (dateFilter) {
             const filterDate = new Date(dateFilter);
             const submissionDate = new Date(submission.timestamp);
@@ -1052,9 +1050,10 @@ function filterAndDisplayData() {
                 passesFilter = false;
             }
         }
-        
-        return true;
+
+        return passesFilter;
     });
+
     
     console.log('Filtered submissions:', filteredSubmissions.length);
     
