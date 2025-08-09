@@ -2573,5 +2573,15 @@ window.debugViews = debugViews;
 window.debugApp = debugApp;
 
 window.addEventListener('error', (e) => {
-    console.error('Global error caught:', e.message, 'at', e.filename, 'line', e.lineno);
+    console.group('🚨 DASHBOARD ERROR DETECTED');
+    console.error('Message:', e.message || '(no message)');
+    console.error('Source file:', e.filename || '(no filename)');
+    console.error('Line:', e.lineno);
+    console.error('Column:', e.colno);
+    console.error('Error object:', e.error || '(no error object)');
+    if (e.error && e.error.stack) {
+        console.error('Stack trace:\n', e.error.stack);
+    }
+    console.groupEnd();
 });
+
