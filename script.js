@@ -1029,8 +1029,11 @@ function useLocalDataOnly() {
 
 // Updated filter and display function
 function filterAndDisplayData() {
+    // Get reference to search box
+    const searchBox = document.getElementById("searchBox");
+    const searchTerm = searchBox ? searchBox.value.toLowerCase() : "";
+
     // Filter data based on search term
-    const searchTerm = searchBox.value.toLowerCase();
     const filteredData = allData.filter(item =>
         Object.values(item).some(val =>
             String(val).toLowerCase().includes(searchTerm)
@@ -1061,7 +1064,6 @@ function filterAndDisplayData() {
     displayData();
     updatePaginationControls();
 }
-
 
 function getHighlightColor(value, type) {
     if (!value || value === 'N/A' || value === '') return null;
