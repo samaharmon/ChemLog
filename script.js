@@ -1028,43 +1028,63 @@ function useLocalDataOnly() {
 }
 
 function filterAndDisplayData() {
-    const searchBox = document.getElementById('searchBox');
-    if (!searchBox) return;
+    console.group('🔍 filterAndDisplayData');
+    
+    // Ensure search box exists
+    const searchBoxEl = document.getElementById('searchBox');
+    if (!searchBoxEl) {
+        console.warn('⚠ searchBox element not found.');
+        console.groupEnd();
+        return;
+    }
 
-    const searchTerm = searchBox.value.toLowerCase();
+    const searchTerm = searchBoxEl.value.trim().toLowerCase();
+    console.log('Search term:', searchTerm);
 
-    // Filter from all submissions
+    if (!Array.isArray(allSubmissions)) {
+        console.warn('⚠ allSubmissions is not defined or not an array.');
+        console.groupEnd();
+        return;
+    }
+    console.log(`Total submissions before filter: ${allSubmissions.length}`);
+
+    // Filter based on search term
     const filteredData = allSubmissions.filter(item =>
-        Object.values(item).some(val =>
-            String(val).toLowerCase().includes(searchTerm)
+        Object.values(item || {}).some(val =>
+            String(val ?? '').toLowerCase().includes(searchTerm)
         )
     );
+    console.log(`Filtered results: ${filteredData.length}`);
 
-    // Sort newest first
+    // Sort by newest timestamp
     filteredData.sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp));
 
-    // Group by date
+    // Group entries by date string
     const groupedByDate = {};
     filteredData.forEach(item => {
-        const dateStr = new Date(item.timestamp).toLocaleDateString();
+        const ts = item.timestamp ? new Date(item.timestamp) : new Date(0);
+        const dateStr = ts.toLocaleDateString();
         if (!groupedByDate[dateStr]) {
             groupedByDate[dateStr] = [];
         }
         groupedByDate[dateStr].push(item);
     });
+    console.log('Grouped dates:', Object.keys(groupedByDate));
 
-    // Turn into array of arrays (each "page" = one date's entries)
+    // Convert to array of "pages" (each page is one date's entries)
     paginatedData = Object.keys(groupedByDate)
-        .sort((a, b) => new Date(b) - new Date(a)) // newest date first
+        .sort((a, b) => new Date(b) - new Date(a)) // newest first
         .map(date => groupedByDate[date]);
 
     totalPages = paginatedData.length;
     currentPage = 0;
 
+    console.log(`Pages: ${totalPages}`);
     displayData();
     updatePaginationControls();
-}
 
+    console.groupEnd();
+}
 
 function getHighlightColor(value, type) {
     if (!value || value === 'N/A' || value === '') return null;
@@ -1177,28 +1197,42 @@ function updatePaginationControls() {
     }
 }
 
-// Updated displayData function
 function displayData() {
-    if (!paginatedData.length) {
+    console.group('🖥 displayData');
+
+    if (!Array.isArray(paginatedData) || paginatedData.length === 0) {
+        console.warn('⚠ No data to display.');
         tableBody.innerHTML = `<tr><td colspan="999">No results found.</td></tr>`;
-        pageIndicator.textContent = "";
+        pageIndicator.textContent = '';
+        console.groupEnd();
         return;
     }
 
-    const currentEntries = paginatedData[currentPage];
-    const currentDate = new Date(currentEntries[0].timestamp).toLocaleDateString();
+    const currentEntries = paginatedData[currentPage] || [];
+    if (currentEntries.length === 0) {
+        console.warn(`⚠ Page ${currentPage} has no entries.`);
+        tableBody.innerHTML = `<tr><td colspan="999">No results found.</td></tr>`;
+        pageIndicator.textContent = '';
+        console.groupEnd();
+        return;
+    }
 
-    // Update header with the date
+    // Get date for the header
+    const firstTimestamp = currentEntries[0].timestamp ? new Date(currentEntries[0].timestamp) : new Date(0);
+    const currentDate = firstTimestamp.toLocaleDateString();
     pageIndicator.textContent = `Entries for ${currentDate}`;
+    console.log(`Displaying ${currentEntries.length} entries for ${currentDate}`);
 
-    // Render table rows
+    // Render rows
     tableBody.innerHTML = currentEntries.map(item => `
         <tr>
-            <td>${item.name}</td>
-            <td>${item.pool}</td>
-            <td>${item.timestamp}</td>
+            <td>${item.name ?? ''}</td>
+            <td>${item.pool ?? ''}</td>
+            <td>${item.timestamp ? new Date(item.timestamp).toLocaleString() : ''}</td>
         </tr>
     `).join('');
+
+    console.groupEnd();
 }
 
 
