@@ -2568,3 +2568,7 @@ function debugViews() {
 window.debugViews = debugViews;
 
 window.debugApp = debugApp;
+
+window.addEventListener('error', (e) => {
+    console.error('Global error caught:', e.message, 'at', e.filename, 'line', e.lineno);
+});
