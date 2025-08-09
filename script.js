@@ -1028,18 +1028,60 @@ function useLocalDataOnly() {
 }
 
 function filterAndDisplayData() {
-    const poolFilter = document.getElementById("poolFilter").value;
-    const dateFilter = document.getElementById("dateFilter").value;
+    console.group('🔍 filterAndDisplayData');
 
-    // Filter data based on pool and date only
-    const filteredData = formSubmissions.filter(entry => {
-        const matchesPool = poolFilter ? entry.pool === poolFilter : true;
-        const matchesDate = dateFilter ? entry.date === dateFilter : true;
-        return matchesPool && matchesDate;
+    const poolFilter = document.getElementById('poolFilter')?.value || '';
+    const dateFilter = document.getElementById('dateFilter')?.value || '';
+
+    if (!Array.isArray(allSubmissions)) {
+        console.warn('⚠ allSubmissions is not defined or not an array.');
+        console.groupEnd();
+        return;
+    }
+
+    console.log('Total submissions before filter:', allSubmissions.length);
+    console.log('Pool filter:', poolFilter || '(none)', 'Date filter:', dateFilter || '(none)');
+
+    // Filter by pool and date
+    filteredSubmissions = allSubmissions.filter(sub => {
+        let passes = true;
+
+        // Pool filter: treat empty or "All Pools" as no filter
+        if (poolFilter && poolFilter !== '' && poolFilter !== 'All Pools') {
+            if (sub.poolLocation !== poolFilter) passes = false;
+        }
+
+        // Date filter: compare date-only strings
+        if (dateFilter) {
+            const filterDate = new Date(dateFilter);
+            const submissionDate = sub.timestamp ? new Date(sub.timestamp) : null;
+            if (!submissionDate || submissionDate.toDateString() !== filterDate.toDateString()) {
+                passes = false;
+            }
+        }
+
+        return passes;
     });
 
-    displayData(filteredData);
+    console.log('Filtered submissions count:', filteredSubmissions.length);
+
+    // Build paginatedData using your existing grouping logic
+    paginatedData = organizePaginatedData(filteredSubmissions || []);
+
+    // Reset to first page (clamped)
+    currentPage = 0;
+    if (paginatedData.length === 0) currentPage = 0;
+    else currentPage = Math.max(0, Math.min(currentPage, paginatedData.length - 1));
+
+    console.log('Paginated pages:', paginatedData.length, 'currentPage:', currentPage);
+
+    // Draw UI
+    displayData();
+    updatePaginationControls();
+
+    console.groupEnd();
 }
+
 
 
 function getHighlightColor(value, type) {
@@ -1156,40 +1198,101 @@ function updatePaginationControls() {
 function displayData() {
     console.group('🖥 displayData');
 
-    if (!Array.isArray(paginatedData) || paginatedData.length === 0) {
+    const tbody1 = document.getElementById('dataTableBody1');
+    const tbody2 = document.getElementById('dataTableBody2');
+
+    if (!tbody1 || !tbody2) {
+        console.warn('⚠ Table body elements not found (dataTableBody1 / dataTableBody2).');
+        console.groupEnd();
+        return;
+    }
+
+    // Clear previous rows
+    tbody1.innerHTML = '';
+    tbody2.innerHTML = '';
+
+    if (!Array.isArray(paginatedData) || paginatedData.length === 0 || !paginatedData[currentPage]) {
+        // No data for current page
+        tbody1.innerHTML = '<tr><td colspan="4" style="text-align:center;padding:30px;color:#666;">No data found</td></tr>';
+        tbody2.innerHTML = '<tr><td colspan="4" style="text-align:center;padding:30px;color:#666;">No data found</td></tr>';
         console.warn('⚠ No data to display.');
-        tableBody.innerHTML = `<tr><td colspan="999">No results found.</td></tr>`;
-        pageIndicator.textContent = '';
         console.groupEnd();
         return;
     }
 
-    const currentEntries = paginatedData[currentPage] || [];
-    if (currentEntries.length === 0) {
-        console.warn(`⚠ Page ${currentPage} has no entries.`);
-        tableBody.innerHTML = `<tr><td colspan="999">No results found.</td></tr>`;
-        pageIndicator.textContent = '';
-        console.groupEnd();
-        return;
+    const data = paginatedData[currentPage];
+    console.log('Displaying', data.length, 'items for page', currentPage);
+
+    let hasSecondaryData = false;
+
+    const createCell = (value, color) => {
+        const className = color ? `highlight-${color}` : '';
+        return `<td class="${className}">${value || 'N/A'}</td>`;
+    };
+
+    data.forEach(submission => {
+        const mainPHColor = getHighlightColor(submission.mainPoolPH, 'pH');
+        const mainClColor = getHighlightColor(submission.mainPoolCl, 'cl');
+        const secondaryPHColor = getHighlightColor(submission.secondaryPoolPH, 'pH');
+        const secondaryClColor = getHighlightColor(submission.secondaryPoolCl, 'cl');
+        const warningLevel = getPoolWarningLevel(submission.mainPoolPH, submission.mainPoolCl, submission.secondaryPoolPH, submission.secondaryPoolCl);
+
+        // Format timestamp
+        let timestampDisplay = '';
+        try {
+            timestampDisplay = submission.timestamp instanceof Date
+                ? submission.timestamp.toLocaleString()
+                : new Date(submission.timestamp).toLocaleString();
+        } catch {
+            timestampDisplay = String(submission.timestamp || '');
+        }
+
+        // Pool name display + warning markers
+        const today = new Date().getDay(); // 1 = Monday
+        let poolNameDisplay = submission.poolLocation || '';
+
+        if (warningLevel === 'red') {
+            poolNameDisplay = `<u>${submission.poolLocation}</u><span style="color: red;">!!!</span>`;
+        } else if (warningLevel === 'yellow') {
+            poolNameDisplay = `<u>${submission.poolLocation}</u><span style="color: red;">!</span>`;
+        }
+
+        if (submission.poolLocation === 'Columbia CC' && today === 1) {
+            poolNameDisplay += `<br><span style="font-size:0.85em;color:#888;">Closed today</span>`;
+        }
+
+        // Build main row
+        const row1 = document.createElement('tr');
+        row1.innerHTML = `
+            <td>${timestampDisplay}</td>
+            <td>${poolNameDisplay}</td>
+            ${createCell(submission.mainPoolPH, mainPHColor)}
+            ${createCell(submission.mainPoolCl, mainClColor)}
+        `;
+        tbody1.appendChild(row1);
+
+        // Secondary row
+        if (submission.poolLocation !== 'Camden CC' && (submission.secondaryPoolPH || submission.secondaryPoolCl)) {
+            hasSecondaryData = true;
+            const row2 = document.createElement('tr');
+            row2.innerHTML = `
+                <td>${timestampDisplay}</td>
+                <td>${poolNameDisplay}</td>
+                ${createCell(submission.secondaryPoolPH, secondaryPHColor)}
+                ${createCell(submission.secondaryPoolCl, secondaryClColor)}
+            `;
+            tbody2.appendChild(row2);
+        }
+    });
+
+    if (!hasSecondaryData) {
+        tbody2.innerHTML = '<tr><td colspan="4" style="text-align:center;padding:30px;color:#666;">No secondary pool data for current selection</td></tr>';
     }
 
-    // Get date for the header
-    const firstTimestamp = currentEntries[0].timestamp ? new Date(currentEntries[0].timestamp) : new Date(0);
-    const currentDate = firstTimestamp.toLocaleDateString();
-    pageIndicator.textContent = `Entries for ${currentDate}`;
-    console.log(`Displaying ${currentEntries.length} entries for ${currentDate}`);
-
-    // Render rows
-    tableBody.innerHTML = currentEntries.map(item => `
-        <tr>
-            <td>${item.name ?? ''}</td>
-            <td>${item.pool ?? ''}</td>
-            <td>${item.timestamp ? new Date(item.timestamp).toLocaleString() : ''}</td>
-        </tr>
-    `).join('');
-
+    updateTimestampNote(); // keep existing behavior
     console.groupEnd();
 }
+
 
 
 function evaluateFormFeedback() { // Remove formData parameter
