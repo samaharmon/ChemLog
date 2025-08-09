@@ -1027,14 +1027,14 @@ function useLocalDataOnly() {
     }
 }
 
-// Updated filter and display function
 function filterAndDisplayData() {
-    // Get reference to search box
-    const searchBox = document.getElementById("searchBox");
-    const searchTerm = searchBox ? searchBox.value.toLowerCase() : "";
+    const searchBox = document.getElementById('searchBox');
+    if (!searchBox) return;
 
-    // Filter data based on search term
-    const filteredData = allData.filter(item =>
+    const searchTerm = searchBox.value.toLowerCase();
+
+    // Filter from all submissions
+    const filteredData = allSubmissions.filter(item =>
         Object.values(item).some(val =>
             String(val).toLowerCase().includes(searchTerm)
         )
@@ -1064,6 +1064,7 @@ function filterAndDisplayData() {
     displayData();
     updatePaginationControls();
 }
+
 
 function getHighlightColor(value, type) {
     if (!value || value === 'N/A' || value === '') return null;
