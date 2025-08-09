@@ -1028,63 +1028,19 @@ function useLocalDataOnly() {
 }
 
 function filterAndDisplayData() {
-    console.group('🔍 filterAndDisplayData');
-    
-    // Ensure search box exists
-    const searchBoxEl = document.getElementById('searchBox');
-    if (!searchBoxEl) {
-        console.warn('⚠ searchBox element not found.');
-        console.groupEnd();
-        return;
-    }
+    const poolFilter = document.getElementById("poolFilter").value;
+    const dateFilter = document.getElementById("dateFilter").value;
 
-    const searchTerm = searchBoxEl.value.trim().toLowerCase();
-    console.log('Search term:', searchTerm);
-
-    if (!Array.isArray(allSubmissions)) {
-        console.warn('⚠ allSubmissions is not defined or not an array.');
-        console.groupEnd();
-        return;
-    }
-    console.log(`Total submissions before filter: ${allSubmissions.length}`);
-
-    // Filter based on search term
-    const filteredData = allSubmissions.filter(item =>
-        Object.values(item || {}).some(val =>
-            String(val ?? '').toLowerCase().includes(searchTerm)
-        )
-    );
-    console.log(`Filtered results: ${filteredData.length}`);
-
-    // Sort by newest timestamp
-    filteredData.sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp));
-
-    // Group entries by date string
-    const groupedByDate = {};
-    filteredData.forEach(item => {
-        const ts = item.timestamp ? new Date(item.timestamp) : new Date(0);
-        const dateStr = ts.toLocaleDateString();
-        if (!groupedByDate[dateStr]) {
-            groupedByDate[dateStr] = [];
-        }
-        groupedByDate[dateStr].push(item);
+    // Filter data based on pool and date only
+    const filteredData = formSubmissions.filter(entry => {
+        const matchesPool = poolFilter ? entry.pool === poolFilter : true;
+        const matchesDate = dateFilter ? entry.date === dateFilter : true;
+        return matchesPool && matchesDate;
     });
-    console.log('Grouped dates:', Object.keys(groupedByDate));
 
-    // Convert to array of "pages" (each page is one date's entries)
-    paginatedData = Object.keys(groupedByDate)
-        .sort((a, b) => new Date(b) - new Date(a)) // newest first
-        .map(date => groupedByDate[date]);
-
-    totalPages = paginatedData.length;
-    currentPage = 0;
-
-    console.log(`Pages: ${totalPages}`);
-    displayData();
-    updatePaginationControls();
-
-    console.groupEnd();
+    displayData(filteredData);
 }
+
 
 function getHighlightColor(value, type) {
     if (!value || value === 'N/A' || value === '') return null;
