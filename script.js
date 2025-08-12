@@ -314,6 +314,11 @@ function filterData() {
     const poolFilter = document.getElementById('poolFilter')?.value || '';
     const dateFilter = document.getElementById('dateFilter')?.value || '';
     
+    // Utility to strip time from Date
+    function getDateWithoutTime(date) {
+        return new Date(date.getFullYear(), date.getMonth(), date.getDate());
+    }
+
     // Apply filters to all submissions
     const filtered = allSubmissions.filter(submission => {
         let passes = true;
@@ -322,15 +327,13 @@ function filterData() {
 
         if (dateFilter) {
             const filterDate = new Date(dateFilter);
-            const submissionDate = submission.timestamp instanceof Date ? submission.timestamp : new Date(submission.timestamp);
-            
-            if (
-                submissionDate.getFullYear() !== filterDate.getFullYear() ||
-                submissionDate.getMonth() !== filterDate.getMonth() ||
-                submissionDate.getDate() !== filterDate.getDate()
-            ) {
-                passes = false;
-            }
+            const submissionDate = submission.timestamp ? new Date(submission.timestamp) : null;
+            if (!submissionDate) return false;
+
+            const normalizedFilterDate = getDateWithoutTime(filterDate);
+            const normalizedSubmissionDate = getDateWithoutTime(submissionDate);
+
+            if (normalizedSubmissionDate.getTime() !== normalizedFilterDate.getTime()) passes = false;
         }
 
         return passes;
@@ -798,6 +801,10 @@ function cleanupTestSubmissions() {
     localStorage.setItem('formSubmissions', JSON.stringify(formSubmissions));
 }
 
+function getDateWithoutTime(date) {
+  return new Date(date.getFullYear(), date.getMonth(), date.getDate());
+}
+
 function organizePaginatedData(data) {
     if (data.length === 0) return [];
 
@@ -1054,30 +1061,29 @@ function filterAndDisplayData() {
         return;
     }
 
+    function getDateWithoutTime(date) {
+        return new Date(date.getFullYear(), date.getMonth(), date.getDate());
+    }
+
     console.log('Total submissions before filter:', allSubmissions.length);
     console.log('Pool filter:', poolFilter || '(none)', 'Date filter:', dateFilter || '(none)');
 
-    // Filter by pool and date
     filteredSubmissions = allSubmissions.filter(sub => {
         let passes = true;
 
-        // Pool filter: treat empty or "All Pools" as no filter
         if (poolFilter && poolFilter !== '' && poolFilter !== 'All Pools') {
             if (sub.poolLocation !== poolFilter) passes = false;
         }
 
-        // Date filter: compare year, month, date parts to avoid timezone issues
         if (dateFilter) {
             const filterDate = new Date(dateFilter);
-            const submissionDate = sub.timestamp instanceof Date ? sub.timestamp : new Date(sub.timestamp);
+            const submissionDate = sub.timestamp ? new Date(sub.timestamp) : null;
+            if (!submissionDate) return false;
 
-            if (
-                submissionDate.getFullYear() !== filterDate.getFullYear() ||
-                submissionDate.getMonth() !== filterDate.getMonth() ||
-                submissionDate.getDate() !== filterDate.getDate()
-            ) {
-                passes = false;
-            }
+            const normalizedFilterDate = getDateWithoutTime(filterDate);
+            const normalizedSubmissionDate = getDateWithoutTime(submissionDate);
+
+            if (normalizedSubmissionDate.getTime() !== normalizedFilterDate.getTime()) passes = false;
         }
 
         return passes;
@@ -1085,22 +1091,20 @@ function filterAndDisplayData() {
 
     console.log('Filtered submissions count:', filteredSubmissions.length);
 
-    // Build paginatedData using your existing grouping logic
     paginatedData = organizePaginatedData(filteredSubmissions || []);
 
-    // Reset to first page (clamped)
     currentPage = 0;
     if (paginatedData.length === 0) currentPage = 0;
     else currentPage = Math.max(0, Math.min(currentPage, paginatedData.length - 1));
 
     console.log('Paginated pages:', paginatedData.length, 'currentPage:', currentPage);
 
-    // Draw UI
     displayData();
     updatePaginationControls();
 
     console.groupEnd();
 }
+
 
 function getHighlightColor(value, type) {
     if (!value || value === 'N/A' || value === '') return null;
