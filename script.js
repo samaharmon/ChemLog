@@ -333,22 +333,24 @@ function filterData() {
     paginatedData = organizePaginatedData(filteredSubmissions);
     currentPage = 0;
     displayData();
+    updatePaginationControls();
 }
+
 
 function goToPreviousPage() {
     if (currentPage > 0) {
         currentPage--;
         displayData();
-        updatePaginationControls(); // was updatePagination()
+        updatePaginationControls();
     }
 }
 
 function goToNextPage() {
-    const totalPages = Math.ceil(filteredSubmissions.length / itemsPerPage) - 1;
-    if (currentPage < totalPages) {
+    const totalPages = paginatedData.length;
+    if (currentPage < totalPages - 1) {
         currentPage++;
         displayData();
-        updatePaginationControls(); // add this so it updates
+        updatePaginationControls();
     }
 }
 
@@ -1165,9 +1167,9 @@ function updatePaginationControls() {
 
     if (!prevBtn || !nextBtn || !pageInfo || !pagination) return;
 
-    const totalPages = Math.ceil(filteredSubmissions.length / itemsPerPage);
+    const totalPages = paginatedData.length;
 
-    // Hide pagination if only one page
+    // Hide pagination if only one or zero pages
     if (totalPages <= 1) {
         pagination.style.display = 'none';
         return;
@@ -1185,8 +1187,7 @@ function updatePaginationControls() {
     nextBtn.style.cursor = nextBtn.disabled ? 'not-allowed' : 'pointer';
 
     // Show date from first item on the current page
-    const startIndex = currentPage * itemsPerPage;
-    const currentPageData = filteredSubmissions.slice(startIndex, startIndex + itemsPerPage);
+    const currentPageData = paginatedData[currentPage] || [];
     if (currentPageData.length > 0) {
         const dateString = new Date(currentPageData[0].timestamp).toLocaleDateString();
         pageInfo.textContent = dateString;
@@ -1194,6 +1195,7 @@ function updatePaginationControls() {
         pageInfo.textContent = '';
     }
 }
+
 
 function displayData() {
     console.group('🖥 displayData');
