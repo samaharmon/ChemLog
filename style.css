@@ -404,8 +404,6 @@ input[type="text"], select, input[type="password"] {
     max-width: 1100px; /* NEW: set a practical limit */
     height: auto;
     text-align: left;
-    align-items: unset;
-    justify-content: unset;
     max-height: 90vh;
     overflow-y: auto;
     opacity: 0;
