@@ -313,11 +313,18 @@ function exportToCSV() {
 function filterData() {
     const poolFilter = document.getElementById('poolFilter')?.value || '';
     const dateFilter = document.getElementById('dateFilter')?.value || '';
-    
-    // Utility to strip time from Date
+
+    function parseLocalDate(dateString) {
+        if (!dateString) return null;
+        const parts = dateString.split('-');
+        return new Date(parts[0], parts[1] - 1, parts[2]);
+    }
+
     function getDateWithoutTime(date) {
         return new Date(date.getFullYear(), date.getMonth(), date.getDate());
     }
+
+    const filterDateObj = parseLocalDate(dateFilter);
 
     // Apply filters to all submissions
     const filtered = allSubmissions.filter(submission => {
@@ -326,11 +333,10 @@ function filterData() {
         if (poolFilter && submission.poolLocation !== poolFilter) passes = false;
 
         if (dateFilter) {
-            const filterDate = new Date(dateFilter);
             const submissionDate = submission.timestamp ? new Date(submission.timestamp) : null;
             if (!submissionDate) return false;
 
-            const normalizedFilterDate = getDateWithoutTime(filterDate);
+            const normalizedFilterDate = getDateWithoutTime(filterDateObj);
             const normalizedSubmissionDate = getDateWithoutTime(submissionDate);
 
             if (normalizedSubmissionDate.getTime() !== normalizedFilterDate.getTime()) passes = false;
@@ -345,6 +351,7 @@ function filterData() {
     displayData();
     updatePaginationControls();
 }
+
 
 
 function goToPreviousPage() {
@@ -801,8 +808,9 @@ function cleanupTestSubmissions() {
     localStorage.setItem('formSubmissions', JSON.stringify(formSubmissions));
 }
 
-function getDateWithoutTime(date) {
-  return new Date(date.getFullYear(), date.getMonth(), date.getDate());
+function parseLocalDate(dateString) {
+    const parts = dateString.split('-'); // ["2025", "08", "07"]
+    return new Date(parts[0], parts[1] - 1, parts[2]); // Year, MonthIndex, Day
 }
 
 function organizePaginatedData(data) {
@@ -1061,9 +1069,17 @@ function filterAndDisplayData() {
         return;
     }
 
+    function parseLocalDate(dateString) {
+        if (!dateString) return null;
+        const parts = dateString.split('-');
+        return new Date(parts[0], parts[1] - 1, parts[2]);
+    }
+
     function getDateWithoutTime(date) {
         return new Date(date.getFullYear(), date.getMonth(), date.getDate());
     }
+
+    const filterDateObj = parseLocalDate(dateFilter);
 
     console.log('Total submissions before filter:', allSubmissions.length);
     console.log('Pool filter:', poolFilter || '(none)', 'Date filter:', dateFilter || '(none)');
@@ -1076,11 +1092,10 @@ function filterAndDisplayData() {
         }
 
         if (dateFilter) {
-            const filterDate = new Date(dateFilter);
             const submissionDate = sub.timestamp ? new Date(sub.timestamp) : null;
             if (!submissionDate) return false;
 
-            const normalizedFilterDate = getDateWithoutTime(filterDate);
+            const normalizedFilterDate = getDateWithoutTime(filterDateObj);
             const normalizedSubmissionDate = getDateWithoutTime(submissionDate);
 
             if (normalizedSubmissionDate.getTime() !== normalizedFilterDate.getTime()) passes = false;
@@ -1104,7 +1119,6 @@ function filterAndDisplayData() {
 
     console.groupEnd();
 }
-
 
 function getHighlightColor(value, type) {
     if (!value || value === 'N/A' || value === '') return null;
