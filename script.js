@@ -303,7 +303,7 @@ function exportToCSV() {
     const url = window.URL.createObjectURL(blob);
     const a = document.createElement('a');
     a.href = url;
-    a.download = `pool-chemistry-data-${new Date().toISOString().split('T')[0]}.csv`;
+    a.download = `pool-chemistry-data-${new Date().toISOString().split('T')[0]}.xls`;
     document.body.appendChild(a);
     a.click();
     document.body.removeChild(a);
