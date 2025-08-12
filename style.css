@@ -1118,8 +1118,14 @@ body.dark-mode .highlight-yellow {
 }
 
 @keyframes fadeIn {
-  from { opacity: 0; }
-  to { opacity: 1; }
+  from {
+    opacity: 0;
+    transform: translate(-50%, -60%) scale(0.95);
+  }
+  to {
+    opacity: 1;
+    transform: translate(-50%, -50%) scale(1);
+  }
 }
 
 @keyframes fadeOut {
@@ -1153,10 +1159,6 @@ button:hover, button:focus,
 /* Modal animations */
 .modal, #settingsModal, .feedback-modal {
   position: fixed;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
   display: flex; /* Keep flex at all times */
   align-items: center;
   justify-content: center;
