@@ -1099,3 +1099,94 @@ body.dark-mode .highlight-yellow {
 .highlight-yellow {
     transition: background-color 0.3s, color 0.3s;
 }
+
+/* =========================
+   Animations
+   ========================= */
+/* Fade In for page load and data changes */
+.fade-in {
+  animation: fadeIn 0.5s ease forwards;
+}
+
+.fade-out {
+  animation: fadeOut 0.3s ease forwards;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@keyframes fadeOut {
+  from { opacity: 1; }
+  to { opacity: 0; }
+}
+
+/* Button hover and press scaling */
+button, .submit-btn, .editAndSave, .supervisor-login-btn, .menu-btn, .danger-button, .logout-btn {
+  transition: background-color 0.3s ease, transform 0.15s ease;
+  will-change: transform, background-color;
+  cursor: pointer;
+}
+
+button:hover, button:focus,
+.submit-btn:hover, .submit-btn:focus,
+.editAndSave:hover, .editAndSave:focus,
+.supervisor-login-btn:hover, .supervisor-login-btn:focus,
+.menu-btn:hover, .menu-btn:focus,
+.danger-button:hover, .danger-button:focus,
+.logout-btn:hover, .logout-btn:focus {
+  transform: scale(1.05);
+}
+
+/* Pressed (clicked) effect */
+.button-press {
+  transform: scale(0.95) !important;
+  transition: transform 0.1s ease;
+}
+
+/* Modal animations */
+.modal.show, #settingsModal.show, .feedback-modal.show {
+  animation: slideIn 0.4s ease forwards;
+  display: flex !important;
+  opacity: 1;
+}
+
+.modal.hide, #settingsModal.hide, .feedback-modal.hide {
+  animation: slideOut 0.3s ease forwards;
+  opacity: 0;
+  pointer-events: none;
+}
+
+@keyframes slideIn {
+  from {
+    opacity: 0;
+    transform: translateY(-30px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes slideOut {
+  from {
+    opacity: 1;
+    transform: translateY(0);
+  }
+  to {
+    opacity: 0;
+    transform: translateY(-30px);
+  }
+}
+
+#loginModal {
+    opacity: 0;
+    transition: opacity 0.3s ease;
+    display: none;
+}
+
+#loginModal.show {
+    opacity: 1;
+    display: block;
+}
