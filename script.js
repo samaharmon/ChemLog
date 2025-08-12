@@ -801,10 +801,9 @@ function cleanupTestSubmissions() {
 function organizePaginatedData(data) {
     if (data.length === 0) return [];
 
-    // Sort all data descending by timestamp (newest first)
     const sortedData = [...data].sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp));
-
-    // Page 0: Most recent per pool, sorted alphabetically by poolLocation
+    
+    // Page 0: Most recent per pool, sorted alphabetically
     const page0Map = new Map();
     for (let item of sortedData) {
         if (!page0Map.has(item.poolLocation)) {
@@ -813,34 +812,40 @@ function organizePaginatedData(data) {
     }
     const page0 = Array.from(page0Map.values()).sort((a, b) => a.poolLocation.localeCompare(b.poolLocation));
 
-    // Group remaining data by date only (YYYY-MM-DD)
-    const groupedByDate = {};
+    // Pages 1+: group by pool + date
+    const grouped = {};
     for (let item of sortedData) {
-        // Skip items used in page0 (most recent per pool)
-        if (page0Map.get(item.poolLocation) === item) continue;
-
-        const dateOnly = new Date(item.timestamp).toISOString().slice(0, 10); // YYYY-MM-DD
-        if (!groupedByDate[dateOnly]) groupedByDate[dateOnly] = [];
-        groupedByDate[dateOnly].push(item);
+        const dt = new Date(item.timestamp);
+        const year = dt.getFullYear();
+        const month = dt.getMonth() + 1; // months are zero-based, +1 for readability
+        const day = dt.getDate();
+        const key = `${item.poolLocation}__${year}-${month}-${day}`;
+        if (!grouped[key]) grouped[key] = [];
+        grouped[key].push(item);
     }
 
-    // Sort the dates descending (newest to oldest)
-    const sortedDates = Object.keys(groupedByDate).sort((a, b) => new Date(b) - new Date(a));
+    const groupKeys = Object.keys(grouped).sort((a, b) => {
+        const [poolA, dateA] = a.split('__');
+        const [poolB, dateB] = b.split('__');
 
-    // For each date, sort that date's submissions alphabetically by poolLocation, then descending timestamp
+        // Sort by pool alphabetically first, then by date descending
+        const poolCompare = poolA.localeCompare(poolB);
+        if (poolCompare !== 0) return poolCompare;
+
+        // Parse dates in ISO format (year-month-day) for correct comparison
+        return new Date(dateB) - new Date(dateA);
+    });
+
     const pages = [page0];
-    for (let date of sortedDates) {
-        const submissions = groupedByDate[date];
-        submissions.sort((a, b) => {
-            const poolCompare = a.poolLocation.localeCompare(b.poolLocation);
-            if (poolCompare !== 0) return poolCompare;
-            return new Date(b.timestamp) - new Date(a.timestamp);
-        });
-        pages.push(submissions);
+    for (let key of groupKeys) {
+        const submissions = grouped[key];
+        const sortedSubmissions = submissions.sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp));
+        pages.push(sortedSubmissions);
     }
 
     return pages;
 }
+
 
 // Initialize form submissions on app start
 function initializeFormSubmissions() {
