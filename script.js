@@ -151,27 +151,40 @@ function closeLoginModal() {
     const modal = document.getElementById('loginModal');
     if (!modal) return;
 
-    // Start fade-out animation by removing the 'show' class
+    // Remove the 'show' class to trigger fade-out CSS transition
     modal.classList.remove('show');
 
-    // Wait for animation to finish before hiding and clearing inputs
-    modal.addEventListener('transitionend', function handleTransitionEnd(event) {
+    // Handler for transition end (opacity)
+    function handleTransitionEnd(event) {
         if (event.propertyName === 'opacity') {
-            modal.style.display = 'none';
-
-            // Clear the input fields
-            const emailInput = document.getElementById('inputEmail');
-            const passwordInput = document.getElementById('password');
-
-            if (emailInput) emailInput.value = '';
-            if (passwordInput) passwordInput.value = '';
-
-            removeOverlay();
-
-            // Remove this event listener after it runs
-            modal.removeEventListener('transitionend', handleTransitionEnd);
+            cleanup();
         }
-    });
+    }
+
+    // Cleanup function to hide modal, clear inputs, and remove overlay
+    function cleanup() {
+        modal.style.display = 'none';
+
+        const emailInput = document.getElementById('inputEmail');
+        const passwordInput = document.getElementById('password');
+
+        if (emailInput) emailInput.value = '';
+        if (passwordInput) passwordInput.value = '';
+
+        removeOverlay();
+
+        modal.removeEventListener('transitionend', handleTransitionEnd);
+        clearTimeout(fallbackTimeout);
+    }
+
+    // Listen for transition end event
+    modal.addEventListener('transitionend', handleTransitionEnd);
+
+    // Fallback: In case transitionend doesn't fire, hide after 500ms
+    const fallbackTimeout = setTimeout(() => {
+        console.warn('Fallback: transitionend did not fire for closeLoginModal');
+        cleanup();
+    }, 500);
 }
 
 function handleLoginSubmit(event) {
