@@ -202,16 +202,31 @@ function handleLoginSubmit(event) {
         const expires = Date.now() + 30 * 24 * 60 * 60 * 1000;
         localStorage.setItem('loginToken', JSON.stringify({ username: email, expires }));
         
-        // Close modal and show dashboard
+        // Close login modal
+        closeLoginModal();
+        
+        // Show supervisor dashboard and hide main form
         const dashboard = document.getElementById('supervisorDashboard');
+        const form = document.getElementById('mainForm');
+
         if (dashboard) {
+            dashboard.style.display = 'block';
             dashboard.classList.add('show');
+            dashboard.classList.remove('hidden');
+        }
+
+        if (form) {
+            form.style.display = 'none';
+            form.classList.remove('show');
+            form.classList.add('hidden');
+        }
+
+        // Optionally call showDashboard if it does other stuff
+        if (typeof showDashboard === 'function') {
+            showDashboard();
         }
         
-        closeLoginModal();
-        showDashboard();
-        
-        // Update header buttons
+        // Update header buttons after login state change
         updateHeaderButtons();
         
         showMessage('Login successful!', 'success');
@@ -220,6 +235,7 @@ function handleLoginSubmit(event) {
         showMessage('Invalid credentials. Please try again.', 'error');
     }
 }
+
 function showMessage(message, type) {
     // Remove any existing message banner
     const existingBanner = document.getElementById('messageBanner');
