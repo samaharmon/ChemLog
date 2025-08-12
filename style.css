@@ -1,9 +1,6 @@
 html, body {
     background-color: white !important;
     background: white !important;
-    margin: 0;
-    padding: 0;
-    height: 100%;
 }
 
 /* General Styles */
@@ -396,7 +393,7 @@ input[type="text"], select, input[type="password"] {
     position: fixed;
     top: 50%;
     left: 50%;
-    transform: translateX(-50%) translateY(-50%) !important;
+    transform: translateX(-50%) translateY(-50%);
     z-index: 9999;
     padding: 20px 30px 80px 30px;
     border-radius: 0;
@@ -406,8 +403,6 @@ input[type="text"], select, input[type="password"] {
     text-align: left;
     max-height: 90vh;
     overflow-y: auto;
-    opacity: 0;
-    transition: opacity 0.3s ease;
 }
 
 @media (max-width: 768px) {
@@ -440,11 +435,10 @@ input[type="text"], select, input[type="password"] {
 .modal-overlay {
     display: none; /* Initially hidden */
     position: fixed;
-    inset: 0;
     top: 0;
     left: 0;
-    width: 100%;
-    height: 100%;
+    width: 100vw;
+    height: 100vh;
     background-color: rgba(0, 0, 0, 0.5); /* Semi-transparent black */
     z-index: 998; /* Below modal but above other content */
 }
@@ -1104,116 +1098,4 @@ body.dark-mode .highlight-yellow {
 .highlight-red,
 .highlight-yellow {
     transition: background-color 0.3s, color 0.3s;
-}
-
-/* =========================
-   Animations
-   ========================= */
-/* Fade In for page load and data changes */
-
-.fade-in {
-  animation: fadeIn 0.3s ease-out forwards;
-}
-
-.fade-out {
-  animation: fadeOut 0.3s ease forwards;
-}
-
-@keyframes fadeIn {
-  from { opacity: 0; }
-  to   { opacity: 1; }
-}
-
-@keyframes fadeOut {
-  from { opacity: 1; }
-  to { opacity: 0; }
-}
-
-/* Button hover and press scaling */
-button, .submit-btn, .editAndSave, .supervisor-login-btn, .menu-btn, .danger-button, .logout-btn {
-  transition: background-color 0.3s ease, transform 0.15s ease;
-  will-change: transform, background-color;
-  cursor: pointer;
-}
-
-button:hover, button:focus,
-.submit-btn:hover, .submit-btn:focus,
-.editAndSave:hover, .editAndSave:focus,
-.supervisor-login-btn:hover, .supervisor-login-btn:focus,
-.menu-btn:hover, .menu-btn:focus,
-.danger-button:hover, .danger-button:focus,
-.logout-btn:hover, .logout-btn:focus {
-  transform: scale(1.05);
-}
-
-/* Pressed (clicked) effect */
-.button-press {
-  transform: scale(0.95) !important;
-  transition: transform 0.1s ease;
-}
-
-/* Modal animations */
-.modal, #settingsModal, .feedback-modal {
-  position: fixed;
-  display: flex; /* Keep flex at all times */
-  align-items: center;
-  justify-content: center;
-  opacity: 0; /* Hidden until shown */
-  pointer-events: none; /* Prevent clicks when hidden */
-}
-
-.modal.show, #settingsModal.show, .feedback-modal.show {
-  animation: slideIn 0.4s ease forwards;
-  opacity: 1;
-  pointer-events: auto;
-}
-
-
-.modal.hide, #settingsModal.hide, .feedback-modal.hide {
-  animation: slideOut 0.3s ease forwards;
-  opacity: 0;
-  pointer-events: none;
-}
-
-@keyframes slideIn {
-  from {
-    opacity: 0;
-    transform: translateY(-30px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
-}
-
-@keyframes slideOut {
-  from {
-    opacity: 1;
-    transform: translateY(0);
-  }
-  to {
-    opacity: 0;
-    transform: translateY(-30px);
-  }
-}
-
-#loginModal {
-    opacity: 0;
-    transition: opacity 0.3s ease;
-    display: none;
-}
-
-#loginModal.show {
-    opacity: 1;
-    display: block;
-}
-
-.modal-content, 
-.settings-modal-content, 
-.feedback-modal-content {
-  margin: 0;
-  position: relative;
-  top: auto;
-  left: auto;
-  transform: none; /* Remove accidental offsets */
 }
