@@ -322,8 +322,15 @@ function filterData() {
 
         if (dateFilter) {
             const filterDate = new Date(dateFilter);
-            const submissionDate = new Date(submission.timestamp);
-            if (submissionDate.toDateString() !== filterDate.toDateString()) passes = false;
+            const submissionDate = submission.timestamp instanceof Date ? submission.timestamp : new Date(submission.timestamp);
+            
+            if (
+                submissionDate.getFullYear() !== filterDate.getFullYear() ||
+                submissionDate.getMonth() !== filterDate.getMonth() ||
+                submissionDate.getDate() !== filterDate.getDate()
+            ) {
+                passes = false;
+            }
         }
 
         return passes;
@@ -1054,11 +1061,16 @@ function filterAndDisplayData() {
             if (sub.poolLocation !== poolFilter) passes = false;
         }
 
-        // Date filter: compare date-only strings
+        // Date filter: compare year, month, date parts to avoid timezone issues
         if (dateFilter) {
             const filterDate = new Date(dateFilter);
-            const submissionDate = sub.timestamp ? new Date(sub.timestamp) : null;
-            if (!submissionDate || submissionDate.toDateString() !== filterDate.toDateString()) {
+            const submissionDate = sub.timestamp instanceof Date ? sub.timestamp : new Date(sub.timestamp);
+
+            if (
+                submissionDate.getFullYear() !== filterDate.getFullYear() ||
+                submissionDate.getMonth() !== filterDate.getMonth() ||
+                submissionDate.getDate() !== filterDate.getDate()
+            ) {
                 passes = false;
             }
         }
@@ -1084,8 +1096,6 @@ function filterAndDisplayData() {
 
     console.groupEnd();
 }
-
-
 
 function getHighlightColor(value, type) {
     if (!value || value === 'N/A' || value === '') return null;
