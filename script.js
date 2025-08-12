@@ -414,17 +414,20 @@ function closeSettings() {
     const modal = document.getElementById('settingsModal');
     if (!modal) return;
 
-    // Remove the 'show' class to trigger fade-out
+    // Remove the 'show' class so CSS plays the closing animation
     modal.classList.remove('show');
 
-    // Wait for the opacity transition to finish before hiding and removing overlay
-    modal.addEventListener('transitionend', function handleTransitionEnd(event) {
-        if (event.propertyName === 'opacity') {
-            modal.style.display = 'none';
-            removeOverlay();
-            modal.removeEventListener('transitionend', handleTransitionEnd);
-        }
-    });
+    // Listen for animation end only once
+    const handleAnimationEnd = (event) => {
+        // Optional: Only react to the specific animation you're using for close
+        // if (event.animationName !== 'slideOut') return;
+
+        modal.style.display = 'none';
+        removeOverlay();
+        modal.removeEventListener('animationend', handleAnimationEnd);
+    };
+
+    modal.addEventListener('animationend', handleAnimationEnd);
 }
 
 async function handleSanitationChange(checkbox) {
