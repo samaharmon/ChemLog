@@ -1148,11 +1148,25 @@ button:hover, button:focus,
 }
 
 /* Modal animations */
+.modal, #settingsModal, .feedback-modal {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  display: flex; /* Keep flex at all times */
+  align-items: center;
+  justify-content: center;
+  opacity: 0; /* Hidden until shown */
+  pointer-events: none; /* Prevent clicks when hidden */
+}
+
 .modal.show, #settingsModal.show, .feedback-modal.show {
   animation: slideIn 0.4s ease forwards;
-  display: flex !important;
   opacity: 1;
+  pointer-events: auto;
 }
+
 
 .modal.hide, #settingsModal.hide, .feedback-modal.hide {
   animation: slideOut 0.3s ease forwards;
