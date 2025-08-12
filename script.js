@@ -111,13 +111,12 @@ function openLoginModal() {
     // Create or show overlay
     createOrShowOverlay();
     
-    // Show modal
-    modal.style.display = 'block';
+    // Show modal with animation
+    showModal(modal);
     
     // Focus on first input after a short delay
     setTimeout(() => {
-        const firstInput = document.getElementById('inputEmail'); // This line is now correct
-        // The 'if' statement needs to be on its own line, after the declaration and any comments
+        const firstInput = document.getElementById('inputEmail');
         if (firstInput) {
             firstInput.focus();
         }
@@ -125,6 +124,7 @@ function openLoginModal() {
     
     console.log('Login modal opened successfully');
 }
+
 window.openLoginModal = openLoginModal; 
 function handlePoolLocationChange() {
     const poolLocation = document.getElementById('poolLocation').value;
@@ -149,23 +149,31 @@ function handlePoolLocationChange() {
 function closeLoginModal() {
     console.log('closeLoginModal called');
     const modal = document.getElementById('loginModal');
-    if (modal) {
-        modal.style.display = 'none';
-    }
+    if (!modal) return;
 
-    // Clear the input fields when the modal is closed
-    const emailInput = document.getElementById('inputEmail'); // Use the new ID here
-    const passwordInput = document.getElementById('password');
+    // Start fade-out animation by removing the 'show' class
+    modal.classList.remove('show');
 
-    if (emailInput) {
-        emailInput.value = '';
-    }
-    if (passwordInput) {
-        passwordInput.value = '';
-    }
+    // Wait for animation to finish before hiding and clearing inputs
+    modal.addEventListener('transitionend', function handleTransitionEnd(event) {
+        if (event.propertyName === 'opacity') {
+            modal.style.display = 'none';
 
-    removeOverlay(); // Assuming this function is defined elsewhere to remove a dimming overlay
+            // Clear the input fields
+            const emailInput = document.getElementById('inputEmail');
+            const passwordInput = document.getElementById('password');
+
+            if (emailInput) emailInput.value = '';
+            if (passwordInput) passwordInput.value = '';
+
+            removeOverlay();
+
+            // Remove this event listener after it runs
+            modal.removeEventListener('transitionend', handleTransitionEnd);
+        }
+    });
 }
+
 function handleLoginSubmit(event) {
     event.preventDefault();
     console.log('Login form submitted');
@@ -303,7 +311,7 @@ function exportToCSV() {
     const url = window.URL.createObjectURL(blob);
     const a = document.createElement('a');
     a.href = url;
-    a.download = `pool-chemistry-data-${new Date().toISOString().split('T')[0]}.xls`;
+    a.download = `pool-chemistry-data-${new Date().toISOString().split('T')[0]}.csv`;
     document.body.appendChild(a);
     a.click();
     document.body.removeChild(a);
@@ -374,9 +382,22 @@ function goToNextPage() {
 }
 
 function closeSettings() {
-    document.getElementById('settingsModal').style.display = 'none';
-        removeOverlay();
+    const modal = document.getElementById('settingsModal');
+    if (!modal) return;
+
+    // Remove the 'show' class to trigger fade-out
+    modal.classList.remove('show');
+
+    // Wait for the opacity transition to finish before hiding and removing overlay
+    modal.addEventListener('transitionend', function handleTransitionEnd(event) {
+        if (event.propertyName === 'opacity') {
+            modal.style.display = 'none';
+            removeOverlay();
+            modal.removeEventListener('transitionend', handleTransitionEnd);
+        }
+    });
 }
+
 async function handleSanitationChange(checkbox) {
     const pool = checkbox.dataset.pool;
     const method = checkbox.dataset.method;
@@ -423,8 +444,20 @@ async function handleSanitationChange(checkbox) {
 }
 function closeModal() {
     const feedbackModal = document.getElementById('feedbackModal');
-    feedbackModal.style.display = 'none';
+    if (!feedbackModal) return;
+
+    // Remove 'show' class to start fade-out
+    feedbackModal.classList.remove('show');
+
+    // After transition ends, hide the modal
+    feedbackModal.addEventListener('transitionend', function handler(event) {
+        if (event.propertyName === 'opacity') {
+            feedbackModal.style.display = 'none';
+            feedbackModal.removeEventListener('transitionend', handler);
+        }
+    });
 }
+
 function chooseAndSendSMS() {
     const checkboxes = document.querySelectorAll('#samOption, #haleyOption');
     const selectedRecipients = [];
@@ -1985,6 +2018,47 @@ document.addEventListener("DOMContentLoaded", () => {
     console.log('🚀 App initialization complete');
 });
 
+// 1) Page load fade-in for container
+document.addEventListener('DOMContentLoaded', () => {
+  const container = document.querySelector('.container');
+  if (container) {
+    container.classList.add('fade-in');
+    setTimeout(() => container.classList.remove('fade-in'), 500);
+  }
+
+  // 2) Add button press scaling effect for all buttons you mentioned
+  const buttons = document.querySelectorAll('button, .submit-btn, .editAndSave, .supervisor-login-btn, .menu-btn, .danger-button, .logout-btn');
+  
+  buttons.forEach(button => {
+    button.addEventListener('mousedown', () => button.classList.add('button-press'));
+    button.addEventListener('mouseup', () => button.classList.remove('button-press'));
+    button.addEventListener('mouseleave', () => button.classList.remove('button-press'));
+  });
+});
+
+// 3) Modal show/hide animation helpers
+
+function showModal(modalElement) {
+  if (!modalElement) return;
+  modalElement.classList.remove('hide');
+  modalElement.classList.add('show');
+  modalElement.style.display = 'flex'; // or block depending on modal type
+}
+
+function hideModal(modalElement) {
+  if (!modalElement) return;
+  modalElement.classList.remove('show');
+  modalElement.classList.add('hide');
+  // after animation, hide completely
+  modalElement.addEventListener('animationend', function handler() {
+    modalElement.style.display = 'none';
+    modalElement.removeEventListener('animationend', handler);
+  });
+}
+
+// You can replace your current modal show/hide logic to call showModal/hideModal
+
+
 function updateSanitationCheckboxesFromSettings() {
     for (const pool in sanitationSettings) {
         const method = sanitationSettings[pool];
@@ -2089,31 +2163,44 @@ function showForm() {
     console.log('Showing Form View');
     currentView = 'form';
 
-    const mainForm = document.getElementById('mainForm'); // Corrected ID from 'mainFormContainer'
+    const mainForm = document.getElementById('mainForm'); 
     const supervisorDashboard = document.getElementById('supervisorDashboard');
 
-    // Modals (added checks for existence)
+    // Modals
     const loginModal = document.getElementById('loginModal');
     const feedbackModal = document.getElementById('feedbackModal');
     const settingsModal = document.getElementById('settingsModal');
-    const exportModal = document.getElementById('exportModal'); // No ID exists in HTML for this
-    const emailSelectionModal = document.getElementById('emailSelectionModal'); // No ID exists in HTML for this
-    
-    // Apply display styles with checks
-    if (mainForm) mainForm.style.display = 'block'; else console.error("Main form element (id='mainForm') not found!");
-    if (supervisorDashboard) {
-        supervisorDashboard.classList.remove('show'); // ADD THIS LINE
-    } else console.warn("Supervisor dashboard element (id='supervisorDashboard') not found when showing form!");
+    const exportModal = document.getElementById('exportModal');
+    const emailSelectionModal = document.getElementById('emailSelectionModal');
 
-    if (loginModal) loginModal.style.display = 'none';
-    if (feedbackModal) feedbackModal.style.display = 'none';
-    if (settingsModal) settingsModal.style.display = 'none';
-    if (exportModal) exportModal.style.display = 'none'; // Only hide if element exists
-    if (emailSelectionModal) emailSelectionModal.style.display = 'none'; // Only hide if element exists
-    
+    // Show form with fade in
+    if (mainForm) {
+        mainForm.classList.add('show');
+        mainForm.classList.remove('hidden');
+    } else {
+        console.error("Main form element (id='mainForm') not found!");
+    }
+
+    // Hide supervisor dashboard with fade out
+    if (supervisorDashboard) {
+        supervisorDashboard.classList.remove('show');
+        supervisorDashboard.classList.add('hidden');
+    } else {
+        console.warn("Supervisor dashboard element (id='supervisorDashboard') not found when showing form!");
+    }
+
+    // Hide modals (use classes for fade out)
+    [loginModal, feedbackModal, settingsModal, exportModal, emailSelectionModal].forEach(modal => {
+        if (modal) {
+            modal.classList.remove('show');
+            modal.classList.add('hidden');
+        }
+    });
+
     removeOverlay();
     updateHeaderButtons();
 }
+
 
 // Check login status
 function checkLoginStatus() {
@@ -2282,15 +2369,19 @@ function logout() {
     // Remove login token
     localStorage.removeItem('loginToken');
     
-    // Hide dashboard and remove 'show' class just in case
+    // Hide dashboard with fade out
     const dashboard = document.getElementById('supervisorDashboard');
     if (dashboard) {
-        dashboard.classList.remove('show'); // <== CRUCIAL
+        dashboard.classList.remove('show');
+        dashboard.classList.add('hidden');
     }
-
-    // Show form
+    
+    // Show form with fade in
     const form = document.getElementById('mainForm');
-    if (form) form.style.display = 'block';
+    if (form) {
+        form.classList.add('show');
+        form.classList.remove('hidden');
+    }
 
     // Clear any filters
     const poolFilter = document.getElementById('poolFilter');
@@ -2376,7 +2467,7 @@ function showFeedback(message, type = 'info') {
 
 function notifySupervisor() {
     const feedbackModal = document.getElementById('feedbackModal');
-    feedbackModal.style.display = 'block';
+    showModal(feedbackModal);
 }
 
 function handleLocationChange() {
@@ -2613,33 +2704,48 @@ function showRecipientSelectionInModal(modal) {
 function toggleMenu() {
     const menu = document.getElementById('dropdownMenu');
     if (!menu) return;
-    
-    if (menu.style.display === 'none' || menu.style.display === '') {
-        menu.style.display = 'block';
+
+    if (menu.classList.contains('show')) {
+        // Hide with fade-out
+        menu.classList.remove('show');
+        menu.classList.add('hidden');
+        removeOutsideClickListener();
     } else {
-        menu.style.display = 'none';
+        // Show with fade-in
+        menu.classList.remove('hidden');
+        menu.classList.add('show');
+        addOutsideClickListener();
     }
-    
-    // Close menu when clicking outside
-    document.addEventListener('click', function closeMenu(e) {
+
+    function outsideClickHandler(e) {
         if (!e.target.closest('.menu-container')) {
-            menu.style.display = 'none';
-            document.removeEventListener('click', closeMenu);
+            menu.classList.remove('show');
+            menu.classList.add('hidden');
+            removeOutsideClickListener();
         }
-    });
+    }
+
+    function addOutsideClickListener() {
+        document.addEventListener('click', outsideClickHandler);
+    }
+
+    function removeOutsideClickListener() {
+        document.removeEventListener('click', outsideClickHandler);
+    }
 }
 
 async function openSettings() {
-    // Close the dropdown menu first
-    document.getElementById('dropdownMenu').style.display = 'none';
-    
+    // Close the dropdown menu first (hide immediately)
+    const dropdownMenu = document.getElementById('dropdownMenu');
+    if (dropdownMenu) dropdownMenu.style.display = 'none';
+
     // Refresh settings from Firebase before showing modal (if available)
     try {
         if (db && window.firebaseModules) {
             console.log('Refreshing settings from Firebase v9 before showing modal...');
             const settingsRef = window.firebaseModules.doc(db, 'settings', 'sanitationMethods');
             const settingsDoc = await window.firebaseModules.getDoc(settingsRef);
-            
+
             if (settingsDoc.exists()) {
                 const firebaseSettings = settingsDoc.data();
                 Object.assign(sanitationSettings, firebaseSettings);
@@ -2653,11 +2759,17 @@ async function openSettings() {
     } catch (error) {
         console.warn('Could not refresh from Firebase v9 when showing settings:', error);
     }
-    
+
     createOrShowOverlay();
 
-    // Show the settings modal
-    document.getElementById('settingsModal').style.display = 'block';
+    // Show the settings modal using your animated showModal helper
+    const settingsModal = document.getElementById('settingsModal');
+    if (settingsModal) {
+        showModal(settingsModal);
+    } else {
+        console.error('Settings modal element not found.');
+    }
+
     loadSanitationSettings();
 }
 
