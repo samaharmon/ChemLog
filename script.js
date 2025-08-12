@@ -278,23 +278,24 @@ function saveFormSubmissions() {
     console.log(`Saved ${formSubmissions.length} submissions to localStorage`);
 }
 function exportToCSV() {
-    if (filteredData.length === 0) {
+    if (!Array.isArray(filteredSubmissions) || filteredSubmissions.length === 0) {
         showMessage('No data to export.', 'error');
         return;
     }
     
     const headers = ['Timestamp', 'First Name', 'Last Name', 'Pool Location', 'Main pH', 'Main Cl', 'Secondary pH', 'Secondary Cl'];
+    
     const csvContent = [
         headers.join(','),
-        ...filteredData.map(row => [
-            `"${row.timestamp}"`,
-            `"${row.firstName}"`,
-            `"${row.lastName}"`,
-            `"${row.poolLocation}"`,
-            `"${row.mainPoolPH}"`,
-            `"${row.mainPoolCl}"`,
-            `"${row.secondaryPoolPH}"`,
-            `"${row.secondaryPoolCl}"`
+        ...filteredSubmissions.map(row => [
+            `"${row.timestamp instanceof Date ? row.timestamp.toLocaleString() : row.timestamp}"`,
+            `"${row.firstName || ''}"`,
+            `"${row.lastName || ''}"`,
+            `"${row.poolLocation || ''}"`,
+            `"${row.mainPoolPH || ''}"`,
+            `"${row.mainPoolCl || ''}"`,
+            `"${row.secondaryPoolPH || ''}"`,
+            `"${row.secondaryPoolCl || ''}"`
         ].join(','))
     ].join('\n');
     
@@ -310,6 +311,7 @@ function exportToCSV() {
     
     showMessage('Data exported successfully!', 'success');
 }
+
 function filterData() {
     const poolFilter = document.getElementById('poolFilter')?.value || '';
     const dateFilter = document.getElementById('dateFilter')?.value || '';
