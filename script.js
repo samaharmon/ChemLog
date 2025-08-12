@@ -2394,6 +2394,7 @@ function logout() {
     
     // Update header buttons AFTER setting isLoggedIn to false
     updateHeaderButtons();
+    removeOverlay();
     
     console.log('Logged out successfully, returned to main form');
 }
