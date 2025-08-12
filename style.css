@@ -1,6 +1,9 @@
 html, body {
     background-color: white !important;
     background: white !important;
+    margin: 0;
+    padding: 0;
+    height: 100%;
 }
 
 /* General Styles */
@@ -1205,4 +1208,14 @@ button:hover, button:focus,
 #loginModal.show {
     opacity: 1;
     display: block;
+}
+
+.modal-content, 
+.settings-modal-content, 
+.feedback-modal-content {
+  margin: 0;
+  position: relative;
+  top: auto;
+  left: auto;
+  transform: none; /* Remove accidental offsets */
 }
