@@ -403,6 +403,8 @@ input[type="text"], select, input[type="password"] {
     text-align: left;
     max-height: 90vh;
     overflow-y: auto;
+    opacity: 0;
+    transition: opacity 0.3s ease;
 }
 
 @media (max-width: 768px) {
@@ -1148,7 +1150,7 @@ button:hover, button:focus,
 /* Modal animations */
 .modal.show, #settingsModal.show, .feedback-modal.show {
   animation: slideIn 0.4s ease forwards;
-  display: flex !important;
+  display: block !important;
   opacity: 1;
 }
 
