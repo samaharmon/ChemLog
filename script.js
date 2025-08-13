@@ -2,44 +2,64 @@
 //Hoisted Functions
 //===================================================
 
-function submitForm() {
+async function submitForm(event) {
+    event.preventDefault(); // stop browser's own validation
+
     console.log('Submit button clicked');
 
-    // Clear previous error highlighting
+    // Remove any existing error styles
     document.querySelectorAll('.form-group.error').forEach(group => {
         group.classList.remove('error');
     });
 
-    // Check required fields, including pool location
-    const poolLocation = document.getElementById('poolLocation').value;
-    if (!poolLocation || poolLocation === '') {
-        showMessage('Please select a pool location.', 'error');
-        document.getElementById('poolLocation').closest('.form-group')?.classList.add('error');
-        return;
-    }
-
+    // Client-side required field validation
     if (!validateForm()) {
         showMessage('Please fill in all required fields.', 'error');
         return;
     }
 
+    // Check supervisor login if on login form
+    if (document.querySelector('#supervisorUsername') && document.querySelector('#supervisorPassword')) {
+        const username = document.querySelector('#supervisorUsername').value.trim();
+        const password = document.querySelector('#supervisorPassword').value.trim();
+
+        try {
+            const response = await fetch('/verifySupervisorLogin', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ username, password })
+            });
+
+            const result = await response.json();
+
+            if (!result.success) {
+                showMessage('Invalid supervisor login credentials.', 'error');
+                return;
+            }
+        } catch (error) {
+            console.error('Login verification failed:', error);
+            showMessage('Error verifying login. Please try again.', 'error');
+            return;
+        }
+    }
+
+    // Evaluate feedback for pool chemistry
     evaluateFormFeedback();
 
+    // Construct the submission object
     const submission = {
-        id: Date.now(),
-        timestamp: new Date(),
-        firstName: document.getElementById('firstName').value,
-        lastName: document.getElementById('lastName').value,
-        poolLocation: poolLocation,
-        mainPoolPH: document.getElementById('mainPoolPH').value,
-        mainPoolCl: document.getElementById('mainPoolCl').value,
-        secondaryPoolPH: poolLocation === 'Camden CC' ? 'N/A' : document.getElementById('secondaryPoolPH').value,
-        secondaryPoolCl: poolLocation === 'Camden CC' ? 'N/A' : document.getElementById('secondaryPoolCl').value
+        // Fill with your actual form values
+        name: document.querySelector('#name').value,
+        poolLocation: document.querySelector('#poolLocation').value,
+        pH: parseFloat(document.querySelector('#pH').value),
+        chlorine: parseFloat(document.querySelector('#chlorine').value),
+        timestamp: new Date().toISOString()
     };
 
-    // Save to localStorage or Firebase...
+    // Save the submission locally and in Firebase
     saveFormSubmissions(submission);
 }
+
 
 window.submitForm = submitForm;
 
