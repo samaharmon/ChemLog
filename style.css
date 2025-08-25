@@ -332,11 +332,11 @@ input[type="text"], select, input[type="password"] {
     border: none;
     border-radius: 0;
     padding: 5px 10px;
-    font-size: 10px;
+    font-size: 12px;
     font-weight: bold;
     width: auto;
     height: auto;
-    max-width: 75px;
+    max-width: 50px;
     font-family: 'Franklin Gothic Medium', Arial, sans-serif;
     cursor: pointer;
     margin-top: 10px;
@@ -1227,7 +1227,7 @@ input[type="text"]#newPoolName {
     border: none;
     border-radius: 0;
     padding: 5px 10px;
-    font-size: 10px;
+    font-size: 12px;
     font-weight: bold;
     cursor: pointer;
     margin-top: 10px;
