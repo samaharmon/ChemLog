@@ -332,7 +332,7 @@ input[type="text"], select, input[type="password"] {
     border: none;
     border-radius: 0;
     padding: 2.5px 5px;
-    font-size: 10px;
+    font-size: 8px;
     font-weight: bold;
     width: auto;
     height: auto;
