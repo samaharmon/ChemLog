@@ -1,3 +1,34 @@
+import { getDatabase, ref, get } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-database.js";
+
+async function loadSanitationRules() {
+    const db = getDatabase();
+    const rulesRef = ref(db, 'settings/sanitationRules');
+    try {
+        const snapshot = await get(rulesRef);
+        if (snapshot.exists()) {
+            return snapshot.val();
+        } else {
+            console.warn("No sanitation rules found in Firebase.");
+            return {};
+        }
+    } catch (err) {
+        console.error("Error loading sanitation rules:", err);
+        return {};
+    }
+}
+
+async function applyRulesToDashboard() {
+    const rules = await loadSanitationRules();
+    
+    // Example: show sanitation method column
+    Object.entries(rules).forEach(([pool, method]) => {
+        const cell = document.querySelector(`[data-pool="${pool}"] .sanitation-method`);
+        if (cell) {
+            cell.textContent = method;
+        }
+    });
+}
+
 //===================================================
 //Hoisted Functions
 //===================================================
@@ -1349,297 +1380,41 @@ function displayData() {
     console.groupEnd();
 }
 
+async function evaluateFormFeedback(formData) {
+    let feedback = [];
 
+    // 🔹 Load sanitation rules from Firebase
+    const rules = await loadSanitationRules();
+    const selectedMethod = rules[formData.poolName]; // "Bleach" or "Granular"
 
-function evaluateFormFeedback() { // Remove formData parameter
-    const poolLocation = document.getElementById('poolLocation').value;
-    const mainPH = document.getElementById('mainPoolPH').value;
-    const mainCl = document.getElementById('mainPoolCl').value;
-    const secPH = document.getElementById('secondaryPoolPH').value;
-    const secCl = document.getElementById('secondaryPoolCl').value;
-    const mainSanitizer = document.querySelector(
-        `.sanitation-checkbox[data-pool="${poolLocation}"]:checked`
-        )?.dataset.method || '';
-    const secondarySanitizer = document.getElementById('secondarySanitizerMethod')?.value || '';
-    
-    // DEBUG LOGS - Remove after testing
-    console.log('=== DEBUG INFO ===');
-    console.log('Pool Location:', `"${poolLocation}"`);
-    console.log('Secondary pH:', `"${secPH}"`);
-    console.log('Pool Location === "Quail Hollow":', poolLocation === 'Quail Hollow');
-    console.log('Secondary pH === "7.8":', secPH === '7.8');
-    
-    // Initialize messages array locally
-    const messages = [];
-    let isGood = true;
-    let setpointImgNeeded = false;
+    // --- pH Checks ---
+    if (formData.pH < 7.2) {
+        feedback.push(`${formData.poolName}: pH is too low. Add acid as needed.`);
+    } else if (formData.pH > 7.8) {
+        feedback.push(`${formData.poolName}: pH is too high. Add soda ash as needed.`);
+    }
 
-    // Check main pool pH (7.0 is acceptable, 7.6 and 7.8 require lowering for main pools)
-    if (mainPH === '< 7.0' || mainPH === '7.6' || mainPH === '7.8' || mainPH === '8.0' || mainPH === '> 8.0') {
-        isGood = false;
-        if (mainPH === '< 7.0') {
-            messages.push('<strong>Notify a supervisor of the low pH in the Main Pool immediately.<br>Raise the pH of the Main Pool.</strong><br>Ensure that the waterline is at normal height, and turn the fill line on if it is low. Always set a timer when turning on the fill line.');
-        } else if (mainPH === '7.6' || mainPH === '7.8') {
-            messages.push('<strong>Lower the pH of the Main Pool.</strong><br>Add 1 gallon of acid below a skimmer basket. Always check for suction before pouring.');
-        } else if (mainPH === '8.0' || mainPH === '> 8.0') {
-            messages.push('<strong>Lower the pH of the Main Pool.</strong><br>Add 2 gallons of acid below a skimmer basket. Always check for suction before pouring.');
+    // --- Chlorine Checks ---
+    if (formData.cl < 1.0) {
+        if (selectedMethod === "Bleach") {
+            feedback.push(`${formData.poolName}: Chlorine low — add bleach.`);
+        } else if (selectedMethod === "Granular") {
+            feedback.push(`${formData.poolName}: Chlorine low — add granular chlorine.`);
+        } else {
+            feedback.push(`${formData.poolName}: Chlorine low — sanitation method not set.`);
         }
-    }
-    
-// Check main pool Cl using granular/bleach logic
-const granularMainResponse = getClResponse(poolLocation, true, mainCl);
-// Main pool Cl granular method feedback
-if (mainSanitizer === 'granular') {
-    if (mainCl === '0') {
-        messages.push('<strong>Raise the Cl level in the Main Pool.</strong><br>Make sure that a skimmer has suction, then add 6 scoops of granular/shock to the skimmer. Never add more than 6 scoops at one time.');
-        isGood = false;
-    } else if (mainCl === '1') {
-        messages.push('<strong>Raise the Cl level in the Main Pool.</strong><br>Make sure that a skimmer has suction, then add 5 scoops of granular/shock to the skimmer. Never add more than 6 scoops at one time.');
-        isGood = false;
-    } else if (mainCl === '2') {
-        messages.push('<strong>Raise the Cl level in the Main Pool.</strong><br>Make sure that a skimmer has suction, then add 4 scoops of granular/shock to the skimmer. Never add more than 6 scoops at one time.');
-        isGood = false;
-    } else if (mainCl === '10') {
-        messages.push('<strong>Lower the Cl level of the Main Pool.</strong><br>Turn the Cl feeder off, and set a timer to turn it back on. Ensure that the waterline is at normal height, and turn the fill line on if it is low. Always set a timer when turning on the fill line.');
-        isGood = false;
-        setpointImgNeeded = true;
-    } else if (mainCl === '> 10') {
-        messages.push('<strong>Notify a supervisor of the high Cl in the Main Pool immediately. Lower the Cl level of the Main Pool.</strong><br>Turn the Cl feeder off, and set a timer to turn it back on. Ensure that the waterline is at normal height, and turn the fill line on if it is low. Always set a timer when turning on the fill line.');
-        isGood = false;
-        setpointImgNeeded = true;
+    } else if (formData.cl > 4.0) {
+        feedback.push(`${formData.poolName}: Chlorine is too high. Allow levels to drop before re-entry.`);
     }
 
-} else {
-    // Bleach method fallback for main pool Cl
-    if (mainCl === '0' || mainCl === '1' || mainCl === '2') {
-        messages.push('<strong>Raise the Cl level in the Main Pool.</strong><br>If not handled the previous hour, change the Cl feeder rate according to the setpoint chart to raise the Cl level.');
-        messages.push('<img src="setpoint.jpeg" alt="Setpoint Chart" style="max-width: 100%; height: auto; margin-top: 10px;">');
-        isGood = false;
-        setpointImgNeeded = true;
-    } else if (mainCl === '10') {
-        messages.push('<strong>Lower the Cl level of the Main Pool.</strong><br>Turn the Cl feeder off, and set a timer to turn it back on. Ensure that the waterline is at normal height, and turn the fill line on if it is low. Always set a timer when turning on the fill line.');
-        isGood = false;
-        setpointImgNeeded = true;
-    } else if (mainCl === '> 10') {
-        messages.push('<strong>Notify a supervisor of the high Cl in the Main Pool immediately. Lower the Cl level of the Main Pool.</strong><br>Turn the Cl feeder off, and set a timer to turn it back on. Ensure that the waterline is at normal height, and turn the fill line on if it is low. Always set a timer when turning on the fill line.');
-        isGood = false;
-        setpointImgNeeded = true;
+    // --- Supervisor Alert (example rule) ---
+    if (formData.pH < 7.0) {
+        feedback.push(`⚠ Supervisor Alert: ${formData.poolName} has dangerously low pH.`);
     }
+
+    return feedback;
 }
 
-    
-    // Check secondary pool if not Camden CC
-    if (poolLocation !== 'Camden CC') {
-        // Check secondary pH - different rules for Forest Lake vs other pools
-        if (poolLocation === 'Forest Lake') {
-            // For Forest Lake secondary pool: 7.0 is acceptable, 7.6 and 7.8 require lowering (same as main pools)
-            if (secPH === '< 7.0' || secPH === '7.6' || secPH === '7.8' || secPH === '8.0' || secPH === '> 8.0') {
-                isGood = false;
-                if (secPH === '< 7.0') {
-                    messages.push('<strong>Notify a supervisor of the low pH in the lap pool immediately. Raise the pH of the Lap Pool.</strong><br>Ensure that the waterline is at normal height, and turn the fill line on if it is low. Always set a timer when turning on the fill line.');
-                } else if (secPH === '7.6' || secPH === '7.8') {
-                    messages.push('<strong>Lower the pH of the Lap Pool.</strong><br>Add 1 gallon of acid below a skimmer basket. Always check for suction before pouring.');
-                } else if (secPH === '8.0' || secPH === '> 8.0') {
-                    messages.push('<strong>Lower the pH of the Lap Pool.</strong><br>Add 2 gallons of acid below a skimmer basket. Always check for suction before pouring.');
-                }
-            }
-        } else {
-            // For all other secondary pools: 7.0 and 7.6 are acceptable, only 7.8 and higher require lowering
-            if (secPH === '< 7.0' || secPH === '7.8' || secPH === '8.0' || secPH === '> 8.0') {
-                isGood = false;
-                if (secPH === '< 7.0') {
-                    // Handle low pH cases
-                    if (poolLocation === 'Columbia CC') {
-                        messages.push('<strong>Raise the pH of the Baby Pool.</strong><br>Sprinkle 1.5 tablespoons of soda ash in the pool itself. It is not harmful.');
-                    } else if (poolLocation === 'Wildewood') {
-                        messages.push('<strong>Notify a supervisor of the low pH in the Splash Pad immediately. Wait for assistance.</strong><br>');
-                    } else {
-                        messages.push('<strong>Raise the pH of the Baby Pool.</strong><br>Ensure that the waterline is at normal height, and turn the fill line on if it is low. Always set a timer when turning on the fill line.');
-                    }
-                } else if (secPH === '7.8') { 
-                    // Handle 7.8 pH cases
-                    if (poolLocation === 'CC of Lexington') {
-                        messages.push('<strong>Lower the pH of the Baby Pool.</strong><br>Add a small splash (~1.5 tablespoons of acid) below a skimmer basket. Always check for suction before pouring.');
-                    } else if (poolLocation === 'Columbia CC') {
-                        messages.push('<strong>Lower the pH of the Baby Pool.</strong><br>Add 1/8 scoop of acid below a skimmer basket. Always check for suction before pouring.');
-                    } else if (poolLocation === 'Quail Hollow') {
-                        messages.push('<strong>Lower the pH of the Baby Pool.</strong><br>Add 1/8 scoop of acid below a skimmer basket. Always check for suction before pouring.');
-                    } else if (poolLocation === 'Rockbridge') {
-                        messages.push('<strong>Lower the pH of the Baby Pool.</strong><br>Add a small splash (~1.5 tablespoons) of acid below a skimmer basket. Always check for suction before pouring.');
-                    } else if (poolLocation === 'Wildewood') {
-                        messages.push('<strong>Lower the pH of the Splash Pad.</strong><br>Add 1/6 scoop of acid into the Splash Pad tank. Always ensure that the pump is on before pouring.');
-                    } else if (poolLocation === 'Winchester') {
-                        messages.push('<strong>Lower the pH of the Baby Pool.</strong><br>Add 1/6 scoop of acid below a skimmer basket. Always check for suction before pouring.');
-                    } else {
-                        // Fallback for any other pools
-                        messages.push('<strong>Lower the pH of the Baby Pool.</strong><br>Add 1 gallon of acid below a skimmer basket. Always check for suction before pouring.');
-                    }
-                } else if (secPH === '8.0' || secPH === '> 8.0') {
-                    // Double the acid amounts for 8.0 and > 8.0
-                    if (poolLocation === 'CC of Lexington') {
-                        messages.push('<strong>Lower the pH of the Baby Pool.</strong><br>Add a medium splash of acid below a skimmer basket. Always check for suction before pouring.');
-                    } else if (poolLocation === 'Columbia CC') {
-                        messages.push('<strong>Lower the pH of the Baby Pool.</strong><br>Add 1/4 scoop of acid below a skimmer basket. Always check for suction before pouring.');
-                    } else if (poolLocation === 'Quail Hollow') {
-                        messages.push('<strong>Lower the pH of the Baby Pool.</strong><br>Add 1/4 scoop of acid below a skimmer basket. Always check for suction before pouring.');
-                    } else if (poolLocation === 'Rockbridge') {
-                        messages.push('<strong>Lower the pH of the Baby Pool.</strong><br>Add a medium splash of acid below a skimmer basket. Always check for suction before pouring.');
-                    } else if (poolLocation === 'Wildewood') {
-                        messages.push('<strong>Lower the pH of the Splash Pad.</strong><br>Add 1/3 scoop of acid into the Splash Pad tank. Always ensure that the pump is on before pouring.');
-                    } else if (poolLocation === 'Winchester') {
-                        messages.push('<strong>Lower the pH of the Baby Pool.</strong><br>Add 1/3 scoop of acid basket. Always check for suction before pouring.');
-                    } else {
-                        // Fallback for any other pools
-                        messages.push('<strong>Lower the pH of the Secondary Pool.</strong><br>Add 2 gallons of acid below a skimmer basket. Always check for suction before pouring.');
-                    }
-                }
-            }
-        }
-        
-        // Check secondary Cl (only for Forest Lake)
-        if (poolLocation === 'Forest Lake') {
-            const granularSecResponse = getClResponse(poolLocation, false, secCl);
-            if (granularSecResponse) {
-                messages.push(granularSecResponse);
-                isGood = false;
-                if (granularSecResponse.includes('notify a supervisor')) {
-                    setpointImgNeeded = true;
-                }
-            } else {
-                // Bleach method for Forest Lake secondary pool - RESTORED ORIGINAL MESSAGES
-                if (secCl === '0' || secCl === '1' || secCl === '2') {
-                    messages.push('<strong>Raise the Cl level in the Lap Pool.</strong><br>If not handled the previous hour, change the Cl feeder rate according to the setpoint chart.');
-                    messages.push('<img src="setpoint.jpeg" alt="Setpoint Chart" style="max-width: 100%; height: auto; margin-top: 10px;">');
-                    isGood = false;
-                    setpointImgNeeded = true;
-                } else if (secCl === '10') {
-                    messages.push('<strong>Lower the Cl level of the lap pool.</strong><br>Turn the Cl feeder off, and set a timer to turn it back on. Ensure that the waterline is at normal height, and turn the fill line on if it is low. Always set a timer when turning on the fill line.');
-                    isGood = false;
-                    setpointImgNeeded = true;
-                } else if (secCl === '> 10') {
-                    messages.push('<strong>Notify a supervisor of the high Cl in the Lap Pool immediately. Lower the Cl level of the lap pool.</strong><br>Turn the Cl feeder off, and set a timer to turn it back on. Ensure that the waterline is at normal height, and turn the fill line on if it is low. Always set a timer when turning on the fill line.');
-                    isGood = false;
-                    setpointImgNeeded = true;
-                }
-            }
-        } else {
-            // General rules for secondary pools (excluding Forest Lake)
-            switch (secCl) {
-                case '0':
-                    switch (poolLocation) {
-                        case 'Columbia CC':
-                            messages.push('<strong>Raise the Cl level in the Baby Pool.</strong><br>Ensure that there are 2 total Cl tablets below a skimmer basket.');
-                            break;
-                        case 'CC of Lexington':
-                            messages.push('<strong>Raise the Cl level in the Baby Pool.</strong><br>Ensure that there is 1 total Cl tablet below a skimmer basket.');
-                            break;
-                        case 'Quail Hollow':
-                            messages.push('<strong>Raise the Cl level in the Baby Pool.</strong><br>Ensure that there are 1.5 total Cl tablets below a skimmer basket.');
-                            break;
-                        case 'Rockbridge':
-                            messages.push('<strong>Raise the Cl level in the Baby Pool.</strong><br>Ensure that there are 1.5 total Cl tablets below a skimmer basket.');
-                            break;
-                        case 'Wildewood':
-                            messages.push('<strong>Raise the Cl level in the Baby Pool.</strong><br>Ensure that there are 1.5 total Cl tablets below a skimmer basket.');
-                            break;
-                        case 'Rockbridge':
-                            messages.push('<strong>Raise the Cl level in the Baby Pool.</strong><br>Ensure that there are 1.5 total Cl tablets below a skimmer basket.');
-                            break;
-                        case 'Wildewood':
-                            messages.push('<strong>Raise the Cl level in the Splash Pad.</strong><br>Add 1/4 scoop of shock/granular Cl to an empty bucket, then fill it with water. Carefully swirl the water to dissolve the shock, then pour it into the Splash Pad tank.');
-                            break;
-                        case 'Winchester':
-                            messages.push('<strong>Raise the Cl level in the Baby Pool.</strong><br>Ensure that there are 4 total Cl tablets below a skimmer basket.');
-                            break;
-                    }
-                    break;
-
-                case '10':
-                    switch (poolLocation) {
-                        case 'Columbia CC':
-                        case 'CC of Lexington':
-                        case 'Quail Hollow':
-                        case 'Rockbridge':
-                        case 'Winchester':
-                            messages.push('<strong>Lower the Cl level in the Baby Pool.</strong><br>Remove all Cl tablets from the skimmers until Cl levels have subsided.');
-                            break;
-                        case 'Wildewood':
-                            messages.push('<strong>Do not add any more shock/granular to the Splash Pad tank.</strong><br>Cl levels should subside within two hours.');
-                            break;
-                    }
-                    break;
-
-                case '> 10':
-                    switch (poolLocation) {
-                        case 'Columbia CC':
-                        case 'CC of Lexington':
-                        case 'Quail Hollow':
-                        case 'Rockbridge':
-                        case 'Winchester':
-                            messages.push('<strong>Notify a supervisor of the high Cl in the Baby Pool immediately. Lower the Cl level in the Baby Pool.</strong><br>Remove all Cl tablets from the skimmers until Cl levels have subsided.');
-                            break;
-                        case 'Wildewood':
-                            messages.push('<strong>Notify a supervisor of the high Cl in the Splash Pad immediately. Do not add any more shock/granular to the Splash Pad tank.</strong><br>Cl levels should subside within two hours.');
-                            break;
-                    }
-                    break;
-            }
-        }
-    }
-    
-    // Show feedback modal
-    if (messages.length > 0) {
-        // If there are messages, show the modal with checkboxes
-        showFeedbackModal(messages, false, setpointImgNeeded);
-    } else if (isGood) {
-        // If all values are good, show the modal without checkboxes
-        showFeedbackModal(['All water chemistry values are within acceptable ranges.'], true);
-    }
-    
-    // Create submission object
-    const submission = {
-        id: Date.now(),
-        timestamp: new Date(),
-        firstName: document.getElementById('firstName').value,
-        lastName: document.getElementById('lastName').value,
-        poolLocation: document.getElementById('poolLocation').value,
-        mainPoolPH: document.getElementById('mainPoolPH').value,
-        mainPoolCl: document.getElementById('mainPoolCl').value,
-        secondaryPoolPH: poolLocation === 'Camden CC' ? 'N/A' : document.getElementById('secondaryPoolPH').value,
-        secondaryPoolCl: poolLocation === 'Camden CC' ? 'N/A' : document.getElementById('secondaryPoolCl').value
-    };
-    
-    // Save to local storage first
-    formSubmissions.push(submission);
-    saveFormSubmissions();
-    
-    // Try to save to Firebase v9
-    if (db) {
-        try {
-            window.firebaseModules.addDoc(
-            window.firebaseModules.collection(db, 'poolSubmissions'), 
-            {
-             ...submission,
-              timestamp: window.firebaseModules.Timestamp.fromDate(submission.timestamp)
-            }
-            ).then(() => {
-    console.log('Submission saved to Firebase v9');
-}).catch((error) => {
-    console.warn('Could not save to Firebase v9:', error);
-});
-        } catch (error) {
-            console.warn('Could not save to Firebase v9:', error);
-        }
-    }
-    
-    showMessage('Submission saved successfully!', 'success');
-    
-    if (document.getElementById('supervisorDashboard').style.display === 'block') {
-        loadDashboardData();
-    }
-    
-    resetForm();
-}
 
 // ===================================================
 // FIREBASE INITIALIZATION
