@@ -331,8 +331,8 @@ input[type="text"], select, input[type="password"] {
     color: white;
     border: none;
     border-radius: 0;
-    padding: 2.5px 5px;
-    font-size: 8px;
+    padding: 5px 10px;
+    font-size: 10px;
     font-weight: bold;
     width: auto;
     height: auto;
@@ -1226,8 +1226,8 @@ input[type="text"]#newPoolName {
     color: #fff;
     border: none;
     border-radius: 0;
-    padding: 10px 20px;
-    font-size: 16px;
+    padding: 5px 10px;
+    font-size: 10px;
     font-weight: bold;
     cursor: pointer;
     margin-top: 10px;
