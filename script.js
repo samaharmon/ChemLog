@@ -1847,6 +1847,7 @@ window.initializeSanitationSettings = initializeSanitationSettings;
 window.saveSanitationSettings = saveSanitationSettings;
 window.loadSanitationSettings = loadSanitationSettings;
 window.updateSanitationUI = updateSanitationUI;
+window.goToEditor = goToEditor;
 
 // SMS and notifications (3)
 window.sendSMSNotification = sendSMSNotification;
