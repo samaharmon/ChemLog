@@ -183,9 +183,6 @@ body {
 /* --- Rest of your CSS (unchanged, but moved for clarity) --- */
 
 /* Main Container */
-#secondaryPoolSection {
-  display: none; /* JS toggles this */
-}
 
 .container {
     margin: 30px 50px;
