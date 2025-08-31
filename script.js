@@ -539,14 +539,14 @@ function showFeedbackModal(messages, isGood, setpointImgNeeded) {
     if (!isGood) {
         const messageList = document.createElement('div');
         messages.forEach(msg => {
-            if (msg.includes('setpoint.jpeg')) {
+            if (msg.includes('Images/setpoint.jpeg')) {
                 const chartContainer = document.createElement('div');
                 chartContainer.className = 'setpoint-container';
                 chartContainer.style.textAlign = 'center';
                 chartContainer.style.margin = '20px 0';
 
                 const chart = document.createElement('img');
-                chart.src = 'setpoint.jpeg';
+                chart.src = 'Images/setpoint.jpeg';
                 chart.alt = 'Setpoint Chart';
                 chart.className = 'setpoint-chart';
                 chart.style.maxWidth = '100%';
@@ -1413,7 +1413,7 @@ if (mainSanitizer === 'granular') {
     // Bleach method fallback for main pool Cl
     if (mainCl === '0' || mainCl === '1' || mainCl === '2') {
         messages.push('<strong>Raise the Cl level in the Main Pool.</strong><br>If not handled the previous hour, change the Cl feeder rate according to the setpoint chart to raise the Cl level.');
-        messages.push('<img src="setpoint.jpeg" alt="Setpoint Chart" style="max-width: 100%; height: auto; margin-top: 10px;">');
+        messages.push('<img src="Images/setpoint.jpeg" alt="Setpoint Chart" style="max-width: 100%; height: auto; margin-top: 10px;">');
         isGood = false;
         setpointImgNeeded = true;
     } else if (mainCl === '10') {
@@ -1509,7 +1509,7 @@ if (mainSanitizer === 'granular') {
                 // Bleach method for Forest Lake secondary pool - RESTORED ORIGINAL MESSAGES
                 if (secCl === '0' || secCl === '1' || secCl === '2') {
                     messages.push('<strong>Raise the Cl level in the Lap Pool.</strong><br>If not handled the previous hour, change the Cl feeder rate according to the setpoint chart.');
-                    messages.push('<img src="setpoint.jpeg" alt="Setpoint Chart" style="max-width: 100%; height: auto; margin-top: 10px;">');
+                    messages.push('<img src="Images/setpoint.jpeg" alt="Setpoint Chart" style="max-width: 100%; height: auto; margin-top: 10px;">');
                     isGood = false;
                     setpointImgNeeded = true;
                 } else if (secCl === '10') {
@@ -1770,7 +1770,7 @@ function setupEventHandlers() {
 }
 
 function goToEditor() {
-    window.location.href = "newRules.html";
+    window.location.href = "SiteEditor/newRules.html";
 }
 
 
