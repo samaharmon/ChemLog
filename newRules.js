@@ -1,143 +1,109 @@
-// Initialize after DOM loads
+import { getFirestore, doc, setDoc } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore.js";
+
+// Firestore instance (firebaseApp already initialized in HTML)
+const db = getFirestore();
+
 document.addEventListener("DOMContentLoaded", () => {
-  // Firebase reference
-  const db = firebase.database();
-
-  // DOM elements
+  // --- DOM Elements ---
   const addPoolBtn = document.getElementById("addPoolBtn");
-  const poolSelect = document.getElementById("poolLocation");
-
   const newPoolSection = document.getElementById("newPoolSection");
   const feedbackEditorSection = document.getElementById("feedbackEditorSection");
-
-  const secondaryPoolCheckbox = document.getElementById("secondaryPoolCheckbox");
   const secondaryPoolSection = document.getElementById("secondaryPoolSection");
+  const secondaryPoolCheckbox = document.getElementById("secondaryPoolCheckbox");
 
-  const saveNewPoolBtn = document.getElementById("saveRulesBtnOne");
+  const poolSelect = document.getElementById("poolLocation");
+  const newPoolName = document.getElementById("newPoolName");
+  const poolShape = document.getElementById("poolShape");
 
-  // ----- Hide sections initially -----
-  newPoolSection.classList.add("hidden");
-  feedbackEditorSection.classList.add("hidden");
-  secondaryPoolSection.classList.add("hidden");
+  const saveRulesBtnOne = document.getElementById("saveRulesBtnOne");
+  const saveRulesBtnTwo = document.getElementById("saveRulesBtnTwo");
 
-  // ----- Add New Pool Button -----
+  // --- Helpers ---
+  const show = (el) => (el.style.display = "block");
+  const hide = (el) => (el.style.display = "none");
+
+  // --- Initial State ---
+  hide(newPoolSection);
+  hide(feedbackEditorSection);
+  hide(secondaryPoolSection);
+
+  // --- Show/Hide Logic ---
   addPoolBtn.addEventListener("click", () => {
-    newPoolSection.classList.remove("hidden");
-    feedbackEditorSection.classList.add("hidden");
+    show(newPoolSection);
+    hide(feedbackEditorSection);
   });
 
-  // ----- Pool Selection Change -----
   poolSelect.addEventListener("change", () => {
-    const poolName = poolSelect.value;
-    if (!poolName) {
-      feedbackEditorSection.classList.add("hidden");
-      return;
-    }
-    newPoolSection.classList.add("hidden");
-    feedbackEditorSection.classList.remove("hidden");
-    loadPoolRules(poolName);
-  });
-
-  // ----- Save New Pool -----
-  saveNewPoolBtn.addEventListener("click", async () => {
-    const poolName = document.getElementById("newPoolName").value.trim();
-    if (!poolName) return alert("Enter a pool name.");
-    try {
-      await db.ref("pools/" + poolName).set({
-        name: poolName,
-        rules: { main: [], secondary: [] }
-      });
-      alert("New pool saved!");
-      newPoolSection.classList.add("hidden");
-      feedbackEditorSection.classList.remove("hidden");
-      poolSelect.value = poolName;
-      loadPoolRules(poolName);
-    } catch (err) {
-      console.error("Error saving pool:", err);
-      alert("Error saving pool. Check console.");
+    if (poolSelect.value) {
+      show(feedbackEditorSection);
+    } else {
+      hide(feedbackEditorSection);
     }
   });
 
-  // ----- Secondary Pool Checkbox Toggle -----
   secondaryPoolCheckbox.addEventListener("change", () => {
     if (secondaryPoolCheckbox.checked) {
-      secondaryPoolSection.classList.remove("hidden");
+      show(secondaryPoolSection);
     } else {
-      secondaryPoolSection.classList.add("hidden");
+      hide(secondaryPoolSection);
     }
   });
 
-  // ----- Load Pool Rules -----
-  async function loadPoolRules(poolName) {
-    const snapshot = await db.ref("pools/" + poolName).once("value");
-    const data = snapshot.val();
-    if (!data) return;
+  // --- Save Main Pool Settings ---
+  saveRulesBtnOne.addEventListener("click", async () => {
+    const poolName = poolSelect.value || newPoolName.value.trim();
+    const shape = poolShape.value;
 
-    feedbackEditorSection.querySelectorAll("table.rules-table").forEach(table => {
-      table.querySelectorAll("tr").forEach((row, idx) => {
-        const checkbox = row.querySelector("input.sanitation-checkbox");
-        const textInput = row.querySelector("input.adjustment-feedback");
-        if (!checkbox || !textInput) return;
+    if (!poolName) {
+      alert("Please enter a pool name or select one.");
+      return;
+    }
 
-        // Determine main or secondary
-        const poolType = table.closest(".pool-section").id.includes("Main") ? "main" : "secondary";
-        const ruleData = data.rules?.[poolType]?.[idx] || {};
-
-        checkbox.checked = ruleData.acceptable || false;
-        textInput.value = ruleData.feedback || "";
-        textInput.disabled = checkbox.checked;
-        textInput.style.backgroundColor = checkbox.checked ? "#eee" : "#fff";
-
-        // Add change listener for "acceptable" checkbox
-        checkbox.onchange = async () => {
-          textInput.disabled = checkbox.checked;
-          textInput.style.backgroundColor = checkbox.checked ? "#eee" : "#fff";
-
-          await db.ref(`pools/${poolName}/rules/${poolType}/${idx}`).update({
-            feedback: textInput.value,
-            acceptable: checkbox.checked
-          });
-        };
-
-        // Add Edit/Save button if not present
-        if (!row.querySelector("button.editAndSave")) {
-          const editBtn = document.createElement("button");
-          editBtn.textContent = "Edit";
-          editBtn.className = "editAndSave";
-
-          editBtn.addEventListener("click", async () => {
-            if (editBtn.textContent === "Edit") {
-              textInput.disabled = false;
-              textInput.style.backgroundColor = "#fff";
-              editBtn.textContent = "Save";
-            } else {
-              await db.ref(`pools/${poolName}/rules/${poolType}/${idx}`).set({
-                feedback: textInput.value,
-                acceptable: checkbox.checked
-              });
-              textInput.disabled = checkbox.checked;
-              textInput.style.backgroundColor = checkbox.checked ? "#eee" : "#fff";
-              editBtn.textContent = "Edit";
-            }
-          });
-
-          row.appendChild(editBtn);
-        }
+    try {
+      await setDoc(doc(db, "pools", poolName), {
+        shape: shape,
+        updatedAt: new Date(),
       });
-    });
-  }
+      alert(`Saved settings for ${poolName}`);
+      show(feedbackEditorSection);
+    } catch (err) {
+      console.error("Error saving main pool:", err);
+      alert("Error saving pool settings.");
+    }
+  });
 
-  // ----- Initialize Pool List -----
-  async function loadPools() {
-    const snapshot = await db.ref("pools").once("value");
-    poolSelect.innerHTML = `<option value="">Select</option>`;
-    snapshot.forEach(child => {
-      const option = document.createElement("option");
-      option.value = child.key;
-      option.textContent = child.key;
-      poolSelect.appendChild(option);
-    });
-  }
+  // --- Save Secondary Pool Settings ---
+  saveRulesBtnTwo.addEventListener("click", async () => {
+    const poolName = poolSelect.value;
+    if (!poolName) {
+      alert("Select a pool first.");
+      return;
+    }
 
-  loadPools();
+    try {
+      await setDoc(doc(db, "pools", `${poolName}_secondary`), {
+        secondary: true,
+        updatedAt: new Date(),
+      });
+      alert(`Saved secondary pool settings for ${poolName}`);
+    } catch (err) {
+      console.error("Error saving secondary pool:", err);
+      alert("Error saving secondary pool settings.");
+    }
+  });
+
+  // --- Acceptable Checkbox Logic ---
+  document.querySelectorAll(".sanitation-checkbox").forEach((chk) => {
+    chk.addEventListener("change", (e) => {
+      const row = e.target.closest("tr");
+      const input = row.querySelector(".adjustment-feedback");
+      if (e.target.checked) {
+        input.disabled = true;
+        input.classList.add("disabled-input");
+      } else {
+        input.disabled = false;
+        input.classList.remove("disabled-input");
+      }
+    });
+  });
 });
