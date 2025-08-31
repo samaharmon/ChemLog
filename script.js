@@ -1769,6 +1769,10 @@ function setupEventHandlers() {
     console.log('✅ All event handlers set up');
 }
 
+function goToEditor() {
+    window.location.href = "newRules.html";
+}
+
 
 
 // ===================================================
