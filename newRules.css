@@ -413,3 +413,9 @@ input.adjustment-feedback:disabled {
     margin-top: 5px;
     margin-bottom: 10px;
 }
+
+.disabled-input {
+  background-color: #f0f0f0;
+  color: #666;
+  cursor: not-allowed;
+}
