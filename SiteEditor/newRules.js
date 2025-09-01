@@ -1,7 +1,8 @@
-import { getFirestore, doc, setDoc } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore.js";
+// Use Firebase already on window
+const app = window.firebaseApp;
+const { getFirestore, doc, setDoc } = window.firebaseModules;
+const db = getFirestore(app);
 
-// Firestore instance (firebaseApp already initialized in HTML)
-const db = getFirestore();
 
 document.addEventListener("DOMContentLoaded", () => {
   // --- DOM Elements ---
