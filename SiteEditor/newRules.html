@@ -21,68 +21,6 @@
     <link rel="manifest" href="../Utilities/site.webmanifest" />
     
     <script src="https://www.google.com/recaptcha/enterprise.js?render=6LeuRpIrAAAAAPg8Z6ni-eDSkWSoT8eKCz83m7oQ"></script>
-    <script type="module">
-      // Import Firebase core
-      import { initializeApp } from 'https://www.gstatic.com/firebasejs/9.23.0/firebase-app.js';
-
-      // Firestore
-      import {
-          getFirestore,
-          collection,
-          doc,
-          addDoc,
-          setDoc,
-          getDoc,
-          onSnapshot,
-          orderBy,
-          query,
-          Timestamp,
-          writeBatch
-      } from 'https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore.js';
-
-      // Auth
-      import {
-          getAuth,
-          onAuthStateChanged,
-          signInWithEmailAndPassword,
-          signOut
-      } from 'https://www.gstatic.com/firebasejs/9.23.0/firebase-auth.js';
-
-      // Your config
-      const firebaseConfig = {
-        apiKey: "AIzaSyCRxSL2uuH6O5MFvbq0FS02zF2K_lXGvqI",
-        authDomain: "chemlog-43c08.firebaseapp.com",
-        projectId: "chemlog-43c08",
-        storageBucket: "chemlog-43c08.firebasestorage.app",
-        messagingSenderId: "554394202059",
-        appId: "1:554394202059:web:a8d5824a1d7ccdd871d04e",
-        measurementId: "G-QF5ZQ88VS2"
-      };
-
-      // Initialize Firebase
-      const app = initializeApp(firebaseConfig);
-
-      // Make Firebase app + modules available globally
-      window.firebaseApp = app;
-      window.firebaseModules = {
-          getFirestore,
-          collection,
-          doc,
-          addDoc,
-          setDoc,
-          getDoc,
-          onSnapshot,
-          orderBy,
-          query,
-          Timestamp,
-          writeBatch,
-          getAuth,
-          onAuthStateChanged,
-          signInWithEmailAndPassword,
-          signOut
-      };
-    </script>
-
     
     <script>
       function onClick(e) {
