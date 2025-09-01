@@ -902,16 +902,16 @@ function initializeFormSubmissions() {
 function initializeFirebase() {
     try {
         // Check if Firebase v9 modules are loaded
-        if (typeof window.firebaseModules === 'undefined' || !window.firebaseApp) {
+        if (typeof window.firebaseModules === 'undefined') {
             updateFirebaseStatus('Firebase v9 SDK not loaded', true);
             console.error('Firebase v9 not loaded - check script tags');
             return false;
         }
         
-        // Use the already initialized Firebase app
-        app = window.firebaseApp;
+        // Initialize Firebase app using v9 syntax
+        app = window.firebaseModules.initializeApp(firebaseConfig);
         
-        // Initialize Firestore using globally available modules
+        // Initialize Firestore using v9 syntax
         db = window.firebaseModules.getFirestore(app);
         
         updateFirebaseStatus('✅ Firebase v9 connected successfully');
@@ -928,7 +928,6 @@ function initializeFirebase() {
         return false;
     }
 }
-
 
 // Updated loadDashboardData to work with both Firebase and localStorage
 function loadDashboardData() {
