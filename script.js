@@ -1980,32 +1980,36 @@ document.addEventListener("DOMContentLoaded", () => {
 
     const editBtn = document.getElementById('editSanitationBtn');
     const saveBtn = document.getElementById('saveSanitationBtn');
-    const sanitationCheckboxes = document.querySelectorAll('.sanitation-checkbox');
 
-    sanitationCheckboxes.forEach(cb => cb.disabled = true);
+    if (editBtn && saveBtn) {
+        const sanitationCheckboxes = document.querySelectorAll('.sanitation-checkbox');
 
-    editBtn.addEventListener('click', () => {
-        sanitationCheckboxes.forEach(cb => cb.disabled = false);
-        editBtn.disabled = true;
-        saveBtn.disabled = false;
-    });
+        sanitationCheckboxes.forEach(cb => cb.disabled = true);
 
-    saveBtn.addEventListener('click', () => {
-        sanitationCheckboxes.forEach(cb => {
-            const pool = cb.dataset.pool;
-            const method = cb.dataset.method;
-            if (cb.checked) {
-                sanitationSettings[pool] = method;
-            }
+        editBtn.addEventListener('click', () => {
+            sanitationCheckboxes.forEach(cb => cb.disabled = false);
+            editBtn.disabled = true;
+            saveBtn.disabled = false;
         });
 
-        saveSanitationSettings();
-        sanitationCheckboxes.forEach(cb => cb.disabled = true);
-        editBtn.disabled = false;
-        saveBtn.disabled = true;
+        saveBtn.addEventListener('click', () => {
+            sanitationCheckboxes.forEach(cb => {
+                const pool = cb.dataset.pool;
+                const method = cb.dataset.method;
+                if (cb.checked) {
+                    sanitationSettings[pool] = method;
+                }
+            });
 
-        console.log('✅ Sanitation settings saved and checkboxes disabled again');
-    });
+            saveSanitationSettings();
+            sanitationCheckboxes.forEach(cb => cb.disabled = true);
+            editBtn.disabled = false;
+            saveBtn.disabled = true;
+
+            console.log('✅ Sanitation settings saved and checkboxes disabled again');
+        });
+}
+
 
     console.log('🚀 App initialization complete');
 });
