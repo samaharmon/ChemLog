@@ -6,7 +6,7 @@ import {
   doc,
   addDoc,
   setDoc,
-  getDoc,
+  getDocs,
   onSnapshot,
   orderBy,
   query,
