@@ -427,12 +427,13 @@ function closeSettings() {
     document.getElementById('settingsModal').style.display = 'none';
         removeOverlay();
 }
+
 async function handleSanitationChange(checkbox) {
     const pool = checkbox.dataset.pool;
     const method = checkbox.dataset.method;
-    
+
     console.log(`Changing sanitation for ${pool} to ${method}, checked: ${checkbox.checked}`);
-    
+
     if (checkbox.checked) {
         // Uncheck the other method for this pool
         const otherMethod = method === 'bleach' ? 'granular' : 'bleach';
@@ -440,37 +441,37 @@ async function handleSanitationChange(checkbox) {
         if (otherCheckbox) {
             otherCheckbox.checked = false;
         }
-        
-        // Update settings
+
         sanitationSettings[pool] = method;
     } else {
-        // If unchecking, default to bleach
+        // Default back to bleach
         sanitationSettings[pool] = 'bleach';
         const bleachCheckbox = document.querySelector(`[data-pool="${pool}"][data-method="bleach"]`);
         if (bleachCheckbox) {
             bleachCheckbox.checked = true;
         }
     }
-    
+
     console.log('Updated sanitationSettings:', sanitationSettings);
-    
-    // Always save to localStorage first for immediate persistence
+
+    // Save to localStorage
     localStorage.setItem('sanitationSettings', JSON.stringify(sanitationSettings));
     console.log('Saved sanitation settings to localStorage');
-    
-    // Try to save to Firebase if available
+
+    // Save to Firebase
     try {
-        if (db && window.firebaseModules) {
-            const settingsRef = window.firebaseModules.doc(db, 'settings', 'sanitationMethods');
-            await window.firebaseModules.setDoc(settingsRef, sanitationSettings);
-            console.log('Successfully saved sanitation settings to Firebase v9');
+        if (db) {
+            const settingsRef = doc(db, 'settings', 'sanitationMethods');
+            await setDoc(settingsRef, sanitationSettings);
+            console.log('✅ Successfully saved sanitation settings to Firebase');
         } else {
-            console.log('Firebase not available, settings saved to localStorage only');
+            console.log('⚠️ Firebase not available — settings saved to localStorage only');
         }
     } catch (error) {
-        console.warn('Could not save to Firebase v9, but settings are saved to localStorage:', error);
+        console.warn('❌ Could not save to Firebase — fallback to localStorage only:', error);
     }
 }
+
 function closeModal() {
     const feedbackModal = document.getElementById('feedbackModal');
     feedbackModal.style.display = 'none';
@@ -694,76 +695,77 @@ console.log('🔥 Pool Chemistry App - Script Starting to Load 🔥');
 // ===================================================
 
 async function initializeSanitationSettings() {
-    const pools = ['Camden CC', 'CC of Lexington', 'Columbia CC', 'Forest Lake', 'Forest Lake Lap Pool', 'Quail Hollow', 'Rockbridge', 'Wildewood', 'Winchester'];
+    const pools = [
+        'Camden CC', 'CC of Lexington', 'Columbia CC', 'Forest Lake',
+        'Forest Lake Lap Pool', 'Quail Hollow', 'Rockbridge', 'Wildewood', 'Winchester'
+    ];
     const statusDiv = document.getElementById('firebaseStatus');
-    
+
     console.log('Initializing sanitation settings...');
     updateFirebaseStatus('');
-    
+
     // Set defaults first
     pools.forEach(pool => {
         sanitationSettings[pool] = 'bleach';
     });
 
     try {
-        if (db) {
-            // Use Firebase v9 syntax
-            const settingsRef = window.firebaseModules.doc(db, 'settings', 'sanitationMethods');
-            const settingsDoc = await window.firebaseModules.getDoc(settingsRef);
-            
-            if (settingsDoc.exists()) {
-                const firebaseSettings = settingsDoc.data();
-                Object.assign(sanitationSettings, firebaseSettings);
-                console.log('Successfully loaded sanitation settings from Firebase v9:', sanitationSettings);
-                updateFirebaseStatus('');
-            } else {
-                console.log('No Firebase settings found, saving defaults');
-                await window.firebaseModules.setDoc(settingsRef, sanitationSettings);
-                updateFirebaseStatus('Default settings saved to cloud');
-            }
+        if (!db) throw new Error('Firestore not initialized');
+
+        const settingsRef = doc(db, 'settings', 'sanitationMethods');
+        const settingsDoc = await getDoc(settingsRef);
+
+        if (settingsDoc.exists()) {
+            const firebaseSettings = settingsDoc.data();
+            Object.assign(sanitationSettings, firebaseSettings);
+            console.log('✅ Loaded sanitation settings from Firebase:', sanitationSettings);
+            updateFirebaseStatus('');
         } else {
-            throw new Error('Database not initialized');
+            console.log('⚠️ No Firebase settings found, saving defaults');
+            await setDoc(settingsRef, sanitationSettings); // ✅ uses imported setDoc
+            updateFirebaseStatus('Default settings saved to cloud');
         }
     } catch (error) {
-        console.warn('Could not load settings from Firebase v9, using localStorage fallback:', error);
-        updateFirebaseStatus('Using local settings (offline)');
-        
-        // Fallback to localStorage
+        console.warn('⚠️ Could not load from Firebase, using localStorage fallback:', error);
+        updateFirebaseStatus('Using local settings (offline fallback)');
+
         const saved = localStorage.getItem('sanitationSettings');
         if (saved) {
             sanitationSettings = JSON.parse(saved);
-            console.log('Loaded sanitation settings from localStorage fallback:', sanitationSettings);
+            console.log('📦 Loaded sanitation settings from localStorage:', sanitationSettings);
         } else {
             localStorage.setItem('sanitationSettings', JSON.stringify(sanitationSettings));
-            console.log('Saved default settings to localStorage');
+            console.log('💾 Saved default settings to localStorage');
         }
     }
-    
-    console.log('Final sanitationSettings after initialization:', sanitationSettings);
+
+    console.log('✅ Final sanitationSettings after initialization:', sanitationSettings);
     updateSanitationUI();
-    
-    // Hide status after 3 seconds
+
     setTimeout(() => {
         if (statusDiv) statusDiv.style.display = 'none';
     }, 3000);
 }
 
+
 function startSanitationSettingsListener() {
-    if (!db || !window.firebaseModules) {
-        console.warn("Firebase not initialized for sanitation settings listener.");
+    if (!db) {
+        console.warn("⚠️ Firestore not initialized — cannot start sanitation settings listener.");
         return;
     }
 
-    const settingsRef = window.firebaseModules.doc(db, 'settings', 'sanitationMethods');
+    const settingsRef = doc(db, 'settings', 'sanitationMethods');
 
-    window.firebaseModules.onSnapshot(settingsRef, (docSnapshot) => {
+    onSnapshot(settingsRef, (docSnapshot) => {
         if (docSnapshot.exists()) {
             sanitationSettings = docSnapshot.data();
-            console.log('Sanitation settings updated from Firestore:', sanitationSettings);
+            console.log('🔄 Sanitation settings updated from Firestore:', sanitationSettings);
             updateSanitationCheckboxesFromSettings();
         } else {
-            console.warn('Sanitation settings document does not exist.');
+            console.warn('⚠️ Sanitation settings document does not exist.');
         }
+    }, (error) => {
+        console.error('❌ Error listening to sanitation settings:', error);
     });
 }
 
@@ -985,49 +987,49 @@ async function confirmClearData() {
     }
 
     try {
-        if (!db || !window.firebaseModules) {
-            throw new Error("Firebase is not initialized.");
+        if (!db) {
+            throw new Error("Firestore is not initialized.");
         }
 
-        const collectionRef = window.firebaseModules.collection(db, 'formSubmissions');
+        const collectionRef = collection(db, 'formSubmissions');
 
         let totalDeleted = 0;
         let deletedThisRound;
 
         do {
-            const snapshot = await window.firebaseModules.getDocs(
-                window.firebaseModules.query(
+            const snapshot = await getDocs(
+                query(
                     collectionRef,
-                    window.firebaseModules.orderBy('timestamp'),
-                    window.firebaseModules.limit(500)
+                    orderBy('timestamp'),
+                    limit(500)
                 )
             );
 
             if (snapshot.empty) break;
 
-            const batch = window.firebaseModules.writeBatch(db);
+            const batch = writeBatch(db);
 
-            snapshot.docs.forEach((doc) => {
-                batch.delete(doc.ref);
+            snapshot.docs.forEach((docSnap) => {
+                batch.delete(docSnap.ref);
             });
 
             await batch.commit();
             deletedThisRound = snapshot.size;
             totalDeleted += deletedThisRound;
 
-            console.log(`Deleted ${deletedThisRound} documents in this batch...`);
+            console.log(`🗑️ Deleted ${deletedThisRound} documents in this batch...`);
 
-        } while (deletedThisRound === 500); // Keep going if maxed out
+        } while (deletedThisRound === 500); // Continue if more to delete
 
-        alert(`Deleted ${totalDeleted} chemistry log entries successfully.`);
-        
-        // Optional: Refresh dashboard view
-        if (typeof fetchAndRenderData === 'function') {
+        alert(`✅ Deleted ${totalDeleted} chemistry log entries successfully.`);
+
+        // Optional refresh
+        if (typeof loadDashboardData === 'function') {
             loadDashboardData();
         }
 
     } catch (error) {
-        console.error("Error clearing dashboard data:", error);
+        console.error("❌ Error clearing dashboard data:", error);
         alert("Failed to delete data. Check the console for details.");
     }
 }
@@ -1589,32 +1591,29 @@ if (mainSanitizer === 'granular') {
     saveFormSubmissions();
     
     // Try to save to Firebase v9
-    if (db) {
-        try {
-            window.firebaseModules.addDoc(
-            window.firebaseModules.collection(db, 'poolSubmissions'), 
+// Try to save to Firebase v9
+if (db) {
+    try {
+        await addDoc(
+            collection(db, 'poolSubmissions'),
             {
-             ...submission,
-              timestamp: window.firebaseModules.Timestamp.fromDate(submission.timestamp)
+                ...submission,
+                timestamp: Timestamp.fromDate(submission.timestamp)
             }
-            ).then(() => {
-    console.log('Submission saved to Firebase v9');
-}).catch((error) => {
-    console.warn('Could not save to Firebase v9:', error);
-});
-        } catch (error) {
-            console.warn('Could not save to Firebase v9:', error);
-        }
+        );
+        console.log('✅ Submission saved to Firebase v9');
+    } catch (error) {
+        console.warn('❌ Could not save to Firebase v9:', error);
     }
-    
-    showMessage('Submission saved successfully!', 'success');
-    
-    if (document.getElementById('supervisorDashboard').style.display === 'block') {
-        loadDashboardData();
-    }
-    
-    resetForm();
 }
+    
+showMessage('Submission saved successfully!', 'success');
+
+if (document.getElementById('supervisorDashboard').style.display === 'block') {
+    loadDashboardData();
+}
+
+resetForm();
 
 // ===================================================
 // FIREBASE INITIALIZATION
@@ -1639,17 +1638,17 @@ function validateFirebaseConfig() {
 async function saveSanitationSettings() {
     try {
         if (db) {
-            const settingsRef = window.firebaseModules.doc(db, 'settings', 'sanitationMethods');
-            await window.firebaseModules.setDoc(settingsRef, sanitationSettings);
-            console.log('Saved sanitation settings to Firebase');
+            const settingsRef = doc(db, 'settings', 'sanitationMethods');
+            await setDoc(settingsRef, sanitationSettings);
+            console.log('✅ Saved sanitation settings to Firebase');
         }
     } catch (error) {
-        console.warn('Could not save to Firebase:', error);
+        console.warn('❌ Could not save to Firebase:', error);
     }
-    
+
     // Always save to localStorage as backup
     localStorage.setItem('sanitationSettings', JSON.stringify(sanitationSettings));
-    console.log('Saved sanitation settings to localStorage');
+    console.log('💾 Saved sanitation settings to localStorage');
 }
 
 // Update UI checkboxes based on settings
@@ -2636,28 +2635,28 @@ function toggleMenu() {
 async function openSettings() {
     // Close the dropdown menu first
     document.getElementById('dropdownMenu').style.display = 'none';
-    
+
     // Refresh settings from Firebase before showing modal (if available)
     try {
-        if (db && window.firebaseModules) {
-            console.log('Refreshing settings from Firebase v9 before showing modal...');
-            const settingsRef = window.firebaseModules.doc(db, 'settings', 'sanitationMethods');
-            const settingsDoc = await window.firebaseModules.getDoc(settingsRef);
-            
+        if (db) {
+            console.log('🔄 Refreshing settings from Firebase v9 before showing modal...');
+            const settingsRef = doc(db, 'settings', 'sanitationMethods');
+            const settingsDoc = await getDoc(settingsRef);
+
             if (settingsDoc.exists()) {
                 const firebaseSettings = settingsDoc.data();
                 Object.assign(sanitationSettings, firebaseSettings);
-                console.log('Refreshed sanitation settings from Firebase v9:', sanitationSettings);
+                console.log('✅ Refreshed sanitation settings from Firebase:', sanitationSettings);
             } else {
-                console.log('No Firebase settings found when refreshing');
+                console.log('⚠️ No sanitation settings found in Firebase when refreshing');
             }
         } else {
-            console.log('Firebase not ready when showing settings, using current in-memory settings');
+            console.log('⚠️ Firebase not ready when showing settings — using in-memory settings');
         }
     } catch (error) {
-        console.warn('Could not refresh from Firebase v9 when showing settings:', error);
+        console.warn('❌ Could not refresh from Firebase when showing settings:', error);
     }
-    
+
     createOrShowOverlay();
 
     // Show the settings modal
