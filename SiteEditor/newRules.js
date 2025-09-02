@@ -271,6 +271,36 @@ function closeSettings() {
         removeOverlay();
 }
 
+function showForm() {
+    console.log('Showing Form View');
+    currentView = 'form';
+
+    const mainForm = document.getElementById('mainForm'); // Corrected ID from 'mainFormContainer'
+    const supervisorDashboard = document.getElementById('supervisorDashboard');
+
+    // Modals (added checks for existence)
+    const loginModal = document.getElementById('loginModal');
+    const feedbackModal = document.getElementById('feedbackModal');
+    const settingsModal = document.getElementById('settingsModal');
+    const exportModal = document.getElementById('exportModal'); // No ID exists in HTML for this
+    const emailSelectionModal = document.getElementById('emailSelectionModal'); // No ID exists in HTML for this
+    
+    // Apply display styles with checks
+    if (mainForm) mainForm.style.display = 'block'; else console.error("Main form element (id='mainForm') not found!");
+    if (supervisorDashboard) {
+        supervisorDashboard.classList.remove('show'); // ADD THIS LINE
+    } else console.warn("Supervisor dashboard element (id='supervisorDashboard') not found when showing form!");
+
+    if (loginModal) loginModal.style.display = 'none';
+    if (feedbackModal) feedbackModal.style.display = 'none';
+    if (settingsModal) settingsModal.style.display = 'none';
+    if (exportModal) exportModal.style.display = 'none'; // Only hide if element exists
+    if (emailSelectionModal) emailSelectionModal.style.display = 'none'; // Only hide if element exists
+    
+    removeOverlay();
+    updateHeaderButtons();
+}
+
 async function handleSanitationChange(checkbox) {
     const pool = checkbox.dataset.pool;
     const method = checkbox.dataset.method;
@@ -469,6 +499,56 @@ function updateSanitationCheckboxesFromSettings() {
             bleachCheckbox.checked = (method === 'bleach');
             granularCheckbox.checked = (method === 'granular');
         }
+    }
+}
+
+function goToEditor() {
+    window.location.href = "SiteEditor/newRules.html";
+}
+
+function exportToCSV() {
+    if (!Array.isArray(filteredSubmissions) || filteredSubmissions.length === 0) {
+        showMessage('No data to export.', 'error');
+        return;
+    }
+    
+    const headers = ['Timestamp', 'First Name', 'Last Name', 'Pool Location', 'Main pH', 'Main Cl', 'Secondary pH', 'Secondary Cl'];
+    
+    const csvContent = [
+        headers.join(','),
+        ...filteredSubmissions.map(row => [
+            `"${row.timestamp instanceof Date ? row.timestamp.toLocaleString() : row.timestamp}"`,
+            `"${row.firstName || ''}"`,
+            `"${row.lastName || ''}"`,
+            `"${row.poolLocation || ''}"`,
+            `"${row.mainPoolPH || ''}"`,
+            `"${row.mainPoolCl || ''}"`,
+            `"${row.secondaryPoolPH || ''}"`,
+            `"${row.secondaryPoolCl || ''}"`
+        ].join(','))
+    ].join('\n');
+    
+    const blob = new Blob([csvContent], { type: 'text/csv' });
+    const url = window.URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `pool-chemistry-data-${new Date().toISOString().split('T')[0]}.xls`;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    window.URL.revokeObjectURL(url);
+    
+    showMessage('Data exported successfully!', 'success');
+}
+
+function clearAllData() {
+    if (confirm('Are you sure you want to clear all form submission data? This cannot be undone.')) {
+        formSubmissions = [];
+        filteredData = [];
+        paginatedData = [];
+        saveFormSubmissions(); // Save empty array
+        loadDashboardData();
+        showMessage('All data cleared successfully.', 'success');
     }
 }
 
