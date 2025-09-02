@@ -624,91 +624,109 @@ function chooseAndSendSMS() {
     
     removeOverlay();
 }
-function showFeedbackModal(messages, isGood, setpointImgNeeded) {
-    const modal = document.createElement('div');
-    modal.className = 'feedback-modal ' + (isGood ? 'good' : 'warning');
-
-    const closeBtn = document.createElement('button');
-    closeBtn.className = 'close-btn';
-    closeBtn.innerHTML = '×';
-    closeBtn.onclick = () => {
-        if (isGood || areAllCheckboxesChecked()) {
-            modal.remove();
-            removeOverlay();
-        } else {
-            showMessage('Please complete all water chemistry changes and check them off the list before closing.', 'error');
-        }
-    };
-
-    const feedbackContent = document.createElement('div');
-    feedbackContent.className = 'feedback-content';
-
-    const title = document.createElement('h2');
-    title.textContent = isGood
-        ? '✅ Water chemistry looks good!'
-        : '🚨 You need to make immediate changes to the water chemistry:';
-    feedbackContent.appendChild(title);
-
-    if (!isGood) {
-        const messageList = document.createElement('div');
-        messages.forEach(msg => {
-            if (msg.includes('Images/setpoint.jpeg')) {
-                const chartContainer = document.createElement('div');
-                chartContainer.className = 'setpoint-container';
-                chartContainer.style.textAlign = 'center';
-                chartContainer.style.margin = '20px 0';
-
-                const chart = document.createElement('img');
-                chart.src = 'Images/setpoint.jpeg';
-                chart.alt = 'Setpoint Chart';
-                chart.className = 'setpoint-chart';
-                chart.style.maxWidth = '100%';
-                chart.style.height = 'auto';
-
-                chartContainer.appendChild(chart);
-                messageList.appendChild(chartContainer);
-            } else {
-                const checkboxItem = document.createElement('div');
-                checkboxItem.className = 'checkbox-item';
-
-                const checkbox = document.createElement('input');
-                checkbox.type = 'checkbox';
-                checkbox.className = 'feedback-checkbox';
-
-                const label = document.createElement('label');
-                label.innerHTML = msg;
-
-                checkboxItem.appendChild(checkbox);
-                checkboxItem.appendChild(label);
-                messageList.appendChild(checkboxItem);
-            }
-        });
-        feedbackContent.appendChild(messageList);
-    } else {
-        const message = document.createElement('p');
-        message.textContent = messages[0];
-        feedbackContent.appendChild(message);
-    }
-
-    // Add Notify a Supervisor button only if messages contain "notify a supervisor"
-    const shouldShowNotifyButton = messages.some(msg => 
-        msg.toLowerCase().includes('notify a supervisor')
-    );
-    
-    if (shouldShowNotifyButton) {
-        const notifyBtn = document.createElement('button');
-        notifyBtn.className = 'notify-btn';
-        notifyBtn.textContent = 'Notify a Supervisor';
-        notifyBtn.onclick = () => {
-            showRecipientSelectionInModal(modal);
-        };
-        modal.appendChild(notifyBtn);
-    }
-
-    modal.appendChild(closeBtn);
-    modal.appendChild(feedbackContent);
-    document.body.appendChild(modal);
+function areAllCheckboxesChecked(modal) {
+  const checkboxes = modal.querySelectorAll('.feedback-checkbox');
+  return Array.from(checkboxes).every(cb => cb.checked);
 }
+
+function showFeedbackModal(messages, isGood, setpointImgNeeded) {
+  // Create the modal
+  const modal = document.createElement('div');
+  modal.className = 'feedback-modal ' + (isGood ? 'good' : 'warning');
+
+  // Create close button
+  const closeBtn = document.createElement('button');
+  closeBtn.className = 'close-btn';
+  closeBtn.innerHTML = '×';
+  closeBtn.onclick = () => {
+    if (isGood || areAllCheckboxesChecked(modal)) {
+      modal.remove();
+      removeOverlay();
+    } else {
+      showMessage(
+        'Please complete all water chemistry changes and check them off the list before closing.',
+        'error'
+      );
+    }
+  };
+
+  // Create feedback content
+  const feedbackContent = document.createElement('div');
+  feedbackContent.className = 'feedback-content';
+
+  const title = document.createElement('h2');
+  title.textContent = isGood
+    ? '✅ Water chemistry looks good!'
+    : '🚨 You need to make immediate changes to the water chemistry:';
+  feedbackContent.appendChild(title);
+
+  if (!isGood) {
+    const messageList = document.createElement('div');
+
+    messages.forEach(msg => {
+      if (msg.includes('Images/setpoint.jpeg')) {
+        const chartContainer = document.createElement('div');
+        chartContainer.className = 'setpoint-container';
+        chartContainer.style.textAlign = 'center';
+        chartContainer.style.margin = '20px 0';
+
+        const chart = document.createElement('img');
+        chart.src = 'Images/setpoint.jpeg';
+        chart.alt = 'Setpoint Chart';
+        chart.className = 'setpoint-chart';
+        chart.style.maxWidth = '100%';
+        chart.style.height = 'auto';
+
+        chartContainer.appendChild(chart);
+        messageList.appendChild(chartContainer);
+      } else {
+        const checkboxItem = document.createElement('div');
+        checkboxItem.className = 'checkbox-item';
+
+        const checkbox = document.createElement('input');
+        checkbox.type = 'checkbox';
+        checkbox.className = 'feedback-checkbox';
+
+        const label = document.createElement('label');
+        label.innerHTML = msg;
+
+        checkboxItem.appendChild(checkbox);
+        checkboxItem.appendChild(label);
+        messageList.appendChild(checkboxItem);
+      }
+    });
+
+    feedbackContent.appendChild(messageList);
+  } else {
+    const message = document.createElement('p');
+    message.textContent = messages[0];
+    feedbackContent.appendChild(message);
+  }
+
+  // Add "Notify a Supervisor" button if applicable
+  const shouldShowNotifyButton = messages.some(msg =>
+    msg.toLowerCase().includes('notify a supervisor')
+  );
+
+  if (shouldShowNotifyButton) {
+    const notifyBtn = document.createElement('button');
+    notifyBtn.className = 'notify-btn';
+    notifyBtn.textContent = 'Notify a Supervisor';
+    notifyBtn.onclick = () => {
+      showRecipientSelectionInModal(modal);
+    };
+    modal.appendChild(notifyBtn);
+  }
+
+  // Final assembly
+  modal.appendChild(closeBtn);
+  modal.appendChild(feedbackContent);
+  document.body.appendChild(modal);
+
+  // Show overlay if you use one
+  createOrShowOverlay?.();
+}
+
 function createOrShowOverlay() {
     let overlay = document.getElementById('modal-overlay');
     if (!overlay) {
