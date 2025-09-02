@@ -67,64 +67,125 @@ async function runRecaptcha(action = 'LOGIN') {
   }
 }
 
-async function submitForm(event) {
-    event.preventDefault(); // stop browser's own validation
+const SITE_KEY = '6LeuRpIrAAAAAPg8Z6ni-eDSkWSoT8eKCz83m7oQ';
 
-    console.log('Submit button clicked');
+// Load reCAPTCHA dynamically
+function loadRecaptcha() {
+  return new Promise((resolve, reject) => {
+    if (window.grecaptcha) return resolve(window.grecaptcha);
 
-    // Remove any existing error styles
-    document.querySelectorAll('.form-group.error').forEach(group => {
-        group.classList.remove('error');
-    });
-
-    // Client-side required field validation
-    if (!validateForm()) {
-        showMessage('Please fill in all required fields.', 'error');
-        return;
-    }
-
-    // Check supervisor login if on login form
-    if (document.querySelector('#supervisorUsername') && document.querySelector('#supervisorPassword')) {
-        const username = document.querySelector('#supervisorUsername').value.trim();
-        const password = document.querySelector('#supervisorPassword').value.trim();
-
-        try {
-            const response = await fetch('/verifySupervisorLogin', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ username, password })
-            });
-
-            const result = await response.json();
-
-            if (!result.success) {
-                showMessage('Invalid supervisor login credentials.', 'error');
-                return;
-            }
-        } catch (error) {
-            console.error('Login verification failed:', error);
-            showMessage('Error verifying login. Please try again.', 'error');
-            return;
-        }
-    }
-
-    // Evaluate feedback for pool chemistry
-    evaluateFormFeedback();
-
-    // Construct the submission object
-    const submission = {
-        // Fill with your actual form values
-        name: document.querySelector('#name').value,
-        poolLocation: document.querySelector('#poolLocation').value,
-        pH: parseFloat(document.querySelector('#pH').value),
-        chlorine: parseFloat(document.querySelector('#chlorine').value),
-        timestamp: new Date().toISOString()
+    const script = document.createElement('script');
+    script.src = `https://www.google.com/recaptcha/enterprise.js?render=${SITE_KEY}`;
+    script.async = true;
+    script.onload = () => {
+      if (window.grecaptcha) resolve(window.grecaptcha);
+      else reject(new Error('reCAPTCHA failed to load.'));
     };
-
-    // Save the submission locally and in Firebase
-    saveFormSubmissions(submission);
+    script.onerror = reject;
+    document.head.appendChild(script);
+  });
 }
 
+// Run reCAPTCHA and return the token
+async function runRecaptcha(action = 'FORM_SUBMIT') {
+  try {
+    const grecaptcha = await loadRecaptcha();
+    await grecaptcha.enterprise.ready();
+    const token = await grecaptcha.enterprise.execute(SITE_KEY, { action });
+    console.log('✅ reCAPTCHA token:', token);
+    return token;
+  } catch (err) {
+    console.warn('⚠️ reCAPTCHA failed:', err);
+    return null;
+  }
+}
+
+async function submitForm(event) {
+  event?.preventDefault(); // Safely handle missing event
+
+  console.log('📨 Submit button clicked');
+
+  // Clear previous error highlights
+  document.querySelectorAll('.form-group.error').forEach(group => {
+    group.classList.remove('error');
+  });
+
+  // Run validation
+  if (typeof validateForm === 'function' && !validateForm()) {
+    showMessage('Please fill in all required fields.', 'error');
+    return;
+  }
+
+  // Run reCAPTCHA
+  const token = await runRecaptcha('FORM_SUBMIT');
+  if (!token) {
+    showMessage('reCAPTCHA verification failed. Please try again.', 'error');
+    return;
+  }
+
+  // Supervisor login check (optional)
+  const supervisorUsernameEl = document.getElementById('supervisorUsername');
+  const supervisorPasswordEl = document.getElementById('supervisorPassword');
+
+  if (supervisorUsernameEl && supervisorPasswordEl) {
+    const username = supervisorUsernameEl.value.trim();
+    const password = supervisorPasswordEl.value.trim();
+
+    try {
+      const res = await fetch('/verifySupervisorLogin', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ username, password })
+      });
+      const result = await res.json();
+
+      if (!result.success) {
+        showMessage('Invalid supervisor credentials.', 'error');
+        return;
+      }
+    } catch (error) {
+      console.error('Login check failed:', error);
+      showMessage('Error verifying supervisor login.', 'error');
+      return;
+    }
+  }
+
+  // Evaluate pool chemistry feedback
+  if (typeof evaluateFormFeedback === 'function') {
+    evaluateFormFeedback();
+  }
+
+  // Get form field values safely
+  const nameEl = document.querySelector('#name');
+  const poolEl = document.querySelector('#poolLocation');
+  const phEl = document.querySelector('#pH');
+  const clEl = document.querySelector('#chlorine');
+
+  if (!nameEl || !poolEl || !phEl || !clEl) {
+    console.warn('❌ One or more form inputs not found');
+    showMessage('Missing required form fields.', 'error');
+    return;
+  }
+
+  const submission = {
+    name: nameEl.value.trim(),
+    poolLocation: poolEl.value.trim(),
+    pH: parseFloat(phEl.value),
+    chlorine: parseFloat(clEl.value),
+    timestamp: new Date().toISOString(),
+    recaptchaToken: token
+  };
+
+  // Save submission (local or Firebase)
+  if (typeof saveFormSubmissions === 'function') {
+    saveFormSubmissions(submission);
+    console.log('✅ Submission saved:', submission);
+  } else {
+    console.warn('⚠️ saveFormSubmissions function not found');
+  }
+
+  showMessage('Submission saved successfully!', 'success');
+}
 
 window.submitForm = submitForm;
 
@@ -1957,7 +2018,7 @@ document.addEventListener("DOMContentLoaded", () => {
     const submitButton = document.querySelector('.submit-btn');
     if (submitButton) {
         submitButton.removeAttribute('onclick');
-        submitButton.addEventListener('click', submitForm);
+        submitButton.addEventListener('click', (e) => submitForm(e));
     }
 
     const clearDataBtn = document.getElementById("clearAllData");
