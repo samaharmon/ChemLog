@@ -895,37 +895,6 @@ function initializeFormSubmissions() {
     console.log(`Initialized with ${formSubmissions.length} cleaned form submissions`);
 }
 
-// Firebase v9 initialization using globally available modules
-function initializeFirebase() {
-    try {
-        // Check if Firebase v9 modules are loaded
-        if (typeof window.firebaseModules === 'undefined') {
-            updateFirebaseStatus('Firebase v9 SDK not loaded', true);
-            console.error('Firebase v9 not loaded - check script tags');
-            return false;
-        }
-        
-        // Initialize Firebase app using v9 syntax
-        app = window.firebaseModules.initializeApp(firebaseConfig);
-        
-        // Initialize Firestore using v9 syntax
-        db = window.firebaseModules.getFirestore(app);
-        
-        updateFirebaseStatus('✅ Firebase v9 connected successfully');
-        console.log('Firebase v9 initialized successfully');
-        
-        // Load and sync sanitation settings
-        initializeSanitationSettings();
-        startSanitationSettingsListener();
-
-        return true;
-    } catch (error) {
-        console.error('Firebase v9 initialization error:', error);
-        updateFirebaseStatus(`❌ Firebase error: ${error.message}`, true);
-        return false;
-    }
-}
-
 // Updated loadDashboardData to work with both Firebase and localStorage
 function loadDashboardData() {
     console.log('Loading dashboard data...');
