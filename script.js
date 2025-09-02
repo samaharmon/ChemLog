@@ -828,9 +828,6 @@ async function initializeSanitationSettings() {
     }, 3000);
 }
 
-
-let sanitationSettings = sanitationSettings || {}; // ensure declared once
-
 let sanitationUnsubscribe = null; // to store the listener cleanup function if needed
 
 function startSanitationSettingsListener() {
