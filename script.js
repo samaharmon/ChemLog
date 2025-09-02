@@ -32,6 +32,8 @@ let currentView = 'form';
 //Hoisted Functions
 //===================================================
 
+const SITE_KEY = '6LeuRpIrAAAAAPg8Z6ni-eDSkWSoT8eKCz83m7oQ';
+
 function loadRecaptcha() {
   return new Promise((resolve, reject) => {
     if (window.grecaptcha) return resolve(window.grecaptcha);
@@ -61,39 +63,6 @@ async function runRecaptcha(action = 'LOGIN') {
     return token;
   } catch (err) {
     console.warn('⚠️ Failed to get reCAPTCHA token:', err);
-    return null;
-  }
-}
-
-const SITE_KEY = '6LeuRpIrAAAAAPg8Z6ni-eDSkWSoT8eKCz83m7oQ';
-
-// Load reCAPTCHA dynamically
-function loadRecaptcha() {
-  return new Promise((resolve, reject) => {
-    if (window.grecaptcha) return resolve(window.grecaptcha);
-
-    const script = document.createElement('script');
-    script.src = `https://www.google.com/recaptcha/enterprise.js?render=${SITE_KEY}`;
-    script.async = true;
-    script.onload = () => {
-      if (window.grecaptcha) resolve(window.grecaptcha);
-      else reject(new Error('reCAPTCHA failed to load.'));
-    };
-    script.onerror = reject;
-    document.head.appendChild(script);
-  });
-}
-
-// Run reCAPTCHA and return the token
-async function runRecaptcha(action = 'FORM_SUBMIT') {
-  try {
-    const grecaptcha = await loadRecaptcha();
-    await grecaptcha.enterprise.ready();
-    const token = await grecaptcha.enterprise.execute(SITE_KEY, { action });
-    console.log('✅ reCAPTCHA token:', token);
-    return token;
-  } catch (err) {
-    console.warn('⚠️ reCAPTCHA failed:', err);
     return null;
   }
 }
