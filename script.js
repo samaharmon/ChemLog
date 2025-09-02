@@ -1843,7 +1843,7 @@ console.log('✅ All 62 unique functions exposed globally');
 // ===================================================
 
 document.addEventListener("DOMContentLoaded", () => {
-    console.log(' UNIFIED APP.JS LOADED - Firebase v9 ');
+    console.log('🧪 UNIFIED APP.JS LOADED - Firebase v9');
 
     // === Dark Mode Toggle Setup ===
     const darkModeToggle = document.getElementById('darkModeToggle');
@@ -1868,7 +1868,9 @@ document.addEventListener("DOMContentLoaded", () => {
         console.log('Dashboard force hidden on load');
     }
 
-    const firebaseInitialized = initializeFirebase();
+    // ✅ Firebase is already initialized via firebase.js, so just proceed:
+    initializeSanitationSettings();
+    startSanitationSettingsListener();
     cleanupTestSubmissions();
     checkLogin();
     initializeFormSubmissions();
@@ -1918,7 +1920,7 @@ document.addEventListener("DOMContentLoaded", () => {
     setupEventHandlers();
     updateHeaderButtons();
 
-        // === Supervisor Dashboard Pagination Buttons ===
+    // === Supervisor Dashboard Pagination Buttons ===
     const prevBtn = document.getElementById('prevBtn');
     const nextBtn = document.getElementById('nextBtn');
 
@@ -1973,8 +1975,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
             console.log('✅ Sanitation settings saved and checkboxes disabled again');
         });
-}
-
+    }
 
     console.log('🚀 App initialization complete');
 });
