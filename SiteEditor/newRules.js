@@ -1,4 +1,21 @@
-import { app, db, doc, setDoc } from '../firebase.js'; // ✅ adjust path to point to the shared module
+import {
+  app,
+  db,
+  auth,
+  doc,
+  getDoc,
+  setDoc,
+  addDoc,
+  collection,
+  onSnapshot,
+  orderBy,
+  query,
+  Timestamp,
+  writeBatch,
+  signInWithEmailAndPassword,
+  signOut,
+  onAuthStateChanged
+} from '../firebase.js';
 
 // --- DOMContentLoaded ---
 document.addEventListener("DOMContentLoaded", () => {
