@@ -19,58 +19,7 @@
     <link rel="apple-touch-icon" sizes="180x180" href="Logos/apple-touch-icon.png" />
     <link rel="manifest" href="Utilities/site.webmanifest" />
     
-    <head>
     <script src="https://www.google.com/recaptcha/enterprise.js?render=6LeuRpIrAAAAAPg8Z6ni-eDSkWSoT8eKCz83m7oQ"></script>
-    <script type="module">
-    // Import Firebase core
-        import { initializeApp } from 'https://www.gstatic.com/firebasejs/9.23.0/firebase-app.js';
-
-    // Firestore
-    import {
-        getFirestore,
-        collection,
-        doc,
-        addDoc,
-        setDoc,
-        getDoc,
-        onSnapshot,
-        orderBy,
-        query,
-        Timestamp,
-        writeBatch
-    } from 'https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore.js';
-
-    // Auth
-    import {
-        getAuth,
-        onAuthStateChanged,
-        signInWithEmailAndPassword,
-        signOut
-    } from 'https://www.gstatic.com/firebasejs/9.23.0/firebase-auth.js';
-
-    // Make Firebase modules available globally
-    window.firebaseModules = {
-        initializeApp,
-        getFirestore,
-        collection,
-        doc,
-        addDoc,
-        setDoc,
-        getDoc,
-        onSnapshot,
-        orderBy,
-        query,
-        Timestamp,
-        writeBatch,
-        getAuth,
-        onAuthStateChanged,
-        signInWithEmailAndPassword,
-        signOut
-    };
-    </script>
-
-
-<script type="module" src="script.js"></script>
 </head>
 
 
@@ -426,5 +375,10 @@
                 <label><input type="radio" name="smsRecipient" value="+18036738396"> Haley Wilson</label><br>
                 <label><input type="radio" name="smsRecipient" value="both"> Both</label>
             </div>
-    </div> </body>
+    </div> 
+
+    <script type="module" src="script.js"></script>
+
+
+</body>
 </html>
