@@ -32,6 +32,28 @@ let currentView = 'form';
 //Hoisted Functions
 //===================================================
 
+const SITE_KEY = '6LeuRpIrAAAAAPg8Z6ni-eDSkWSoT8eKCz83m7oQ';
+
+function loadRecaptcha() {
+  return new Promise((resolve, reject) => {
+    if (window.grecaptcha) return resolve(window.grecaptcha);
+
+    const script = document.createElement('script');
+    script.src = `https://www.google.com/recaptcha/enterprise.js?render=${SITE_KEY}`;
+    script.async = true;
+    script.onload = () => {
+      if (window.grecaptcha) {
+        resolve(window.grecaptcha);
+      } else {
+        reject(new Error("reCAPTCHA failed to load."));
+      }
+    };
+    script.onerror = reject;
+
+    document.head.appendChild(script);
+  });
+}
+
 async function submitForm(event) {
     event.preventDefault(); // stop browser's own validation
 
@@ -216,52 +238,57 @@ function closeLoginModal() {
 
     removeOverlay(); // Assuming this function is defined elsewhere to remove a dimming overlay
 }
-function handleLoginSubmit(event) {
+async function handleLoginSubmit(event) {
     event.preventDefault();
     console.log('Login form submitted');
-    
+
     const emailInput = document.getElementById('inputEmail');
     const passwordInput = document.querySelector('#loginForm input[name="password"]');
-    
+
     if (!emailInput || !passwordInput) {
         console.error('Login inputs not found');
         showMessage('Login form inputs not found.', 'error');
         return;
     }
-    
+
     const email = emailInput.value.trim();
     const password = passwordInput.value.trim();
-    
+
     console.log('Login attempt with email:', email);
-    
+
+    // ✅ Run reCAPTCHA before checking credentials
+    const token = await runRecaptcha('LOGIN');
+    if (!token) {
+        showMessage('reCAPTCHA failed. Please try again.', 'error');
+        return;
+    }
+
+    // 🔐 Optional: send `token` to your backend or log it for now
+    console.log('✅ Using reCAPTCHA token:', token);
+
     if (email === supervisorCredentials.email && password === supervisorCredentials.password) {
         console.log('Login successful');
-        
-        // Set login state
+
         isLoggedIn = true;
-        
-        // Set persistent login token for 1 month
+
         const expires = Date.now() + 30 * 24 * 60 * 60 * 1000;
         localStorage.setItem('loginToken', JSON.stringify({ username: email, expires }));
-        
-        // Close modal and show dashboard
+
         const dashboard = document.getElementById('supervisorDashboard');
         if (dashboard) {
             dashboard.classList.add('show');
         }
-        
+
         closeLoginModal();
         showDashboard();
-        
-        // Update header buttons
         updateHeaderButtons();
-        
         showMessage('Login successful!', 'success');
     } else {
         console.log('Invalid credentials provided');
         showMessage('Invalid credentials. Please try again.', 'error');
     }
 }
+
 function showMessage(message, type) {
     // Remove any existing message banner
     const existingBanner = document.getElementById('messageBanner');
