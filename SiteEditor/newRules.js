@@ -368,7 +368,6 @@ async function initializeSanitationSettings() {
     }, 3000);
 }
 
-
 function startSanitationSettingsListener() {
     if (!db) {
         console.warn("⚠️ Firestore not initialized — cannot start sanitation settings listener.");
@@ -399,6 +398,24 @@ function applySanitationSettingsToCheckboxes() {
             granularCheckbox.checked = method === 'granular';
         }
     });
+}
+
+function createOrShowOverlay() {
+    let overlay = document.getElementById('modal-overlay');
+    if (!overlay) {
+        overlay = document.createElement('div');
+        overlay.id = 'modal-overlay';
+        overlay.className = 'modal-overlay';
+        document.body.appendChild(overlay);
+    }
+    overlay.style.display = 'block'; // Show the overlay
+    return overlay;
+}
+function removeOverlay() {
+    const overlay = document.getElementById('modal-overlay');
+    if (overlay) {
+        overlay.style.display = 'none'; // Hide the overlay
+    }
 }
 
 async function saveSanitationSettings() {
@@ -487,8 +504,6 @@ async function openSettings() {
     loadSanitationSettings();
 }
 
-
-
 /////////////////////////////////////////
 //  Global Variables                   //
 /////////////////////////////////////////
@@ -501,3 +516,6 @@ window.initializeSanitationSettings = initializeSanitationSettings;
 window.saveSanitationSettings = saveSanitationSettings;
 window.loadSanitationSettings = loadSanitationSettings;
 window.updateSanitationUI = updateSanitationUI;
+window.goToEditor = goToEditor;
+window.createOrShowOverlay = createOrShowOverlay;
+window.removeOverlay = removeOverlay;
