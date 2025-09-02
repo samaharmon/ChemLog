@@ -54,6 +54,19 @@ function loadRecaptcha() {
   });
 }
 
+async function runRecaptcha(action = 'LOGIN') {
+  try {
+    const grecaptcha = await loadRecaptcha();
+    await grecaptcha.enterprise.ready();
+    const token = await grecaptcha.enterprise.execute(SITE_KEY, { action });
+    console.log('✅ reCAPTCHA token:', token);
+    return token;
+  } catch (err) {
+    console.warn('⚠️ Failed to get reCAPTCHA token:', err);
+    return null;
+  }
+}
+
 async function submitForm(event) {
     event.preventDefault(); // stop browser's own validation
 
