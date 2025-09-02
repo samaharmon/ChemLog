@@ -1328,7 +1328,7 @@ function displayData() {
 
 
 
-function evaluateFormFeedback() { // Remove formData parameter
+async function evaluateFormFeedback() { // Remove formData parameter
     const poolLocation = document.getElementById('poolLocation').value;
     const mainPH = document.getElementById('mainPoolPH').value;
     const mainCl = document.getElementById('mainPoolCl').value;
@@ -1614,6 +1614,7 @@ if (document.getElementById('supervisorDashboard').style.display === 'block') {
 }
 
 resetForm();
+}
 
 // ===================================================
 // FIREBASE INITIALIZATION
