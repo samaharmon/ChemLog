@@ -262,38 +262,6 @@ function toggleMenu() {
     });
 }
 
-async function openSettings() {
-    // Close the dropdown menu first
-    document.getElementById('dropdownMenu').style.display = 'none';
-
-    // Refresh settings from Firebase before showing modal (if available)
-    try {
-        if (db) {
-            console.log('🔄 Refreshing settings from Firebase v9 before showing modal...');
-            const settingsRef = doc(db, 'settings', 'sanitationMethods');
-            const settingsDoc = await getDoc(settingsRef);
-
-            if (settingsDoc.exists()) {
-                const firebaseSettings = settingsDoc.data();
-                Object.assign(sanitationSettings, firebaseSettings);
-                console.log('✅ Refreshed sanitation settings from Firebase:', sanitationSettings);
-            } else {
-                console.log('⚠️ No sanitation settings found in Firebase when refreshing');
-            }
-        } else {
-            console.log('⚠️ Firebase not ready when showing settings — using in-memory settings');
-        }
-    } catch (error) {
-        console.warn('❌ Could not refresh from Firebase when showing settings:', error);
-    }
-
-    createOrShowOverlay();
-
-    // Show the settings modal
-    document.getElementById('settingsModal').style.display = 'block';
-    loadSanitationSettings();
-}
-
 /////////////////////////////////////////
 //  Settings                           //
 /////////////////////////////////////////
