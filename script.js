@@ -17,6 +17,16 @@ import {
   signOut
 } from './firebase.js'; // ✅ adjust path if needed
 
+let formSubmissions = [];           // ✅ fixes ReferenceError at line 792
+let filteredSubmissions = [];
+let allSubmissions = [];
+let filteredData = [];
+let paginatedData = [];
+let currentPage = 1;
+const itemsPerPage = 20;
+let isLoggedIn = false;
+let sanitationSettings = {};        // ✅ fixes ReferenceError at line 695
+let currentView = 'form';
 
 //===================================================
 //Hoisted Functions
