@@ -32,8 +32,6 @@ let currentView = 'form';
 //Hoisted Functions
 //===================================================
 
-const SITE_KEY = '6LeuRpIrAAAAAPg8Z6ni-eDSkWSoT8eKCz83m7oQ';
-
 function loadRecaptcha() {
   return new Promise((resolve, reject) => {
     if (window.grecaptcha) return resolve(window.grecaptcha);
