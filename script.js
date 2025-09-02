@@ -1824,7 +1824,6 @@ window.checkForCriticalAlerts = checkForCriticalAlerts;
 window.toggleMenu = toggleMenu;
 
 // Firebase functions (3)
-window.initializeFirebase = initializeFirebase;
 window.updateFirebaseStatus = updateFirebaseStatus;
 window.validateFirebaseConfig = validateFirebaseConfig;
 
