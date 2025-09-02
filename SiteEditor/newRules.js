@@ -579,8 +579,13 @@ async function openSettings() {
 
     createOrShowOverlay();
 
-    // Show the settings modal
-    document.getElementById('settingsModal').style.display = 'block';
+    const settingsModal = document.getElementById("settingsModal");
+    if (settingsModal) {
+      settingsModal.style.display = "block";
+    } else {
+      console.warn('⚠️ settingsModal not found in DOM.');
+    }
+
     loadSanitationSettings();
 }
 
