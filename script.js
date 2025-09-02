@@ -908,62 +908,60 @@ function initializeFormSubmissions() {
 // Updated loadDashboardData to work with both Firebase and localStorage
 function loadDashboardData() {
     console.log('Loading dashboard data...');
-    
+
     // First, ensure we have local data loaded
     cleanupTestSubmissions();
     loadFormSubmissions();
-    
+
     if (db) {
         try {
-            // Create query using v9 syntax
-            const q = window.firebaseModules.query(
-                window.firebaseModules.collection(db, 'poolSubmissions'),
-                window.firebaseModules.orderBy('timestamp', 'desc')
+            // Create query using direct imports
+            const q = query(
+                collection(db, 'poolSubmissions'),
+                orderBy('timestamp', 'desc')
             );
-            
-            // Set up real-time listener using v9 syntax
-            const unsubscribe = window.firebaseModules.onSnapshot(q, (querySnapshot) => {
+
+            // Set up real-time listener
+            const unsubscribe = onSnapshot(q, (querySnapshot) => {
                 const firebaseSubmissions = [];
                 querySnapshot.forEach((docSnapshot) => {
                     const data = docSnapshot.data();
                     data.id = docSnapshot.id;
-                    // Convert Firestore timestamp to JavaScript Date
+
+                    // Convert Firestore timestamp to JS Date
                     if (data.timestamp && data.timestamp.toDate) {
                         data.timestamp = data.timestamp.toDate();
                     }
+
                     firebaseSubmissions.push(data);
                 });
-                
+
                 console.log('Loaded from Firebase v9:', firebaseSubmissions.length);
-                
+
                 // Combine Firebase data with local formSubmissions
                 allSubmissions = [...firebaseSubmissions];
-                
-                // Add local submissions that might not be in Firebase yet
+
                 formSubmissions.forEach(localSubmission => {
                     const exists = allSubmissions.find(sub => sub.id === localSubmission.id);
                     if (!exists) {
-                        // Convert timestamp string to Date object if needed
                         if (typeof localSubmission.timestamp === 'string') {
                             localSubmission.timestamp = new Date(localSubmission.timestamp);
                         }
                         allSubmissions.push(localSubmission);
                     }
                 });
-                
+
                 updateFirebaseStatus(`Loaded ${allSubmissions.length} total submissions`);
-                
-                // Apply current filters and update display
+
                 if (isLoggedIn) {
                     filterAndDisplayData();
                 }
             }, (error) => {
                 console.error('Error loading from Firebase v9: ', error);
                 updateFirebaseStatus('Using local data only', true);
-                // Fall back to local data only
                 useLocalDataOnly();
             });
-            
+
         } catch (error) {
             console.error('Error setting up Firebase v9 listener: ', error);
             updateFirebaseStatus('Using local data only', true);
@@ -974,6 +972,7 @@ function loadDashboardData() {
         useLocalDataOnly();
     }
 }
+
 
 async function confirmClearData() {
     const input = prompt(
