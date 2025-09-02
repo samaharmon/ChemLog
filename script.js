@@ -7,6 +7,7 @@ import {
   addDoc,
   setDoc,
   getDoc,
+  getDocs,
   onSnapshot,
   orderBy,
   query,
@@ -27,26 +28,6 @@ const itemsPerPage = 20;
 let isLoggedIn = false;
 let sanitationSettings = {};        // ✅ fixes ReferenceError at line 695
 let currentView = 'form';
-
-export {
-  app,
-  db,
-  auth,
-  doc,
-  getDoc,
-  setDoc,
-  addDoc,
-  collection,
-  onSnapshot,
-  orderBy,
-  query,
-  Timestamp,
-  writeBatch,
-  getDocs,
-  signInWithEmailAndPassword,
-  signOut,
-  onAuthStateChanged
-};
 
 //===================================================
 //Hoisted Functions
