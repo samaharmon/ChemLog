@@ -1,3 +1,23 @@
+import {
+  app,
+  db,
+  auth,
+  collection,
+  doc,
+  addDoc,
+  setDoc,
+  getDoc,
+  onSnapshot,
+  orderBy,
+  query,
+  Timestamp,
+  writeBatch,
+  onAuthStateChanged,
+  signInWithEmailAndPassword,
+  signOut
+} from './firebase.js'; // ✅ adjust path if needed
+
+
 //===================================================
 //Hoisted Functions
 //===================================================
@@ -637,29 +657,6 @@ function getClResponse(poolLocation, isMainPool, clValue) {
     }
     return null;
 }
-
-const firebaseConfig = {
-  apiKey: "AIzaSyCRxSL2uuH6O5MFvbq0FS02zF2K_lXGvqI",
-  authDomain: "chemlog-43c08.firebaseapp.com",
-  projectId: "chemlog-43c08",
-  storageBucket: "chemlog-43c08.firebasestorage.app",
-  messagingSenderId: "554394202059",
-  appId: "1:554394202059:web:a8d5824a1d7ccdd871d04e",
-  measurementId: "G-QF5ZQ88VS2"
-};
-
-// Global variables
-let app, db;
-let allSubmissions = [];
-let filteredSubmissions = [];
-let formSubmissions = [];
-let filteredData = [];
-let paginatedData = [];
-let currentPage = 1;
-const itemsPerPage = 20;
-let isLoggedIn = false;
-let sanitationSettings = {};
-let currentView = 'form';
 
 // Define pools with secondary pools ONCE
 const POOLS_WITH_SECONDARY = ['Forest Lake', 'Columbia CC', 'CC of Lexington', 'Wildewood', 'Quail Hollow', 'Rockbridge', 'Winchester'];
