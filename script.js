@@ -54,18 +54,31 @@ function loadRecaptcha() {
   });
 }
 
-async function runRecaptcha(action = 'LOGIN') {
+async function runRecaptcha(action = 'FORM_SUBMIT') {
   try {
     const grecaptcha = await loadRecaptcha();
-    await grecaptcha.enterprise.ready();
-    const token = await grecaptcha.enterprise.execute(SITE_KEY, { action });
-    console.log('✅ reCAPTCHA token:', token);
-    return token;
+
+    // ✅ Wrap reCAPTCHA in a manual Promise
+    return new Promise((resolve, reject) => {
+      grecaptcha.enterprise.ready(() => {
+        grecaptcha.enterprise.execute(SITE_KEY, { action })
+          .then(token => {
+            console.log('✅ reCAPTCHA token:', token);
+            resolve(token);
+          })
+          .catch(err => {
+            console.warn('⚠️ Failed to execute reCAPTCHA:', err);
+            reject(err);
+          });
+      });
+    });
+
   } catch (err) {
-    console.warn('⚠️ Failed to get reCAPTCHA token:', err);
+    console.warn('⚠️ reCAPTCHA load failed:', err);
     return null;
   }
 }
+
 
 async function submitForm(event) {
   event?.preventDefault(); // Safely handle missing event
