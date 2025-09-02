@@ -829,26 +829,55 @@ async function initializeSanitationSettings() {
 }
 
 
-function startSanitationSettingsListener() {
-    if (!db) {
-        console.warn("⚠️ Firestore not initialized — cannot start sanitation settings listener.");
-        return;
-    }
+let sanitationSettings = sanitationSettings || {}; // ensure declared once
 
+let sanitationUnsubscribe = null; // to store the listener cleanup function if needed
+
+function startSanitationSettingsListener() {
+  if (!db) {
+    console.warn("⚠️ Firestore not initialized — cannot start sanitation settings listener.");
+    return;
+  }
+
+  // Prevent duplicate listeners
+  if (sanitationUnsubscribe) {
+    sanitationUnsubscribe(); // clean up previous listener if it exists
+    sanitationUnsubscribe = null;
+  }
+
+  try {
     const settingsRef = doc(db, 'settings', 'sanitationMethods');
 
-    onSnapshot(settingsRef, (docSnapshot) => {
+    sanitationUnsubscribe = onSnapshot(
+      settingsRef,
+      (docSnapshot) => {
         if (docSnapshot.exists()) {
-            sanitationSettings = docSnapshot.data();
-            console.log('🔄 Sanitation settings updated from Firestore:', sanitationSettings);
+          sanitationSettings = docSnapshot.data();
+          console.log('🔄 Sanitation settings updated from Firestore:', sanitationSettings);
+
+          if (typeof updateSanitationCheckboxesFromSettings === 'function') {
             updateSanitationCheckboxesFromSettings();
+          }
         } else {
-            console.warn('⚠️ Sanitation settings document does not exist.');
+          console.warn('⚠️ Sanitation settings document does not exist.');
         }
-    }, (error) => {
-        console.error('❌ Error listening to sanitation settings:', error);
-    });
+      },
+      (error) => {
+        console.error('❌ Firestore listener error (sanitation settings):', error);
+        // Optional: fallback to localStorage here if you want
+        const saved = localStorage.getItem('sanitationSettings');
+        if (saved) {
+          sanitationSettings = JSON.parse(saved);
+          console.log('💾 Fallback to sanitation settings from localStorage:', sanitationSettings);
+          updateSanitationCheckboxesFromSettings?.();
+        }
+      }
+    );
+  } catch (error) {
+    console.error('❌ Failed to start sanitation listener:', error);
+  }
 }
+
 
 function applySanitationSettingsToCheckboxes() {
     Object.entries(sanitationSettings).forEach(([pool, method]) => {
@@ -989,71 +1018,93 @@ function initializeFormSubmissions() {
 }
 
 // Updated loadDashboardData to work with both Firebase and localStorage
-function loadDashboardData() {
-    console.log('Loading dashboard data...');
+async function loadDashboardData() {
+  console.log('📊 Loading dashboard data...');
 
-    // First, ensure we have local data loaded
-    cleanupTestSubmissions();
-    loadFormSubmissions();
+  // Load local data first
+  cleanupTestSubmissions?.();
+  loadFormSubmissions?.();
 
-    if (db) {
-        try {
-            // Create query using direct imports
-            const q = query(
-                collection(db, 'poolSubmissions'),
-                orderBy('timestamp', 'desc')
-            );
+  if (!db) {
+    console.warn('❌ No Firebase connection — using local data only');
+    updateFirebaseStatus?.('Offline — using local data');
+    useLocalDataOnly?.();
+    return;
+  }
 
-            // Set up real-time listener
-            const unsubscribe = onSnapshot(q, (querySnapshot) => {
-                const firebaseSubmissions = [];
-                querySnapshot.forEach((docSnapshot) => {
-                    const data = docSnapshot.data();
-                    data.id = docSnapshot.id;
+  try {
+    const submissionsRef = collection(db, 'poolSubmissions');
 
-                    // Convert Firestore timestamp to JS Date
-                    if (data.timestamp && data.timestamp.toDate) {
-                        data.timestamp = data.timestamp.toDate();
-                    }
+    // Check collection exists and has timestamped docs
+    const initialSnapshot = await getDocs(submissionsRef);
 
-                    firebaseSubmissions.push(data);
-                });
-
-                console.log('Loaded from Firebase v9:', firebaseSubmissions.length);
-
-                // Combine Firebase data with local formSubmissions
-                allSubmissions = [...firebaseSubmissions];
-
-                formSubmissions.forEach(localSubmission => {
-                    const exists = allSubmissions.find(sub => sub.id === localSubmission.id);
-                    if (!exists) {
-                        if (typeof localSubmission.timestamp === 'string') {
-                            localSubmission.timestamp = new Date(localSubmission.timestamp);
-                        }
-                        allSubmissions.push(localSubmission);
-                    }
-                });
-
-                updateFirebaseStatus(`Loaded ${allSubmissions.length} total submissions`);
-
-                if (isLoggedIn) {
-                    filterAndDisplayData();
-                }
-            }, (error) => {
-                console.error('Error loading from Firebase v9: ', error);
-                updateFirebaseStatus('Using local data only', true);
-                useLocalDataOnly();
-            });
-
-        } catch (error) {
-            console.error('Error setting up Firebase v9 listener: ', error);
-            updateFirebaseStatus('Using local data only', true);
-            useLocalDataOnly();
-        }
-    } else {
-        console.log('No Firebase connection, using local data only');
-        useLocalDataOnly();
+    if (initialSnapshot.empty) {
+      console.warn('⚠️ poolSubmissions collection is empty');
+      updateFirebaseStatus?.('No cloud submissions — showing local data');
+      useLocalDataOnly?.();
+      return;
     }
+
+    const hasValidTimestamp = initialSnapshot.docs.some(doc => {
+      const ts = doc.data().timestamp;
+      return ts && typeof ts.toDate === 'function';
+    });
+
+    if (!hasValidTimestamp) {
+      console.warn('❌ No valid timestamps found in poolSubmissions. Skipping real-time listener.');
+      updateFirebaseStatus?.('Invalid timestamps — showing local data');
+      useLocalDataOnly?.();
+      return;
+    }
+
+    // All good — set up real-time listener
+    const q = query(submissionsRef, orderBy('timestamp', 'desc'));
+
+    onSnapshot(q, (querySnapshot) => {
+      const firebaseSubmissions = [];
+
+      querySnapshot.forEach((docSnapshot) => {
+        const data = docSnapshot.data();
+        data.id = docSnapshot.id;
+
+        if (data.timestamp?.toDate) {
+          data.timestamp = data.timestamp.toDate();
+        }
+
+        firebaseSubmissions.push(data);
+      });
+
+      console.log(`✅ Loaded ${firebaseSubmissions.length} submissions from Firebase`);
+
+      allSubmissions = [...firebaseSubmissions];
+
+      // Merge in any new local submissions not yet synced
+      formSubmissions.forEach(local => {
+        const exists = allSubmissions.some(sub => sub.id === local.id);
+        if (!exists) {
+          if (typeof local.timestamp === 'string') {
+            local.timestamp = new Date(local.timestamp);
+          }
+          allSubmissions.push(local);
+        }
+      });
+
+      updateFirebaseStatus?.(`Loaded ${allSubmissions.length} total submissions`);
+
+      if (isLoggedIn) {
+        filterAndDisplayData?.();
+      }
+    }, (error) => {
+      console.error('🔥 Firestore listener failed:', error);
+      updateFirebaseStatus?.('Error loading cloud data — fallback to local', true);
+      useLocalDataOnly?.();
+    });
+
+  } catch (error) {
+    console.error('❌ loadDashboardData() failed:', error);
+    updateFirebaseStatus?.('Error loading data — fallback to local', true);
+    useLocalDataOnly?.();
+  }
 }
 
 
