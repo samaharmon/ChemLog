@@ -631,18 +631,29 @@ function areAllCheckboxesChecked(modal) {
 }
 
 function showFeedbackModal(messages, isGood, setpointImgNeeded) {
-  // Create the modal
+  // ❌ Prevent duplicate modals
+  const existingModal = document.querySelector('.feedback-modal');
+  if (existingModal) {
+    existingModal.remove();
+  }
+
+  // ✅ Create overlay if needed
+  if (typeof createOrShowOverlay === 'function') {
+    createOrShowOverlay();
+  }
+
+  // ✅ Create modal
   const modal = document.createElement('div');
   modal.className = 'feedback-modal ' + (isGood ? 'good' : 'warning');
 
-  // Create close button
+  // Close button logic
   const closeBtn = document.createElement('button');
   closeBtn.className = 'close-btn';
   closeBtn.innerHTML = '×';
   closeBtn.onclick = () => {
     if (isGood || areAllCheckboxesChecked(modal)) {
       modal.remove();
-      removeOverlay();
+      removeOverlay?.();
     } else {
       showMessage(
         'Please complete all water chemistry changes and check them off the list before closing.',
@@ -651,7 +662,7 @@ function showFeedbackModal(messages, isGood, setpointImgNeeded) {
     }
   };
 
-  // Create feedback content
+  // Feedback content
   const feedbackContent = document.createElement('div');
   feedbackContent.className = 'feedback-content';
 
@@ -700,11 +711,11 @@ function showFeedbackModal(messages, isGood, setpointImgNeeded) {
     feedbackContent.appendChild(messageList);
   } else {
     const message = document.createElement('p');
-    message.textContent = messages[0];
+    message.textContent = messages[0] || 'Everything looks good.';
     feedbackContent.appendChild(message);
   }
 
-  // Add "Notify a Supervisor" button if applicable
+  // Optional: Notify Supervisor Button
   const shouldShowNotifyButton = messages.some(msg =>
     msg.toLowerCase().includes('notify a supervisor')
   );
@@ -714,20 +725,20 @@ function showFeedbackModal(messages, isGood, setpointImgNeeded) {
     notifyBtn.className = 'notify-btn';
     notifyBtn.textContent = 'Notify a Supervisor';
     notifyBtn.onclick = () => {
-      showRecipientSelectionInModal(modal);
+      if (typeof showRecipientSelectionInModal === 'function') {
+        showRecipientSelectionInModal(modal);
+      }
     };
     modal.appendChild(notifyBtn);
   }
 
-  // Final assembly
+  // Assemble and append modal
   modal.appendChild(closeBtn);
   modal.appendChild(feedbackContent);
   document.body.appendChild(modal);
 
-  // Show overlay if you use one
-  createOrShowOverlay?.();
+  console.log('✅ Feedback modal displayed. isGood:', isGood);
 }
-
 
 function createOrShowOverlay() {
     let overlay = document.getElementById('modal-overlay');
