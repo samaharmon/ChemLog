@@ -1024,6 +1024,10 @@ body.dark-mode .feedback-modal .close-btn {
     color: white;
 }
 
+body.dark-mode .feedback-modal h2 {
+    color: white;
+}
+
 body.dark-mode #settingsModal .modal-header {
     background-color: #000000;
 }
