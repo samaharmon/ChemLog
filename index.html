@@ -19,19 +19,7 @@
     <link rel="apple-touch-icon" sizes="180x180" href="Logos/apple-touch-icon.png" />
     <link rel="manifest" href="Utilities/site.webmanifest" />
     
-    <script src="https://www.google.com/recaptcha/enterprise.js?render=6LeuRpIrAAAAAPg8Z6ni-eDSkWSoT8eKCz83m7oQ"></script>
 </head>
-
-
-<script>
-  function onClick(e) {
-    e.preventDefault();
-    grecaptcha.enterprise.ready(async () => {
-      const token = await grecaptcha.enterprise.execute('6LeuRpIrAAAAAPg8Z6ni-eDSkWSoT8eKCz83m7oQ', {action: 'LOGIN'});
-    });
-  }
-</script>
-
 
 <body>
 
@@ -365,7 +353,7 @@
             <select id="smsRecipientSelect">
                 <option value="">Choose recipient</option>
                 <option value="+18644096231">Sam Harmon</option>
-                <option value="+18036738396">Haley Wilson</option>
+                <!--<option value="+18036738396">OTHER SUPERVISOR</option>-->
             </select>
             <button onclick="chooseAndSendSMS()">Send Text Message</button>
 
