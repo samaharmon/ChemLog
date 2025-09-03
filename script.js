@@ -625,6 +625,11 @@ function chooseAndSendSMS() {
     removeOverlay();
 }
 
+function areAllCheckboxesChecked(modal) {
+  const checkboxes = modal.querySelectorAll('.feedback-checkbox');
+  return Array.from(checkboxes).every(cb => cb.checked);
+}
+
 function showFeedbackModal(messages, isGood, setpointImgNeeded) {
   // Create the modal
   const modal = document.createElement('div');
@@ -722,6 +727,7 @@ function showFeedbackModal(messages, isGood, setpointImgNeeded) {
   // Show overlay if you use one
   createOrShowOverlay?.();
 }
+
 
 function createOrShowOverlay() {
     let overlay = document.getElementById('modal-overlay');
@@ -2604,11 +2610,6 @@ function checkForCriticalAlerts() {
     if (criticalAlerts.length > 0) {
         showMessage(`${criticalAlerts.length} critical alert(s) found`, 'warning');
     }
-}
-
-function areAllCheckboxesChecked() {
-    const checkboxes = document.querySelectorAll('.feedback-checkbox');
-    return Array.from(checkboxes).every(checkbox => checkbox.checked);
 }
 
 // Replace the entire showRecipientSelectionInModal function (around lines 1890-1979) with this:
