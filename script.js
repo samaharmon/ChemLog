@@ -2653,6 +2653,7 @@ function showRecipientSelectionInModal(modal) {
 
     const title = document.createElement('h2');
     title.textContent = 'Select recipient:';
+    title.classList.add('select-recipient');
     title.style.cssText = `
         margin: 0 0 20px 0;
         color: #69140e;
