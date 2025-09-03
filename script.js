@@ -2656,7 +2656,6 @@ function showRecipientSelectionInModal(modal) {
     title.classList.add('select-recipient');
     title.style.cssText = `
         margin: 0 0 20px 0;
-        color: #69140e;
         text-align: center;
     `;
     feedbackContent.appendChild(title);
@@ -2700,6 +2699,7 @@ function showRecipientSelectionInModal(modal) {
         line-height: 1.4;
         cursor: pointer;
         margin-bottom: 0; 
+        color: white !important;
     `;
     samLabel.onclick = () => {
         samCheckbox.checked = !samCheckbox.checked;
