@@ -2708,6 +2708,7 @@ function showRecipientSelectionInModal(modal) {
     messageList.appendChild(samCheckboxItem);
     
     // Haley Wilson checkbox
+    /*
     const haleyCheckboxItem = document.createElement('div');
     haleyCheckboxItem.className = 'checkbox-item';
     haleyCheckboxItem.style.cssText = `
@@ -2747,7 +2748,8 @@ function showRecipientSelectionInModal(modal) {
     haleyCheckboxItem.appendChild(haleyCheckbox);
     haleyCheckboxItem.appendChild(haleyLabel);
     messageList.appendChild(haleyCheckboxItem);
-    
+    */
+   
     feedbackContent.appendChild(messageList);
     modal.appendChild(feedbackContent);
 
