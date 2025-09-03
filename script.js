@@ -558,72 +558,70 @@ function closeModal() {
     const feedbackModal = document.getElementById('feedbackModal');
     feedbackModal.style.display = 'none';
 }
+
 function chooseAndSendSMS() {
-    const checkboxes = document.querySelectorAll('#samOption, #haleyOption');
-    const selectedRecipients = [];
-    
-    checkboxes.forEach(checkbox => {
-        if (checkbox.checked) {
-            selectedRecipients.push(checkbox.value);
-        }
-    });
+  const checkboxes = document.querySelectorAll('#samOption, #haleyOption');
+  const selectedRecipients = [];
 
-    if (selectedRecipients.length === 0) {
-        alert('Please select at least one supervisor to notify.');
-        return;
+  checkboxes.forEach(checkbox => {
+    if (checkbox.checked) {
+      selectedRecipients.push(checkbox.value);
     }
+  });
 
-    if (formSubmissions.length === 0) {
-        alert("No form submission found to share.");
-        return;
-    }
-    
-    const latest = formSubmissions[formSubmissions.length - 1];
+  if (selectedRecipients.length === 0) {
+    alert('Please select at least one supervisor to notify.');
+    return;
+  }
 
-    // Determine which values need highlighting
-    const mainPH = latest.mainPoolPH;
-    const secPH = latest.secondaryPoolPH;
-    const mainCl = latest.mainPoolCl;
-    const secCl = latest.secondaryPoolCl;
-    
-    // Create highlighted message parts
-    const mainPoolPHText = mainPH === '< 7.0' ? 
-        `⚠️ Main Pool pH: ${mainPH} - REQUIRES ATTENTION ⚠️` : 
-        `Main Pool pH: ${mainPH}`;
-        
-    const secPoolPHText = secPH === '< 7.0' ? 
-        `⚠️ Secondary Pool pH: ${secPH} - REQUIRES ATTENTION ⚠️` : 
-        `Secondary Pool pH: ${secPH}`;
-        
-    const mainPoolClText = (mainCl === '10' || mainCl === '> 10' || parseFloat(mainCl) > 10) ? 
-        `⚠️ Main Pool Cl: ${mainCl} - HIGH LEVEL ⚠️` : 
-        `Main Pool Cl: ${mainCl}`;
-        
-    const secPoolClText = (secCl === '10' || secCl === '> 10' || parseFloat(secCl) > 10) ? 
-        `⚠️ Secondary Pool Cl: ${secCl} - HIGH LEVEL ⚠️` : 
-        `Secondary Pool Cl: ${secCl}`;
-        
-    const message =
-        `Pool Chemistry Log\n\n` +
-        `Submitted by: ${latest.firstName} ${latest.lastName}\n` +
-        `Pool Location: ${latest.poolLocation}\n\n` +
-        `${mainPoolPHText}\n` +
-        `${mainPoolClText}\n` +
-        `${secPoolPHText}\n` +
-        `${secPoolClText}\n\n` +
-        `Time: ${latest.timestamp}`;
+  if (formSubmissions.length === 0) {
+    alert("No form submission found to share.");
+    return;
+  }
 
-    // Send to each selected recipient
-    selectedRecipients.forEach(recipient => {
-        window.location.href = `sms:${recipient}?body=${encodeURIComponent(message)}`;
-    });
-    
-    // Close modals and remove overlay
-    const feedbackModal = document.querySelector('.feedback-modal');
-    if (feedbackModal) feedbackModal.remove();
-    
-    removeOverlay();
+  const latest = formSubmissions[formSubmissions.length - 1];
+
+  // Highlight certain values
+  const mainPH = latest.mainPoolPH;
+  const secPH = latest.secondaryPoolPH;
+  const mainCl = latest.mainPoolCl;
+  const secCl = latest.secondaryPoolCl;
+
+  const mainPoolPHText = mainPH === '< 7.0'
+    ? `⚠️ Main Pool pH: ${mainPH} - REQUIRES ATTENTION ⚠️`
+    : `Main Pool pH: ${mainPH}`;
+
+  const secPoolPHText = secPH === '< 7.0'
+    ? `⚠️ Secondary Pool pH: ${secPH} - REQUIRES ATTENTION ⚠️`
+    : `Secondary Pool pH: ${secPH}`;
+
+  const mainPoolClText = (mainCl === '10' || mainCl === '> 10' || parseFloat(mainCl) > 10)
+    ? `⚠️ Main Pool Cl: ${mainCl} - HIGH LEVEL ⚠️`
+    : `Main Pool Cl: ${mainCl}`;
+
+  const secPoolClText = (secCl === '10' || secCl === '> 10' || parseFloat(secCl) > 10)
+    ? `⚠️ Secondary Pool Cl: ${secCl} - HIGH LEVEL ⚠️`
+    : `Secondary Pool Cl: ${secCl}`;
+
+  const message =
+    `Pool Chemistry Log\n\n` +
+    `Submitted by: ${latest.firstName} ${latest.lastName}\n` +
+    `Pool Location: ${latest.poolLocation}\n\n` +
+    `${mainPoolPHText}\n` +
+    `${mainPoolClText}\n` +
+    `${secPoolPHText}\n` +
+    `${secPoolClText}\n\n` +
+    `Time: ${latest.timestamp}`;
+
+  // Send SMS to each selected recipient
+  selectedRecipients.forEach(recipient => {
+    window.location.href = `sms:${recipient}?body=${encodeURIComponent(message)}`;
+  });
+
+  // ✅ Do NOT close modal or overlay — let user manually close it
+  console.log('📤 SMS sent — modal remains open for manual dismissal');
 }
+
 
 function areAllCheckboxesChecked(modal) {
   const checkboxes = modal.querySelectorAll('.feedback-checkbox');
@@ -2657,7 +2655,7 @@ function showRecipientSelectionInModal(modal) {
     title.textContent = 'Select recipient:';
     title.style.cssText = `
         margin: 0 0 20px 0;
-        color: #dc3545;
+        color: #69140e;
         text-align: center;
     `;
     feedbackContent.appendChild(title);
@@ -2675,9 +2673,10 @@ function showRecipientSelectionInModal(modal) {
         align-items: flex-start;
         margin: 15px 0;
         padding: 10px;
-        border: 1px solid #e0e0e0;
-        border-radius: 4px;
-        background-color: #f9f9f9;
+        border: 1px solid black;
+        border-radius: 0px;
+        background-color: #69140e;
+        color: white !important;
     `;
     
     const samCheckbox = document.createElement('input');
@@ -2756,11 +2755,11 @@ function showRecipientSelectionInModal(modal) {
     sendBtn.textContent = 'Send Message';
     sendBtn.className = 'notify-btn';
     sendBtn.style.cssText = `
-        background-color: #dc3545;
+        background-color: #69140e;
         color: white;
         border: none;
         padding: 10px 20px;
-        border-radius: 4px;
+        border-radius: 0 px;
         cursor: pointer;
         font-size: 14px;
         margin: 10px 5px;
