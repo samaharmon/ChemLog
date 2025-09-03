@@ -1024,8 +1024,12 @@ body.dark-mode .feedback-modal .close-btn {
     color: white;
 }
 
+.select-recipient {
+    color: #69140e !important;
+}
+
 body.dark-mode .select-recipient {
-    color: white;
+    color: white !important;
 }
 
 body.dark-mode #settingsModal .modal-header {
