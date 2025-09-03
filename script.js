@@ -624,10 +624,6 @@ function chooseAndSendSMS() {
     
     removeOverlay();
 }
-function areAllCheckboxesChecked(modal) {
-  const checkboxes = modal.querySelectorAll('.feedback-checkbox');
-  return Array.from(checkboxes).every(cb => cb.checked);
-}
 
 function showFeedbackModal(messages, isGood, setpointImgNeeded) {
   // Create the modal
