@@ -2698,6 +2698,7 @@ function showRecipientSelectionInModal(modal) {
         font-size: 14px;
         line-height: 1.4;
         cursor: pointer;
+        margin-bottom: 0; 
     `;
     samLabel.onclick = () => {
         samCheckbox.checked = !samCheckbox.checked;
@@ -2749,7 +2750,7 @@ function showRecipientSelectionInModal(modal) {
     haleyCheckboxItem.appendChild(haleyLabel);
     messageList.appendChild(haleyCheckboxItem);
     */
-   
+
     feedbackContent.appendChild(messageList);
     modal.appendChild(feedbackContent);
 
