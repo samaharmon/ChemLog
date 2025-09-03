@@ -2686,7 +2686,7 @@ function showRecipientSelectionInModal(modal) {
     samCheckbox.value = '+18644096231';
     samCheckbox.style.cssText = `
         margin-right: 10px;
-        margin-top: 4px;
+        margin-top: 0 px;
         transform: scale(1.2);
     `;
     
