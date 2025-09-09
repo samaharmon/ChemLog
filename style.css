@@ -20,6 +20,11 @@ body {
     box-sizing: border-box;
 }
 
+p {
+    font-size: 10px;
+    color: grey;
+    margin-top: 5px;
+}
 /* Header Styles */
 .header {
     background-color: #69140e;
@@ -1038,6 +1043,10 @@ body.dark-mode .select-recipient {
 
 body.dark-mode #settingsModal .modal-header {
     background-color: #000000;
+}
+
+body.dark-mode p {
+    color: white !important;
 }
 
 /* =========================
