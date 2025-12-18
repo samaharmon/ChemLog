@@ -2311,13 +2311,24 @@ function checkLoginStatus() {
 // In your script.js
 function checkLogin() {
     const token = localStorage.getItem('loginToken');
+    const hasDashboard = !!document.getElementById('supervisorDashboard');
+
     if (token) {
         try {
             const { username, expires } = JSON.parse(token);
             if (Date.now() < expires) {
                 console.log('Valid login token found');
                 isLoggedIn = true;
-                showDashboard(); // If valid token, show dashboard
+
+                if (hasDashboard) {
+                    // index.html – go straight to dashboard
+                    showDashboard();
+                } else {
+                    // editor / other simple pages – just keep the main content visible
+                    console.log('Valid login token on editor page – staying on current view');
+                    showForm();
+                }
+
                 return true;
             } else {
                 console.log('Login token expired');
@@ -2329,11 +2340,12 @@ function checkLogin() {
         }
     }
 
-    // Ensure we're in logged out state and show form
+    // No valid token – treat as logged out
     isLoggedIn = false;
-    showForm(); // Crucial: ensure form is shown and buttons updated
+    showForm();
     return false;
 }
+
 
 function debugLoginState() {
     console.log('=== LOGIN DEBUG INFO ===');
