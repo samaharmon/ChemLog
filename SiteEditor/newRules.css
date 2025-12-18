@@ -231,3 +231,25 @@
 #ruleEditorSection .concernLevel {
     width: 100%;
 }
+
+/* Center the main editor container */
+#mainForm {
+  max-width: 1100px;
+  margin: 0 auto;
+}
+
+/* Make the Add/Edit buttons behave like toggles */
+.mode-toggle {
+  margin-right: 8px;
+}
+
+.mode-toggle.active {
+  background-color: #69140e;
+  color: #fff;
+}
+
+/* Stack market options vertically */
+.market-options {
+  flex-direction: column;
+  align-items: flex-start;
+}
