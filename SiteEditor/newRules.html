@@ -24,22 +24,45 @@
 
  </head>
 
- <body>
+<body>
+    <div id="mainForm">
+        <div class="header">
+            <div class="header-content">
+                <div class="header-left">
+                    <div>
+                        <h1>ChemLog</h1>
+                        <p>Capital City Aquatics</p>
+                    </div>
+                    <div class="menu-container">
+                        <button class="menu-btn" id="menuButton" onclick="toggleMenu()">
+                            <span>≡</span>
+                            <span>Menu</span>
+                        </button>
+                        <div class="dropdown-menu" id="dropdownMenu">
+                            <a href="#" class="dropdown-item" onclick="openSettings()">Settings</a>
+                            <a href="#" class="dropdown-item logout" onclick="logout()">Logout</a>
+                        </div>
+                    </div>
+                </div>
+                <div class="header-right">
+                    <div>
+                        <img id="logo" src="./Logos/logo.png" alt="Capital City Aquatics logo">
+                    </div>
+                </div>
+            </div>
+        </div>
     <div class="container">
         <div class="form-container" id="ruleEditorContent">
             <div class="section">
                 <h2>Pool Rule Editor</h2>
-                <div class="form-row">
-                    <label class="form-group">
-                        <input type="radio" name="editorMode" id="editorModeEdit" value="edit" checked>
-                        Edit existing pool
-                    </label>
-                    <label class="form-group">
-                        <input type="radio" name="editorMode" id="editorModeAdd" value="add">
+                <div class="form-row" id="editorModeRow" style="gap: 10px;">
+                    <button type="button" id="editorModeAdd" class="editAndSave mode-toggle">
                         Add new pool
-                    </label>
+                    </button>
+                    <button type="button" id="editorModeEdit" class="editAndSave mode-toggle">
+                        Edit existing pool
+                    </button>
                 </div>
-
                 <div class="form-group" id="editorPoolSelectWrapper">
                     <label for="editorPoolSelect">Choose a pool to edit</label>
                     <select id="editorPoolSelect" class="button-shadow">
@@ -60,22 +83,28 @@
                      </div>
                     <div class="form-group">
                         <label for="editorNumPools">Number of pools</label>
-                        <input type="number" id="editorNumPools" min="1" max="5" value="2" disabled>
-                     </div>
+                        <select id="editorNumPools" disabled>
+                            <option value="1">1</option>
+                            <option value="2" selected>2</option>
+                            <option value="3">3</option>
+                            <option value="4">4</option>
+                            <option value="5">5</option>
+                        </select>
+                    </div>
                     <div class="form-group">
                         <label>Market</label>
-                        <div class="form-row">
-                            <label class="form-group" style="flex: 1 1 auto;">
+                        <div class="form-row market-options">
+                            <label class="form-group">
                                 <input type="checkbox" name="editorMarket" value="Columbia" disabled> Columbia
                             </label>
-                            <label class="form-group" style="flex: 1 1 auto;">
+                            <label class="form-group">
                                 <input type="checkbox" name="editorMarket" value="Greenville" disabled> Greenville
                             </label>
-                            <label class="form-group" style="flex: 1 1 auto;">
+                            <label class="form-group">
                                 <input type="checkbox" name="editorMarket" value="Charlotte" disabled> Charlotte
                             </label>
-                         </div>
-                     </div>
+                        </div>
+                    </div>
                     <div class="form-row" style="gap: 10px;">
                         <button type="button" id="metadataEditBtn" class="editAndSave">Edit</button>
                         <button type="button" id="metadataSaveBtn" class="editAndSave" disabled>Save</button>
@@ -1063,7 +1092,18 @@
                  </div>
              </div>
          </div>
-       <td><input type="checkbox" class="sanitation-checkbox granular-checkbox" data-pool="Columbia CC" data-method="granular" onchange="handleSanitationChange(this)"></td>
- </body>
- </html>
+                <!-- end of form-container / sections -->
+        </div> <!-- .form-container -->
+    </div> <!-- .container -->
 
+        <div class="footer">
+            <em>Developed by Sam Harmon | 2025<br>v2.1</em>
+        </div>
+    </div> <!-- #mainForm -->
+
+    <!-- Main app logic (header menu, etc.) -->
+    <script type="module" src="script.js"></script>
+    <!-- Pool rule editor logic -->
+    <script type="module" src="newRules.js"></script>
+</body>
+</html>
