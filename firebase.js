@@ -12,7 +12,8 @@ import {
   orderBy,
   query,
   Timestamp,
-  writeBatch
+  writeBatch,
+  deleteDoc
 } from 'https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore.js';
 
 import {
@@ -36,6 +37,63 @@ const app = initializeApp(firebaseConfig);
 const db = getFirestore(app);
 const auth = getAuth(app);
 
+// Firestore collection name: 'pools'
+const poolsCollectionRef = () => collection(db, 'pools');
+
+export async function getPools() {
+  try {
+    const snapshot = await getDocs(poolsCollectionRef());
+    const pools = snapshot.docs.map(docSnap => ({ id: docSnap.id, ...docSnap.data() }));
+    console.log('Pools fetched:', pools);
+    return pools;
+  } catch (error) {
+    console.error('Error fetching pools:', error);
+    return [];
+  }
+}
+
+export function listenPools(callback) {
+  try {
+    const unsubscribe = onSnapshot(poolsCollectionRef(), snapshot => {
+      const pools = snapshot.docs.map(docSnap => ({ id: docSnap.id, ...docSnap.data() }));
+      console.log('Pools updated:', pools);
+      callback(pools);
+    });
+    return unsubscribe;
+  } catch (error) {
+    console.error('Error listening to pools:', error);
+    return () => {};
+  }
+}
+
+export async function savePool(poolIdOrNull, poolData) {
+  try {
+    if (!poolIdOrNull) {
+      const docRef = await addDoc(poolsCollectionRef(), poolData);
+      console.log('Pool added with ID:', docRef.id);
+      return docRef.id;
+    }
+
+    await setDoc(doc(poolsCollectionRef(), poolIdOrNull), poolData);
+    console.log('Pool saved with ID:', poolIdOrNull);
+    return poolIdOrNull;
+  } catch (error) {
+    console.error('Error saving pool:', error);
+    return null;
+  }
+}
+
+export async function deletePool(poolId) {
+  try {
+    await deleteDoc(doc(poolsCollectionRef(), poolId));
+    console.log('Pool deleted with ID:', poolId);
+    return true;
+  } catch (error) {
+    console.error('Error deleting pool:', error);
+    return false;
+  }
+}
+
 // Export initialized modules
 export {
   app,
@@ -52,6 +110,7 @@ export {
   query,
   Timestamp,
   writeBatch,
+  deleteDoc,
   onAuthStateChanged,
   signInWithEmailAndPassword,
   signOut
