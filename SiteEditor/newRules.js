@@ -459,16 +459,16 @@ window.loadPoolIntoEditor = loadPoolIntoEditor;
 window.readEditorToObject = readEditorToObject;
 window.onSaveSuccess = onSaveSuccess;
 
-// Run the editor wiring when this page finishes loading
+// Initialize the editor once the DOM is ready
 document.addEventListener('DOMContentLoaded', () => {
-  console.log('Initializing Pool Rule Editor...');
-  initEditor().catch(err => {
-    console.error('initEditor failed:', err);
+  initEditor().catch((err) => {
+    console.error('Failed to initialize pool rule editor', err);
     if (typeof showMessage === 'function') {
-      showMessage('Could not initialize the pool rule editor.', 'error');
+      showMessage('Error loading pool rule editor. Please refresh the page.', 'error');
     }
   });
 });
+
 
 
 console.log('newRules.js loaded');
