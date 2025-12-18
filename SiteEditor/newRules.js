@@ -122,6 +122,12 @@ function applyRuleToInputs(block, rules = {}) {
 function loadPoolIntoEditor(poolDoc) {
   if (!poolDoc) return;
   currentPoolId = poolDoc.id || '';
+
+  // When editing, reveal the metadata + rule sections
+  const metadataSection = document.getElementById('poolMetadataSection');
+  const ruleSection = document.getElementById('ruleEditorSection');
+  metadataSection?.classList.remove('hidden');
+  ruleSection?.classList.remove('hidden');
  
   const poolNameInput = document.getElementById('editorPoolName');
   const numPoolsInput = document.getElementById('editorNumPools');
@@ -288,42 +294,41 @@ function findPoolById(poolId) {
 function toggleMode(mode) {
   const poolSelectWrapper = document.getElementById('editorPoolSelectWrapper');
   const rockbridgeWrapper = document.getElementById('rockbridgePresetWrapper');
-  const poolMetadataSection = document.getElementById('poolMetadataSection');
-  const ruleEditorSection = document.getElementById('ruleEditorSection');
+  const metadataSection = document.getElementById('poolMetadataSection');
+  const ruleSection = document.getElementById('ruleEditorSection');
   const poolNameInput = document.getElementById('editorPoolName');
-  const numPoolsInput = document.getElementById('editorNumPools');
 
-  setModeButtonsActive(mode);
+  if (!poolSelectWrapper || !rockbridgeWrapper || !metadataSection || !ruleSection) {
+    console.warn('Editor sections not found – cannot toggle mode.');
+    return;
+  }
+
+  // Always reset pool name + currentPoolId when switching
+  if (poolNameInput) poolNameInput.value = '';
+  currentPoolId = '';
 
   if (mode === 'add') {
-    // Add mode: hide pool selector, show everything else
-    if (poolSelectWrapper) poolSelectWrapper.style.display = 'none';
-    if (rockbridgeWrapper) rockbridgeWrapper.style.display = '';
-    if (poolMetadataSection) poolMetadataSection.style.display = '';
-    if (ruleEditorSection) ruleEditorSection.style.display = '';
+    // ADD MODE: everything visible except "Select a pool"
+    poolSelectWrapper.classList.add('hidden');
+    rockbridgeWrapper.classList.remove('hidden');
+    metadataSection.classList.remove('hidden');
+    ruleSection.classList.remove('hidden');
 
-    if (poolNameInput) poolNameInput.value = '';
-    if (numPoolsInput) {
-      if (!numPoolsInput.value) numPoolsInput.value = '2';
-      updatePoolBlockVisibility(
-        Math.max(1, Math.min(5, Number(numPoolsInput.value) || 1)),
-      );
-    }
-
-    currentPoolId = '';
-    document.querySelectorAll(poolRuleContainerSelector).forEach((block) => {
+    // Clear rules before optionally applying Rockbridge presets
+    document.querySelectorAll(poolRuleContainerSelector).forEach(block => {
       applyRuleToInputs(block, {});
     });
   } else if (mode === 'edit') {
-    // Edit mode: show only the pool selector until one is chosen
-    if (poolSelectWrapper) poolSelectWrapper.style.display = '';
-    if (rockbridgeWrapper) rockbridgeWrapper.style.display = 'none';
-    if (poolMetadataSection) poolMetadataSection.style.display = 'none';
-    if (ruleEditorSection) ruleEditorSection.style.display = 'none';
+    // EDIT MODE: only the pool dropdown visible until user picks a pool
+    poolSelectWrapper.classList.remove('hidden');
+    rockbridgeWrapper.classList.add('hidden');
+    metadataSection.classList.add('hidden');
+    ruleSection.classList.add('hidden');
   }
 
   disableAllEditors();
 }
+
  
 async function cloneRockbridgePresets() {
   if (!poolsCache.length) {
@@ -354,6 +359,16 @@ async function cloneRockbridgePresets() {
   showMessage('Rockbridge presets applied.', 'success');
  }
  
+function setActiveModeButton(mode) {
+  const addBtn = document.getElementById('editorModeAdd');
+  const editBtn = document.getElementById('editorModeEdit');
+
+  if (!addBtn || !editBtn) return;
+
+  addBtn.classList.toggle('active', mode === 'add');
+  editBtn.classList.toggle('active', mode === 'edit');
+}
+
 function attachEditorEvents() {
   const poolSelect = document.getElementById('editorPoolSelect');
   const rockbridgeBtn = document.getElementById('rockbridgePresetsBtn');
@@ -386,14 +401,16 @@ function attachEditorEvents() {
     rockbridgeBtn.addEventListener('click', cloneRockbridgePresets);
   }
 
-  if (editorModeEditBtn) {
-    editorModeEditBtn.addEventListener('click', () => {
+  if (editorModeEdit) {
+    editorModeEdit.addEventListener('click', () => {
+      setActiveModeButton('edit');
       toggleMode('edit');
     });
   }
 
-  if (editorModeAddBtn) {
-    editorModeAddBtn.addEventListener('click', () => {
+  if (editorModeAdd) {
+    editorModeAdd.addEventListener('click', () => {
+      setActiveModeButton('add');
       toggleMode('add');
     });
   }
@@ -441,6 +458,17 @@ window.cloneRockbridgePresets = cloneRockbridgePresets;
 window.loadPoolIntoEditor = loadPoolIntoEditor;
 window.readEditorToObject = readEditorToObject;
 window.onSaveSuccess = onSaveSuccess;
-startPoolListener();
+
+// Run the editor wiring when this page finishes loading
+document.addEventListener('DOMContentLoaded', () => {
+  console.log('Initializing Pool Rule Editor...');
+  initEditor().catch(err => {
+    console.error('initEditor failed:', err);
+    if (typeof showMessage === 'function') {
+      showMessage('Could not initialize the pool rule editor.', 'error');
+    }
+  });
+});
+
 
 console.log('newRules.js loaded');
