@@ -53,7 +53,7 @@
         </div>
     <div class="container">
         <div class="form-container" id="ruleEditorContent">
-            <div class="section">
+            <div class="section hidden" id="poolRuleEditorSection">
                 <h2>Pool Rule Editor</h2>
                 <div class="form-row" id="editorModeRow" style="gap: 10px;">
                     <button type="button" id="editorModeAdd" class="editAndSave mode-toggle">
@@ -63,19 +63,19 @@
                         Edit existing pool
                     </button>
                 </div>
-                <div class="form-group" id="editorPoolSelectWrapper">
+                <div class="form-group hidden" id="editorPoolSelectWrapper">
                     <label for="editorPoolSelect">Choose a pool to edit</label>
                     <select id="editorPoolSelect" class="button-shadow">
                         <option value="">Select an existing pool...</option>
                     </select>
                 </div>
 
-                <div class="form-group" id="rockbridgePresetWrapper" style="display: none;">
+                <div class="form-group hidden" id="rockbridgePresetWrapper" style="display: none;">
                     <button type="button" id="rockbridgePresetsBtn" class="submit-btn">Use Rockbridge presets</button>
                     <small style="display: block; margin-top: 4px;">Clone Rockbridge main/secondary rules into the new pool slots.</small>
                 </div>
 
-                <div class="section" id="poolMetadataSection">
+                <div class="section hidden" id="poolMetadataSection">
                     <h3>Pool Metadata</h3>
                     <div class="form-group">
                         <label for="editorPoolName">Pool name</label>
