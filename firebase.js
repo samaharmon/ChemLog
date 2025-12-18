@@ -83,6 +83,10 @@ export async function savePool(poolIdOrNull, poolData) {
   }
 }
 
+export async function savePoolDoc(poolIdOrNull, poolData) {
+  return savePool(poolIdOrNull, poolData);
+}
+
 export async function deletePool(poolId) {
   try {
     await deleteDoc(doc(poolsCollectionRef(), poolId));
@@ -92,6 +96,10 @@ export async function deletePool(poolId) {
     console.error('Error deleting pool:', error);
     return false;
   }
+}
+
+export async function deletePoolDoc(poolId) {
+  return deletePool(poolId);
 }
 
 // Export initialized modules
@@ -110,7 +118,6 @@ export {
   query,
   Timestamp,
   writeBatch,
-  deleteDoc,
   onAuthStateChanged,
   signInWithEmailAndPassword,
   signOut
