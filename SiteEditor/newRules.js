@@ -5,6 +5,23 @@ let currentPoolId = '';
 let poolsListenerStarted = false;
  
 const poolRuleContainerSelector = '#poolRuleBlocks .pool-rule-block';
+
+function setModeButtonsActive(mode) {
+  const addBtn = document.getElementById('editorModeAdd');
+  const editBtn = document.getElementById('editorModeEdit');
+  if (!addBtn || !editBtn) return;
+
+  addBtn.classList.toggle('active', mode === 'add');
+  editBtn.classList.toggle('active', mode === 'edit');
+}
+
+function showEditorDetails() {
+  const poolMetadataSection = document.getElementById('poolMetadataSection');
+  const ruleEditorSection = document.getElementById('ruleEditorSection');
+  if (poolMetadataSection) poolMetadataSection.style.display = '';
+  if (ruleEditorSection) ruleEditorSection.style.display = '';
+}
+
  
 function removePoolShapeGallonage() {
   const stale = document.getElementById('poolShapeGallonage');
@@ -271,23 +288,42 @@ function findPoolById(poolId) {
 function toggleMode(mode) {
   const poolSelectWrapper = document.getElementById('editorPoolSelectWrapper');
   const rockbridgeWrapper = document.getElementById('rockbridgePresetWrapper');
+  const poolMetadataSection = document.getElementById('poolMetadataSection');
+  const ruleEditorSection = document.getElementById('ruleEditorSection');
   const poolNameInput = document.getElementById('editorPoolName');
+  const numPoolsInput = document.getElementById('editorNumPools');
+
+  setModeButtonsActive(mode);
 
   if (mode === 'add') {
+    // Add mode: hide pool selector, show everything else
     if (poolSelectWrapper) poolSelectWrapper.style.display = 'none';
     if (rockbridgeWrapper) rockbridgeWrapper.style.display = '';
+    if (poolMetadataSection) poolMetadataSection.style.display = '';
+    if (ruleEditorSection) ruleEditorSection.style.display = '';
+
     if (poolNameInput) poolNameInput.value = '';
+    if (numPoolsInput) {
+      if (!numPoolsInput.value) numPoolsInput.value = '2';
+      updatePoolBlockVisibility(
+        Math.max(1, Math.min(5, Number(numPoolsInput.value) || 1)),
+      );
+    }
+
     currentPoolId = '';
     document.querySelectorAll(poolRuleContainerSelector).forEach((block) => {
       applyRuleToInputs(block, {});
-     });
-  } else {
+    });
+  } else if (mode === 'edit') {
+    // Edit mode: show only the pool selector until one is chosen
     if (poolSelectWrapper) poolSelectWrapper.style.display = '';
     if (rockbridgeWrapper) rockbridgeWrapper.style.display = 'none';
+    if (poolMetadataSection) poolMetadataSection.style.display = 'none';
+    if (ruleEditorSection) ruleEditorSection.style.display = 'none';
   }
 
   disableAllEditors();
- }
+}
  
 async function cloneRockbridgePresets() {
   if (!poolsCache.length) {
@@ -321,40 +357,52 @@ async function cloneRockbridgePresets() {
 function attachEditorEvents() {
   const poolSelect = document.getElementById('editorPoolSelect');
   const rockbridgeBtn = document.getElementById('rockbridgePresetsBtn');
-  const editorModeEdit = document.getElementById('editorModeEdit');
-  const editorModeAdd = document.getElementById('editorModeAdd');
+  const editorModeEditBtn = document.getElementById('editorModeEdit');
+  const editorModeAddBtn = document.getElementById('editorModeAdd');
   const numPoolsInput = document.getElementById('editorNumPools');
- 
+
   if (poolSelect) {
     poolSelect.addEventListener('change', () => {
+      if (!poolSelect.value) {
+        // Back to "Select an existing pool..." — hide details again
+        const poolMetadataSection = document.getElementById('poolMetadataSection');
+        const ruleEditorSection = document.getElementById('ruleEditorSection');
+        if (poolMetadataSection) poolMetadataSection.style.display = 'none';
+        if (ruleEditorSection) ruleEditorSection.style.display = 'none';
+        return;
+      }
+
       const poolDoc = findPoolById(poolSelect.value);
       if (poolDoc) {
         loadPoolIntoEditor(poolDoc);
+        showEditorDetails();
       } else {
         showMessage('Pool not found. Please refresh.', 'error');
       }
     });
   }
- 
+
   if (rockbridgeBtn) {
     rockbridgeBtn.addEventListener('click', cloneRockbridgePresets);
   }
 
-  if (editorModeEdit) {
-    editorModeEdit.addEventListener('change', () => {
-      if (editorModeEdit.checked) toggleMode('edit');
+  if (editorModeEditBtn) {
+    editorModeEditBtn.addEventListener('click', () => {
+      toggleMode('edit');
     });
   }
- 
-  if (editorModeAdd) {
-    editorModeAdd.addEventListener('change', () => {
-      if (editorModeAdd.checked) toggleMode('add');
+
+  if (editorModeAddBtn) {
+    editorModeAddBtn.addEventListener('click', () => {
+      toggleMode('add');
     });
   }
- 
+
   if (numPoolsInput) {
     numPoolsInput.addEventListener('change', () => {
-      updatePoolBlockVisibility(Math.max(1, Math.min(5, Number(numPoolsInput.value) || 1)));
+      updatePoolBlockVisibility(
+        Math.max(1, Math.min(5, Number(numPoolsInput.value) || 1)),
+      );
     });
   }
 }
@@ -366,8 +414,20 @@ async function initEditor() {
   wireMetadataButtons();
   wireBlockButtons();
   attachEditorEvents();
-  toggleMode(document.getElementById('editorModeAdd')?.checked ? 'add' : 'edit');
- }
+
+  // Initial state: show only the two mode buttons
+  const poolSelectWrapper = document.getElementById('editorPoolSelectWrapper');
+  const rockbridgeWrapper = document.getElementById('rockbridgePresetWrapper');
+  const poolMetadataSection = document.getElementById('poolMetadataSection');
+  const ruleEditorSection = document.getElementById('ruleEditorSection');
+
+  if (poolSelectWrapper) poolSelectWrapper.style.display = 'none';
+  if (rockbridgeWrapper) rockbridgeWrapper.style.display = 'none';
+  if (poolMetadataSection) poolMetadataSection.style.display = 'none';
+  if (ruleEditorSection) ruleEditorSection.style.display = 'none';
+
+  disableAllEditors();
+}
  
 
 function onSaveSuccess(poolId) {
