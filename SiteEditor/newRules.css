@@ -1,168 +1,186 @@
-/*/////////////////////////////////////////*/
-/*New Feedback Rules Page*/
-/*/////////////////////////////////////////*/
+/* New Pool Rule Editor Styles */
+ 
+.container {
+  max-width: 1200px;
+ }
+ 
+.section {
+  margin-bottom: 24px;
+ }
 
-/* Hide table containers by default; JS will show them when rules exist */
-#rulesSection,
-#mainPoolTable{
-  display: none; /* JS toggles this */
+.form-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  align-items: center;
 }
 
-/* Slight padding for inputs when enabled */
-#mainPoolRules input:enabled,
-#secondaryPoolRules input:enabled {
-  background-color: #fff;  /* overrides greyed-out style */
+.form-group {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  margin-bottom: 14px;
 }
 
-/* Greyed-out inputs by default (matches your current style) */
-#mainPoolRules input:disabled,
-#secondaryPoolRules input:disabled {
-  background-color: #eee;
+#editorPoolSelect,
+#rockbridgePresetsBtn,
+.editAndSave,
+.submit-btn,
+.button-shadow {
+  border-radius: 0;
 }
 
-
-input[type="text"].adjustment-feedback {
-    width: 100%;
-    padding: 10px;
-    border-bottom: 2px solid #69140e;
-    border-left:none;
-    border-right:none;
-    border-top:none;
-    border-radius:0px;
-    font-size: 14px;
-    font-family: 'Franklin Gothic Medium', Arial, sans-serif;
-    background-color: #C8C8C8;
-    color: #333;
-    -webkit-appearance: none;
+#editorPoolSelect {
+  padding: 10px;
+  border: 1px solid #ccc;
+  background-color: #fff;
+  font-size: 14px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.08);
 }
 
-input[type="text"]#newPoolName {
-    width: 30%;
+#rockbridgePresetsBtn {
+  margin-top: 6px;
 }
 
-/* ----------------- Show/Hide Sections ----------------- */
-#newPoolSection,
-#feedbackEditorSection,
-#mainPoolTable,
-#secondaryPoolSection {
-  display: none; /* Hidden by default, JS will toggle */
+#poolMetadataSection {
+  border: 1px solid #ddd;
+  padding: 16px;
+  background: #fafafa;
 }
 
-/* ----------------- Buttons ----------------- */
-#addPoolBtn,
-.editAndSave {
-    background-color: #69140e;
-    color: #fff;
-    border: none;
-    border-radius: 0;
-    padding: 5px 10px;
-    font-size: 12px;
-    font-weight: bold;
-    cursor: pointer;
-    margin-top: 10px;
-    transition: background-color 0.3s;
+#poolMetadataSection h3 {
+  margin-top: 0;
 }
 
-#addPoolBtn:hover,
-.editAndSave:hover {
-    background-color: #521008;
+#poolMetadataSection input[type="text"],
+#poolMetadataSection input[type="number"] {
+  padding: 10px;
+  border: 1px solid #ccc;
+  font-size: 14px;
+   background-color: #eee;
+  width: 100%;
+  box-sizing: border-box;
 }
 
-/* ----------------- Input Fields ----------------- */
-input.adjustment-feedback {
-    width: 100%;
-    padding: 10px;
-    border-bottom: 2px solid #69140e;
-    border-left: none;
-    border-right: none;
-    border-top: none;
-    border-radius: 0;
-    font-size: 14px;
-    font-family: 'Franklin Gothic Medium', Arial, sans-serif;
-    background-color: #C8C8C8; /* default */
-    color: #333;
-    -webkit-appearance: none;
+#poolMetadataSection input:enabled {
+  background-color: #fff;
+ }
+ 
+#poolMetadataSection .form-row {
+  justify-content: flex-start;
 }
 
-input.adjustment-feedback:disabled {
-    background-color: #eee; /* greyed out when disabled */
-}
+#poolMetadataSection .editAndSave {
+  min-width: 80px;
+ }
+ 
+#ruleEditorSection h3 {
+  margin-bottom: 12px;
+ }
+ 
+#poolRuleBlocks {
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+ }
+ 
 
-/* ----------------- Table Styling ----------------- */
+.pool-rule-block {
+  border: 1px solid #ddd;
+  padding: 16px;
+  background: #fff;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.08);
+ }
+ 
+.pool-rule-block h4 {
+  margin-top: 0;
+  margin-bottom: 12px;
+ }
+ 
+.rule-tables {
+  display: flex;
+  gap: 12px;
+  flex-wrap: wrap;
+ }
+ 
+.table-wrapper {
+  flex: 1 1 320px;
+ }
+
+.table-wrapper h5 {
+  margin: 0 0 8px;
+ }
+ 
 .rules-table {
-    table-layout: fixed;
-    width: 100%;
-    border-collapse: collapse;
-}
+  width: 100%;
+  border-collapse: collapse;
+ }
+ 
+.table-row {
+  display: grid;
+  grid-template-columns: 90px 1fr 120px;
+  align-items: stretch;
+ }
 
-.rules-table th,
-.rules-table td {
-    padding: 8px;
-    border: 1px solid #ddd;
-    text-align: center;
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
-}
+.table-cell {
+  border: 1px solid #ddd;
+  padding: 8px;
+  display: flex;
+  align-items: center;
+ }
+ 
 
-.rules-table th:nth-child(1),
-.rules-table td:nth-child(1) {
-    width: 10%;
-}
+.table-cell:first-child {
+  background: #f6f6f6;
+  font-weight: 600;
+  justify-content: center;
+ }
+ 
+.ruleResponse {
+  width: 100%;
+  min-height: 48px;
+  resize: vertical;
+  padding: 8px;
+  border: 1px solid #ccc;
+  background: #f3f3f3;
+  font-size: 14px;
+  font-family: inherit;
+  box-sizing: border-box;
+ }
+ 
+.concernLevel {
+  width: 100%;
+  padding: 8px;
+  border: 1px solid #ccc;
+  background: #f3f3f3;
+  font-size: 14px;
+  box-sizing: border-box;
+ }
+ 
+.ruleResponse:enabled,
+.concernLevel:enabled {
+  background: #fff;
+ }
+ 
+.pool-rule-block .editAndSave {
+  margin-top: 12px;
+  margin-right: 10px;
+  padding: 6px 12px;
+  font-size: 13px;
+ }
+ 
+ .hidden {
+   display: none !important;
+ }
+ 
+@media (max-width: 640px) {
+  .table-row {
+    grid-template-columns: 1fr;
+  }
 
-.rules-table th:nth-child(2),
-.rules-table td:nth-child(2) {
-    width: 10%;
-}
-
-.rules-table th:nth-child(3),
-.rules-table td:nth-child(3) {
-    width: 80%;
-    white-space: normal;
-    text-overflow: clip;
-}
-
-/* ----------------- Pool Sections ----------------- */
-.pool-section h3 {
-    display: inline-block;
-    margin-left: 10px;
-}
-
-.pool-section-content {
-    margin-top: 10px;
-}
-
-/* ----------------- Dropdown and Inputs ----------------- */
-#poolLocation,
-#newPoolName {
-    width: 70%;
-    padding: 8px;
-    font-size: 14px;
-    margin-top: 5px;
-    margin-bottom: 10px;
-}
-
-/* Hide by default */
-#newPoolSection,
-#feedbackEditorSection,
-#secondaryPoolSection {
-  display: none;
-}
-
-/* Utility for JS toggle */
-.hidden {
-  display: none !important;
-}
-
-/* Hide table containers by default; JS will show them when rules exist */
-#rulesSection,
-#mainPoolTable,
-#secondaryPoolSection {
-  display: none; /* JS toggles this */
-}
-
-.disabled-input {
-  background-color: #f0f0f0;
-  color: #666;
-  cursor: not-allowed;
-}
+  .table-cell:first-child {
+    justify-content: flex-start;
+  }
+ }
+ 
+)
