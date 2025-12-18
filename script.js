@@ -934,46 +934,51 @@ function loadFormSubmissions() {
 }
 
 function cleanupTestSubmissions() {
-    const now = Date.now();
-    const FIVE_MINUTES = 5 * 60 * 1000;
-    const badTimestamp = "7/24/2025, 4:58:31 PM";
+  const now = Date.now();
+  const FIVE_MINUTES = 5 * 60 * 1000;
+  const badTimestamp = "7/24/2025, 4:58:31 PM";
 
-    formSubmissions = formSubmissions.filter(submission => {
-        const isTest = submission.firstName === 'TEST';
-        const isExpired = now - new Date(submission.timestamp).getTime() > FIVE_MINUTES;
-        const poolNameBlank = !submission.poolLocation || submission.poolLocation.trim() === '';
+  formSubmissions = formSubmissions.filter(submission => {
+    const isTest = submission.firstName === 'TEST';
 
-        const mainPH = submission.mainPoolPH;
-        const mainCl = submission.mainPoolCl;
-        const secondaryPH = submission.secondaryPoolPH;
-        const secondaryCl = submission.secondaryPoolCl;
+    const time = new Date(submission.timestamp).getTime();
+    const isExpired = !isNaN(time) && now - time > FIVE_MINUTES;
 
-        const hasInvalidChemistry = [mainPH, mainCl, secondaryPH, secondaryCl].some(value => value === "N/A");
+    const poolNameBlank = !submission.poolLocation || submission.poolLocation.trim() === '';
 
-        if (submission.timestamp === badTimestamp) {
-            console.log(`🧹 Deleted submission with bad timestamp: ${badTimestamp} (ID: ${submission.id})`);
-            return false;
-        }
+    const mainPH = submission.mainPoolPH;
+    const mainCl = submission.mainPoolCl;
+    const secondaryPH = submission.secondaryPoolPH;
+    const secondaryCl = submission.secondaryPoolCl;
 
-        if (isTest && isExpired) {
-            console.log(`🧹 Deleted expired TEST submission (ID: ${submission.id})`);
-            return false;
-        }
+    const hasInvalidChemistry = [mainPH, mainCl, secondaryPH, secondaryCl].some(value =>
+      value === "N/A" || value === "" || value === null || value === undefined
+    );
 
-        if (poolNameBlank) {
-            console.log(`🧹 Deleted submission with blank pool name (ID: ${submission.id})`);
-            return false;
-        }
+    if (new Date(submission.timestamp).toLocaleString() === badTimestamp) {
+      console.log(`🧹 Deleted submission with bad timestamp: ${badTimestamp} (ID: ${submission.id})`);
+      return false;
+    }
 
-        if (hasInvalidChemistry) {
-            console.log(`🧹 Deleted submission with "N/A" chemistry values (ID: ${submission.id})`);
-            return false;
-        }
+    if (isTest && isExpired) {
+      console.log(`🧹 Deleted expired TEST submission (ID: ${submission.id})`);
+      return false;
+    }
 
-        return true;
-    });
+    if (poolNameBlank) {
+      console.log(`🧹 Deleted submission with blank pool name (ID: ${submission.id})`);
+      return false;
+    }
 
-    localStorage.setItem('formSubmissions', JSON.stringify(formSubmissions));
+    if (hasInvalidChemistry) {
+      console.log(`🧹 Deleted submission with invalid chemistry (ID: ${submission.id})`);
+      return false;
+    }
+
+    return true; // Keep it
+  });
+
+  localStorage.setItem('formSubmissions', JSON.stringify(formSubmissions));
 }
 
 function parseLocalDate(dateString) {
@@ -2353,12 +2358,34 @@ console.log('🔧 Login functionality fixes applied');
 // --- View Management Functions ---
 // These are responsible for showing/hiding the main content areas
 
+// --- View Management Functions ---
+// These are responsible for showing/hiding the main content areas
+
 function showDashboard() {
     console.log('Showing Dashboard View');
     currentView = 'dashboard';
 
     const mainForm = document.getElementById('mainForm');
     const supervisorDashboard = document.getElementById('supervisorDashboard');
+
+    // 🔹 NEW: if there is no supervisor dashboard on this page
+    // (e.g. SiteEditor/newRules.html), don't hide the main form.
+    if (!supervisorDashboard) {
+        console.log(
+            'showDashboard called but #supervisorDashboard not found – ' +
+            'skipping view change (likely on editor page)'
+        );
+        if (mainForm) {
+            mainForm.style.display = 'block';
+        }
+        // Keep header buttons in sync with login state
+        if (typeof updateHeaderButtons === 'function') {
+            updateHeaderButtons();
+        }
+        return;
+    }
+
+    // --- existing behaviour for index.html below ---
 
     // Hide main form
     if (mainForm) {
@@ -2397,8 +2424,8 @@ function showDashboard() {
     updateHeaderButtons();
 
     console.log('🤖 Logo still exists after updateHeaderButtons:', !!document.getElementById('logo'));
-
 }
+
 
 
 
