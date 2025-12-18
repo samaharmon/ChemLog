@@ -442,3 +442,5 @@ window.loadPoolIntoEditor = loadPoolIntoEditor;
 window.readEditorToObject = readEditorToObject;
 window.onSaveSuccess = onSaveSuccess;
 startPoolListener();
+
+console.log('newRules.js loaded');
