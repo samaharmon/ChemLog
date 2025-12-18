@@ -376,26 +376,27 @@ function attachEditorEvents() {
   const editorModeAddBtn = document.getElementById('editorModeAdd');
   const numPoolsInput = document.getElementById('editorNumPools');
 
-  if (poolSelect) {
+    if (poolSelect) {
     poolSelect.addEventListener('change', () => {
-      if (!poolSelect.value) {
+        if (!poolSelect.value) {
         // Back to "Select an existing pool..." — hide details again
         const poolMetadataSection = document.getElementById('poolMetadataSection');
         const ruleEditorSection = document.getElementById('ruleEditorSection');
-        if (poolMetadataSection) poolMetadataSection.style.display = 'none';
-        if (ruleEditorSection) ruleEditorSection.style.display = 'none';
+        poolMetadataSection?.classList.add('hidden');
+        ruleEditorSection?.classList.add('hidden');
         return;
-      }
+        }
 
-      const poolDoc = findPoolById(poolSelect.value);
-      if (poolDoc) {
+        const poolDoc = findPoolById(poolSelect.value);
+        if (poolDoc) {
         loadPoolIntoEditor(poolDoc);
-        showEditorDetails();
-      } else {
+        showEditorDetails();   // will remove .hidden
+        } else {
         showMessage('Pool not found. Please refresh.', 'error');
-      }
+        }
     });
-  }
+    }
+
 
   if (rockbridgeBtn) {
     rockbridgeBtn.addEventListener('click', cloneRockbridgePresets);
@@ -432,19 +433,25 @@ async function initEditor() {
   wireBlockButtons();
   attachEditorEvents();
 
-  // Initial state: show only the two mode buttons
-  const poolSelectWrapper = document.getElementById('editorPoolSelectWrapper');
-  const rockbridgeWrapper = document.getElementById('rockbridgePresetWrapper');
+  const editorSection       = document.getElementById('poolRuleEditorSection');
+  const poolSelectWrapper   = document.getElementById('editorPoolSelectWrapper');
+  const rockbridgeWrapper   = document.getElementById('rockbridgePresetWrapper');
   const poolMetadataSection = document.getElementById('poolMetadataSection');
-  const ruleEditorSection = document.getElementById('ruleEditorSection');
+  const ruleEditorSection   = document.getElementById('ruleEditorSection');
 
-  if (poolSelectWrapper) poolSelectWrapper.style.display = 'none';
-  if (rockbridgeWrapper) rockbridgeWrapper.style.display = 'none';
-  if (poolMetadataSection) poolMetadataSection.style.display = 'none';
-  if (ruleEditorSection) ruleEditorSection.style.display = 'none';
+  // 🔓 Make sure the main editor section itself is visible
+  editorSection?.classList.remove('hidden');
 
+  // 🧱 Initial state: show ONLY the mode buttons row
+  poolSelectWrapper?.classList.add('hidden');
+  rockbridgeWrapper?.classList.add('hidden');
+  poolMetadataSection?.classList.add('hidden');
+  ruleEditorSection?.classList.add('hidden');
+
+  // Keep all fields disabled until "Edit" is clicked
   disableAllEditors();
 }
+
  
 
 function onSaveSuccess(poolId) {
