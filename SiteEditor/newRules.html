@@ -139,7 +139,7 @@
                     <div class="form-row" style="gap: 10px; margin-top: 10px; justify-content: flex-start;">
                         <button type="button" id="metadataEditBtn" class="editAndSave">Edit</button>
                         <button type="button" id="metadataSaveBtn" class="editAndSave" disabled>Save</button>
-                        <button type="button" id="deletePoolBtn" class="danger-button">Delete pool</button>
+                        <button type="button" id="deletePoolBtn" class="editAndSave danger-button">Delete pool</button>
                     </div>
                  </div>
                 <div id="ruleEditorSection">
@@ -174,7 +174,6 @@
                                 </div>
                                 </div>
                                 <div class="table-wrapper" style="flex: 1 1 300px;">
-                                    <h5>pH responses</h5>
                                     <div class="rules-table ph-table">
                                         <div class="table-row table-header">
                                             <div class="table-cell header-cell">pH</div>
@@ -272,7 +271,6 @@
                                     </div>
                                 </div>
                                 <div class="table-wrapper" style="flex: 1 1 300px;">
-                                    <h5>Cl responses</h5>
                                     <div class="rules-table cl-table">
                                         <div class="table-row table-header">
                                             <div class="table-cell header-cell">Cl</div>
@@ -400,7 +398,6 @@
                                 </div>
                                 </div>
                                 <div class="table-wrapper" style="flex: 1 1 300px;">
-                                    <h5>pH responses</h5>
                                     <div class="rules-table ph-table">
                                         <div class="table-row table-header">
                                             <div class="table-cell header-cell">pH</div>
@@ -498,7 +495,6 @@
                                     </div>
                                  </div>
                                 <div class="table-wrapper" style="flex: 1 1 300px;">
-                                    <h5>Cl responses</h5>
                                     <div class="rules-table cl-table">
                                         <div class="table-row table-header">
                                             <div class="table-cell header-cell">Cl</div>
@@ -597,36 +593,35 @@
                                  </div>
                              </div>
                          </div>
-                            <div class="pool-rule-block" data-pool-index="3">
-                                <div class="pool-rule-header">
-                                    <h4>Pool 3</h4>
-                                    <div class="sanitation-tabs">
-                                        <button
-                                            type="button"
-                                            class="sanitation-tab active"
-                                            data-pool-index="3"
-                                            data-method="bleach"
-                                        >
-                                            Bleach
-                                        </button>
-                                        <button
-                                            type="button"
-                                            class="sanitation-tab"
-                                            data-pool-index="3"
-                                            data-method="granular"
-                                        >
-                                            Granular
-                                        </button>
-                                    </div>
+                        <div class="pool-rule-block" data-pool-index="3">
+                            <div class="pool-rule-header">
+                                <h4>Pool 3</h4>
+                                <div class="sanitation-tabs">
+                                    <button
+                                        type="button"
+                                        class="sanitation-tab active"
+                                        data-pool-index="3"
+                                        data-method="bleach"
+                                    >
+                                        Bleach
+                                    </button>
+                                    <button
+                                        type="button"
+                                        class="sanitation-tab"
+                                        data-pool-index="3"
+                                        data-method="granular"
+                                    >
+                                        Granular
+                                    </button>
                                 </div>
-                                    <!-- Edit / Save moved up into the header -->
-                                    <div class="rule-buttons">
-                                        <button type="button" class="editAndSave">Edit</button>
-                                        <button type="button" class="editAndSave" disabled>Save</button>
-                                    </div>
+                            </div>
+                                <!-- Edit / Save moved up into the header -->
+                                <div class="rule-buttons">
+                                    <button type="button" class="editAndSave">Edit</button>
+                                    <button type="button" class="editAndSave" disabled>Save</button>
+                                </div>
                                 </div>
                                 <div class="table-wrapper" style="flex: 1 1 300px;">
-                                    <h5>pH responses</h5>
                                     <div class="rules-table ph-table">
                                         <div class="table-row table-header">
                                             <div class="table-cell header-cell">pH</div>
@@ -635,9 +630,9 @@
                                         </div>
                                         <div class="table-row">
                                             <div class="table-cell">&lt; 7.0</div>
-                                            <div class="table-cell"><textarea id="pool3_ph_lt_7_0" class="ruleResponse" disabled></textarea></div>
+                                            <div class="table-cell"><textarea id="pool2_ph_lt_7_0" class="ruleResponse" disabled></textarea></div>
                                             <div class="table-cell">
-                                                <select id="pool3_ph_lt_7_0_level" class="concernLevel" disabled>
+                                                <select id="pool2_ph_lt_7_0_level" class="concernLevel" disabled>
                                                     <option value="none">None</option>
                                                     <option value="yellow">Minor</option>
                                                     <option value="red">Major</option>
@@ -646,9 +641,9 @@
                                         </div>
                                         <div class="table-row">
                                             <div class="table-cell">7.0</div>
-                                            <div class="table-cell"><textarea id="pool3_ph_7_0" class="ruleResponse" disabled></textarea></div>
+                                            <div class="table-cell"><textarea id="pool2_ph_7_0" class="ruleResponse" disabled></textarea></div>
                                             <div class="table-cell">
-                                                <select id="pool3_ph_7_0_level" class="concernLevel" disabled>
+                                                <select id="pool2_ph_7_0_level" class="concernLevel" disabled>
                                                     <option value="none">None</option>
                                                     <option value="yellow">Minor</option>
                                                     <option value="red">Major</option>
@@ -657,9 +652,9 @@
                                         </div>
                                         <div class="table-row">
                                             <div class="table-cell">7.2</div>
-                                            <div class="table-cell"><textarea id="pool3_ph_7_2" class="ruleResponse" disabled></textarea></div>
+                                            <div class="table-cell"><textarea id="pool2_ph_7_2" class="ruleResponse" disabled></textarea></div>
                                             <div class="table-cell">
-                                                <select id="pool3_ph_7_2_level" class="concernLevel" disabled>
+                                                <select id="pool2_ph_7_2_level" class="concernLevel" disabled>
                                                     <option value="none">None</option>
                                                     <option value="yellow">Minor</option>
                                                     <option value="red">Major</option>
@@ -668,9 +663,9 @@
                                         </div>
                                         <div class="table-row">
                                             <div class="table-cell">7.4</div>
-                                            <div class="table-cell"><textarea id="pool3_ph_7_4" class="ruleResponse" disabled></textarea></div>
+                                            <div class="table-cell"><textarea id="pool2_ph_7_4" class="ruleResponse" disabled></textarea></div>
                                             <div class="table-cell">
-                                                <select id="pool3_ph_7_4_level" class="concernLevel" disabled>
+                                                <select id="pool2_ph_7_4_level" class="concernLevel" disabled>
                                                     <option value="none">None</option>
                                                     <option value="yellow">Minor</option>
                                                     <option value="red">Major</option>
@@ -679,9 +674,9 @@
                                         </div>
                                         <div class="table-row">
                                             <div class="table-cell">7.6</div>
-                                            <div class="table-cell"><textarea id="pool3_ph_7_6" class="ruleResponse" disabled></textarea></div>
+                                            <div class="table-cell"><textarea id="pool2_ph_7_6" class="ruleResponse" disabled></textarea></div>
                                             <div class="table-cell">
-                                                <select id="pool3_ph_7_6_level" class="concernLevel" disabled>
+                                                <select id="pool2_ph_7_6_level" class="concernLevel" disabled>
                                                     <option value="none">None</option>
                                                     <option value="yellow">Minor</option>
                                                     <option value="red">Major</option>
@@ -690,9 +685,9 @@
                                         </div>
                                         <div class="table-row">
                                             <div class="table-cell">7.8</div>
-                                            <div class="table-cell"><textarea id="pool3_ph_7_8" class="ruleResponse" disabled></textarea></div>
+                                            <div class="table-cell"><textarea id="pool2_ph_7_8" class="ruleResponse" disabled></textarea></div>
                                             <div class="table-cell">
-                                                <select id="pool3_ph_7_8_level" class="concernLevel" disabled>
+                                                <select id="pool2_ph_7_8_level" class="concernLevel" disabled>
                                                     <option value="none">None</option>
                                                     <option value="yellow">Minor</option>
                                                     <option value="red">Major</option>
@@ -701,9 +696,9 @@
                                         </div>
                                         <div class="table-row">
                                             <div class="table-cell">8.0</div>
-                                            <div class="table-cell"><textarea id="pool3_ph_8_0" class="ruleResponse" disabled></textarea></div>
+                                            <div class="table-cell"><textarea id="pool2_ph_8_0" class="ruleResponse" disabled></textarea></div>
                                             <div class="table-cell">
-                                                <select id="pool3_ph_8_0_level" class="concernLevel" disabled>
+                                                <select id="pool2_ph_8_0_level" class="concernLevel" disabled>
                                                     <option value="none">None</option>
                                                     <option value="yellow">Minor</option>
                                                     <option value="red">Major</option>
@@ -712,9 +707,9 @@
                                         </div>
                                         <div class="table-row">
                                             <div class="table-cell">&gt; 8.0</div>
-                                            <div class="table-cell"><textarea id="pool3_ph_gt_8_0" class="ruleResponse" disabled></textarea></div>
+                                            <div class="table-cell"><textarea id="pool2_ph_gt_8_0" class="ruleResponse" disabled></textarea></div>
                                             <div class="table-cell">
-                                                <select id="pool3_ph_gt_8_0_level" class="concernLevel" disabled>
+                                                <select id="pool2_ph_gt_8_0_level" class="concernLevel" disabled>
                                                     <option value="none">None</option>
                                                     <option value="yellow">Minor</option>
                                                     <option value="red">Major</option>
@@ -724,7 +719,6 @@
                                     </div>
                                  </div>
                                 <div class="table-wrapper" style="flex: 1 1 300px;">
-                                    <h5>Cl responses</h5>
                                     <div class="rules-table cl-table">
                                         <div class="table-row table-header">
                                             <div class="table-cell header-cell">Cl</div>
@@ -733,9 +727,9 @@
                                         </div>
                                         <div class="table-row">
                                             <div class="table-cell">0</div>
-                                            <div class="table-cell"><textarea id="pool3_cl_0" class="ruleResponse" disabled></textarea></div>
+                                            <div class="table-cell"><textarea id="pool2_cl_0" class="ruleResponse" disabled></textarea></div>
                                             <div class="table-cell">
-                                                <select id="pool3_cl_0_level" class="concernLevel" disabled>
+                                                <select id="pool2_cl_0_level" class="concernLevel" disabled>
                                                     <option value="none">None</option>
                                                     <option value="yellow">Minor</option>
                                                     <option value="red">Major</option>
@@ -744,9 +738,9 @@
                                         </div>
                                         <div class="table-row">
                                             <div class="table-cell">1</div>
-                                            <div class="table-cell"><textarea id="pool3_cl_1" class="ruleResponse" disabled></textarea></div>
+                                            <div class="table-cell"><textarea id="pool2_cl_1" class="ruleResponse" disabled></textarea></div>
                                             <div class="table-cell">
-                                                <select id="pool3_cl_1_level" class="concernLevel" disabled>
+                                                <select id="pool2_cl_1_level" class="concernLevel" disabled>
                                                     <option value="none">None</option>
                                                     <option value="yellow">Minor</option>
                                                     <option value="red">Major</option>
@@ -755,9 +749,9 @@
                                         </div>
                                         <div class="table-row">
                                             <div class="table-cell">2</div>
-                                            <div class="table-cell"><textarea id="pool3_cl_2" class="ruleResponse" disabled></textarea></div>
+                                            <div class="table-cell"><textarea id="pool2_cl_2" class="ruleResponse" disabled></textarea></div>
                                             <div class="table-cell">
-                                                <select id="pool3_cl_2_level" class="concernLevel" disabled>
+                                                <select id="pool2_cl_2_level" class="concernLevel" disabled>
                                                     <option value="none">None</option>
                                                     <option value="yellow">Minor</option>
                                                     <option value="red">Major</option>
@@ -766,9 +760,9 @@
                                         </div>
                                         <div class="table-row">
                                             <div class="table-cell">3</div>
-                                            <div class="table-cell"><textarea id="pool3_cl_3" class="ruleResponse" disabled></textarea></div>
+                                            <div class="table-cell"><textarea id="pool2_cl_3" class="ruleResponse" disabled></textarea></div>
                                             <div class="table-cell">
-                                                <select id="pool3_cl_3_level" class="concernLevel" disabled>
+                                                <select id="pool2_cl_3_level" class="concernLevel" disabled>
                                                     <option value="none">None</option>
                                                     <option value="yellow">Minor</option>
                                                     <option value="red">Major</option>
@@ -777,9 +771,9 @@
                                         </div>
                                         <div class="table-row">
                                             <div class="table-cell">5</div>
-                                            <div class="table-cell"><textarea id="pool3_cl_5" class="ruleResponse" disabled></textarea></div>
+                                            <div class="table-cell"><textarea id="pool2_cl_5" class="ruleResponse" disabled></textarea></div>
                                             <div class="table-cell">
-                                                <select id="pool3_cl_5_level" class="concernLevel" disabled>
+                                                <select id="pool2_cl_5_level" class="concernLevel" disabled>
                                                     <option value="none">None</option>
                                                     <option value="yellow">Minor</option>
                                                     <option value="red">Major</option>
@@ -788,9 +782,9 @@
                                         </div>
                                         <div class="table-row">
                                             <div class="table-cell">7.5</div>
-                                            <div class="table-cell"><textarea id="pool3_cl_7_5" class="ruleResponse" disabled></textarea></div>
+                                            <div class="table-cell"><textarea id="pool2_cl_7_5" class="ruleResponse" disabled></textarea></div>
                                             <div class="table-cell">
-                                                <select id="pool3_cl_7_5_level" class="concernLevel" disabled>
+                                                <select id="pool2_cl_7_5_level" class="concernLevel" disabled>
                                                     <option value="none">None</option>
                                                     <option value="yellow">Minor</option>
                                                     <option value="red">Major</option>
@@ -799,9 +793,9 @@
                                         </div>
                                         <div class="table-row">
                                             <div class="table-cell">10</div>
-                                            <div class="table-cell"><textarea id="pool3_cl_10" class="ruleResponse" disabled></textarea></div>
+                                            <div class="table-cell"><textarea id="pool2_cl_10" class="ruleResponse" disabled></textarea></div>
                                             <div class="table-cell">
-                                                <select id="pool3_cl_10_level" class="concernLevel" disabled>
+                                                <select id="pool2_cl_10_level" class="concernLevel" disabled>
                                                     <option value="none">None</option>
                                                     <option value="yellow">Minor</option>
                                                     <option value="red">Major</option>
@@ -810,9 +804,9 @@
                                         </div>
                                         <div class="table-row">
                                             <div class="table-cell">&gt; 10</div>
-                                            <div class="table-cell"><textarea id="pool3_cl_gt_10" class="ruleResponse" disabled></textarea></div>
+                                            <div class="table-cell"><textarea id="pool2_cl_gt_10" class="ruleResponse" disabled></textarea></div>
                                             <div class="table-cell">
-                                                <select id="pool3_cl_gt_10_level" class="concernLevel" disabled>
+                                                <select id="pool2_cl_gt_10_level" class="concernLevel" disabled>
                                                     <option value="none">None</option>
                                                     <option value="yellow">Minor</option>
                                                     <option value="red">Major</option>
@@ -852,7 +846,6 @@
                                     </div>
                                 </div>
                                 <div class="table-wrapper" style="flex: 1 1 300px;">
-                                    <h5>pH responses</h5>
                                     <div class="rules-table ph-table">
                                         <div class="table-row table-header">
                                             <div class="table-cell header-cell">pH</div>
@@ -950,7 +943,6 @@
                                     </div>
                                 </div>
                                 <div class="table-wrapper" style="flex: 1 1 300px;">
-                                    <h5>Cl responses</h5>
                                     <div class="rules-table cl-table">
                                         <div class="table-row table-header">
                                             <div class="table-cell header-cell">Cl</div>
@@ -1078,7 +1070,6 @@
                                     </div>
                                 </div>
                                 <div class="table-wrapper" style="flex: 1 1 300px;">
-                                    <h5>pH responses</h5>
                                     <div class="rules-table ph-table">
                                         <div class="table-row table-header">
                                             <div class="table-cell header-cell">pH</div>
@@ -1176,7 +1167,6 @@
                                     </div>
                                 </div>
                                 <div class="table-wrapper" style="flex: 1 1 300px;">
-                                    <h5>Cl responses</h5>
                                     <div class="rules-table cl-table">
                                         <div class="table-row table-header">
                                             <div class="table-cell header-cell">Cl</div>
@@ -1396,4 +1386,4 @@
     <script type="module" src="newRules.js"></script>
 
 </body>
-                                                                      </html>
+ </html>
