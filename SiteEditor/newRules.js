@@ -84,17 +84,16 @@ function startPoolListener() {
  
 
 function setBlockEnabled(block, enabled) {
-  block.querySelectorAll('textarea, select').forEach((el) => {
+  if (!block) return;
+
+  // Toggle styling classes so CSS can grey out just the tables
+  block.classList.toggle('editing', enabled);
+  block.classList.toggle('disabled-block', !enabled);
+
+  // Enable/disable all rule inputs, including Concern dropdowns
+  block.querySelectorAll('textarea, select').forEach(el => {
     el.disabled = !enabled;
   });
-
-  if (enabled) {
-    block.classList.add('editing');
-    block.classList.remove('disabled-block');
-  } else {
-    block.classList.remove('editing');
-    block.classList.add('disabled-block');
-  }
 }
  
 function setMetadataEnabled(enabled) {
@@ -109,11 +108,11 @@ function setMetadataEnabled(enabled) {
  }
  
 function updatePoolBlockVisibility(count) {
-  const blocks = document.querySelectorAll(poolRuleContainerSelector);
-  blocks.forEach((block, idx) => {
-    block.style.display = idx < count ? '' : 'none';
+  const blocks = document.querySelectorAll('#poolRuleBlocks .pool-rule-block');
+  blocks.forEach((block, index) => {
+    block.style.display = index < count ? '' : 'none';
   });
- }
+}
 
 function applyRuleToInputs(block, rules = {}) {
   const poolIndex = block.dataset.poolIndex;
@@ -139,6 +138,9 @@ function loadPoolIntoEditor(poolDoc) {
  
   const poolNameInput = document.getElementById('editorPoolName');
   const numPoolsInput = document.getElementById('editorNumPools');
+  const numPoolsInput = document.getElementById('editorNumPools');
+  const numPools = Math.max(1, Math.min(5, Number(numPoolsInput?.value) || 1));
+    updatePoolBlockVisibility(numPools);
   const marketCheckboxes = document.querySelectorAll('input[name="editorMarket"]');
  
   if (poolNameInput) poolNameInput.value = getPoolName(poolDoc);
