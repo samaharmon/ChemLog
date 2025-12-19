@@ -87,7 +87,15 @@ function setBlockEnabled(block, enabled) {
   block.querySelectorAll('textarea, select').forEach((el) => {
     el.disabled = !enabled;
   });
- }
+
+  if (enabled) {
+    block.classList.add('editing');
+    block.classList.remove('disabled-block');
+  } else {
+    block.classList.remove('editing');
+    block.classList.add('disabled-block');
+  }
+}
  
 function setMetadataEnabled(enabled) {
   const metadataFields = [
@@ -482,13 +490,130 @@ function attachEditorEvents() {
   }
 }
 
+const activeSanitationByPool = {};
+
+function setupSanitationTabs() {
+  document.querySelectorAll('.sanitation-tab').forEach((tab) => {
+    tab.addEventListener('click', () => {
+      const poolIndex = tab.dataset.poolIndex;
+      const method = tab.dataset.method || 'bleach';
+
+      const block = tab.closest('.pool-rule-block');
+      if (!block) return;
+
+      // Visual active state
+      block.querySelectorAll('.sanitation-tab').forEach((t) => {
+        t.classList.toggle('active', t === tab);
+      });
+
+      // Remember the active method for this pool
+      activeSanitationByPool[poolIndex] = method;
+      block.dataset.activeMethod = method;
+
+      // NOTE: with the current data model, Bleach and Granular
+      // share the same underlying rules. This wiring makes the
+      // tabs behave correctly in the UI and keeps track of which
+      // method is "active" per pool so we can extend the data
+      // model later to store separate rules per method.
+    });
+  });
+}
+
+function applyConcernToRow(select) {
+  const row = select.closest('.table-row');
+  if (!row) return;
+
+  const responseArea = row.querySelector('textarea');
+
+  // remove previous concern classes
+  ['concern-none', 'concern-minor', 'concern-major'].forEach((cls) => {
+    row.classList.remove(cls);
+    select.classList.remove(cls);
+    if (responseArea) responseArea.classList.remove(cls);
+  });
+
+  const level = select.value || 'none';
+  const cls =
+    level === 'major' ? 'concern-major' :
+    level === 'minor' ? 'concern-minor' :
+    'concern-none';
+
+  row.classList.add(cls);
+  select.classList.add(cls);
+  if (responseArea) responseArea.classList.add(cls);
+}
+
+function wireConcernDropdowns() {
+  document.querySelectorAll('.concernLevel').forEach((sel) => {
+    sel.addEventListener('change', () => applyConcernToRow(sel));
+    // apply initial state from saved value
+    applyConcernToRow(sel);
+  });
+}
+
+function setupDeletePool() {
+  const deleteBtn = document.getElementById('deletePoolBtn');
+  const modal = document.getElementById('deletePoolModal');
+  const confirmBtn = document.getElementById('confirmDeletePoolBtn');
+  const cancelBtn = document.getElementById('cancelDeletePoolBtn');
+
+  if (!deleteBtn || !modal || !confirmBtn || !cancelBtn) {
+    console.warn('Delete pool UI not fully present.');
+    return;
+  }
+
+  const closeModal = () => {
+    modal.style.display = 'none';
+    removeOverlay?.();
+  };
+
+  deleteBtn.addEventListener('click', () => {
+    if (!currentPoolId) {
+      showMessage('You can only delete an existing saved pool.', 'warning');
+      return;
+    }
+    createOrShowOverlay?.();
+    modal.style.display = 'block';
+  });
+
+  cancelBtn.addEventListener('click', closeModal);
+
+  confirmBtn.addEventListener('click', async () => {
+    if (!currentPoolId) return;
+
+    try {
+      await deletePoolDoc(currentPoolId);
+      showMessage('Pool deleted.', 'success');
+      closeModal();
+      await refreshPools();
+
+      const poolSelect = document.getElementById('editorPoolSelect');
+      if (poolSelect) poolSelect.value = '';
+      currentPoolId = '';
+
+      // Hide details again in edit mode
+      const metadataSection = document.getElementById('poolMetadataSection');
+      const ruleSection = document.getElementById('ruleEditorSection');
+      metadataSection?.classList.add('hidden');
+      ruleSection?.classList.add('hidden');
+    } catch (error) {
+      console.error('Error deleting pool', error);
+      showMessage('Could not delete pool. Please try again.', 'error');
+    }
+  });
+}
+
 async function initEditor() {
   removePoolShapeGallonage();
   startPoolListener();
   await refreshPools();
   wireMetadataButtons();
   wireBlockButtons();
+  setupSanitationTabs();
+  wireConcernDropdowns();
+  setupDeletePool();
   attachEditorEvents();
+  toggleMode(document.getElementById('editorModeAdd')?.checked ? 'add' : 'edit');
 
   const editorSection       = document.getElementById('poolRuleEditorSection');
   const poolSelectWrapper   = document.getElementById('editorPoolSelectWrapper');
