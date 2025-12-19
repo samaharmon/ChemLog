@@ -2438,9 +2438,6 @@ function showDashboard() {
     console.log('🤖 Logo still exists after updateHeaderButtons:', !!document.getElementById('logo'));
 }
 
-
-
-
 // ===================================================
 // PAGINATION
 // ===================================================
