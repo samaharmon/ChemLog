@@ -62,9 +62,11 @@
   box-sizing: border-box;
 }
 
-#poolMetadataSection input:enabled {
-  background-color: #fff;
- }
+#poolMetadataSection input[type="text"]:enabled,
+#poolMetadataSection input[type="number"]:enabled,
+#poolMetadataSection select:enabled {
+    background-color: #fff;
+}
  
 #poolMetadataSection .form-row {
   justify-content: flex-start;
@@ -413,4 +415,17 @@ body.dark-mode .pool-rule-block {
 .table-row.concern-major select.concernLevel {
     background-color: #ffebee;  /* light red */
     color: #c62828;
+}
+
+/* Greyed-out state for saved rule blocks: affect only the rule tables */
+.pool-rule-block.disabled-block .rules-table,
+.pool-rule-block.disabled-block .rules-table textarea,
+.pool-rule-block.disabled-block .rules-table select {
+    opacity: 0.35;
+}
+
+.pool-rule-block.disabled-block .rules-table textarea,
+.pool-rule-block.disabled-block .rules-table select {
+    background-color: #2b2b2b;
+    color: #aaaaaa;
 }
