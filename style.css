@@ -176,17 +176,15 @@ p {
 
 .danger-button {
     background-color: #ff4d4d;
-    color: white;
-    border: none;
-    padding: 10px 20px;
-    font-weight: bold;
-    border-radius: 5px;
-    cursor: pointer;
-    transition: background-color 0.3s ease;
+    border-color: #ff4d4d;
+    color: #ffffff;
+    border-radius: 0;
+    /* padding / font / border-width come from .editAndSave / .submit-btn */
 }
 
 .danger-button:hover {
     background-color: #d93636;
+    border-color: #d93636;
 }
 
 /* --- Rest of your CSS (unchanged, but moved for clarity) --- */
@@ -1123,7 +1121,11 @@ body.dark-mode .highlight-yellow {
     transition: background-color 0.3s, color 0.3s;
 }
 
-
+.rules-table .table-header .table-cell {
+    font-weight: 600;
+    background-color: #3a3a3a;
+    border-bottom: 2px solid #777;
+}
 
 
 
