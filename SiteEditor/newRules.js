@@ -280,7 +280,38 @@ function wireMetadataButtons() {
      }
   });
 }
- 
+
+// Add "Value / Response / Concern" header to each rules table
+function addRuleTableHeaders() {
+  const headerHtml = `
+    <div class="table-row table-header-row">
+      <div class="table-cell table-header-cell">Value</div>
+      <div class="table-cell table-header-cell">Response</div>
+      <div class="table-cell table-header-cell">Concern</div>
+    </div>
+  `;
+
+  document
+    .querySelectorAll('#poolRuleBlocks .rules-table')
+    .forEach((table) => {
+      if (!table.querySelector('.table-header-row')) {
+        table.insertAdjacentHTML('afterbegin', headerHtml);
+      }
+    });
+}
+
+// Rename concern level options (values stay the same)
+function relabelConcernOptions() {
+  document
+    .querySelectorAll('#poolRuleBlocks .concernLevel')
+    .forEach((select) => {
+      select.querySelectorAll('option').forEach((opt) => {
+        if (opt.value === 'none') opt.textContent = 'None';
+        if (opt.value === 'yellow') opt.textContent = 'Minor';
+        if (opt.value === 'red') opt.textContent = 'Major';
+      });
+    });
+}
 
 async function refreshPools() {
   poolsCache = await getPools();
@@ -297,14 +328,15 @@ function toggleMode(mode) {
   const metadataSection = document.getElementById('poolMetadataSection');
   const ruleSection = document.getElementById('ruleEditorSection');
   const poolNameInput = document.getElementById('editorPoolName');
+  const numPoolsInput = document.getElementById('editorNumPools');
+  const marketCheckboxes = document.querySelectorAll('input[name="editorMarket"]');
 
   if (!poolSelectWrapper || !rockbridgeWrapper || !metadataSection || !ruleSection) {
     console.warn('Editor sections not found – cannot toggle mode.');
     return;
   }
 
-  // Always reset pool name + currentPoolId when switching
-  if (poolNameInput) poolNameInput.value = '';
+  // Reset current pool id when switching modes
   currentPoolId = '';
 
   if (mode === 'add') {
@@ -314,9 +346,26 @@ function toggleMode(mode) {
     metadataSection.classList.remove('hidden');
     ruleSection.classList.remove('hidden');
 
-    // Clear rules before optionally applying Rockbridge presets
-    document.querySelectorAll(poolRuleContainerSelector).forEach(block => {
+    // Preset metadata for Rockbridge
+    if (poolNameInput) poolNameInput.value = 'Rockbridge';
+    if (numPoolsInput) {
+      numPoolsInput.value = '2';
+      updatePoolBlockVisibility(2);
+    }
+    if (marketCheckboxes?.length) {
+      marketCheckboxes.forEach((cb) => {
+        cb.checked = cb.value === 'Columbia';
+      });
+    }
+
+    // Clear rules, then apply Rockbridge presets
+    document.querySelectorAll(poolRuleContainerSelector).forEach((block) => {
       applyRuleToInputs(block, {});
+    });
+
+    // Fire and forget – presets will populate once pools are loaded
+    cloneRockbridgePresets().catch((err) => {
+      console.error('Error applying Rockbridge presets in add mode', err);
     });
   } else if (mode === 'edit') {
     // EDIT MODE: only the pool dropdown visible until user picks a pool
@@ -324,11 +373,19 @@ function toggleMode(mode) {
     rockbridgeWrapper.classList.add('hidden');
     metadataSection.classList.add('hidden');
     ruleSection.classList.add('hidden');
+
+    // Clear metadata fields when switching to edit
+    if (poolNameInput) poolNameInput.value = '';
+    if (numPoolsInput) numPoolsInput.value = '1';
+    if (marketCheckboxes?.length) {
+      marketCheckboxes.forEach((cb) => {
+        cb.checked = false;
+      });
+    }
   }
 
   disableAllEditors();
 }
-
  
 async function cloneRockbridgePresets() {
   if (!poolsCache.length) {
