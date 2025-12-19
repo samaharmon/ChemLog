@@ -45,7 +45,7 @@
 #poolMetadataSection {
   border: 1px solid #ddd;
   padding: 16px;
-  background: #fafafa;
+  background: #333;
 }
 
 #poolMetadataSection h3 {
@@ -253,3 +253,69 @@
   flex-direction: column;
   align-items: flex-start;
 }
+
+/* --- Full-width header just on the rule editor page --- */
+body.dark-mode #mainForm .header {
+  width: 100vw;
+  margin-left: calc(50% - 50vw);
+  margin-right: calc(50% - 50vw);
+  border-radius: 0;
+}
+
+/* --- Darken hidden/inner sections so they match the main content --- */
+body.dark-mode #poolMetadataSection,
+body.dark-mode #ruleEditorSection,
+body.dark-mode .pool-rule-block {
+  background-color: #2e2e2e;
+}
+
+/* Optional: keep a subtle border so blocks don't visually merge */
+.pool-rule-block {
+  border: 1px solid #555;
+}
+
+/* --- Column header row for the rule tables --- */
+.rules-table .table-header-row {
+  display: grid;
+  grid-template-columns: 0.9fr 3fr 1.1fr;
+  font-weight: 600;
+  font-size: 0.85rem;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  padding: 6px 8px;
+  border-bottom: 1px solid #555;
+}
+
+.rules-table .table-header-cell {
+  padding: 0 6px;
+}
+
+/* --- Bleach / Granular tabs in each pool rule block --- */
+.pool-section-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-end;
+  gap: 1rem;
+}
+
+.sanitation-tabs {
+  display: inline-flex;
+  gap: 0.4rem;
+}
+
+.sanitation-tab {
+  padding: 4px 10px;
+  font-size: 0.8rem;
+  border-radius: 4px 4px 0 0;
+  border: 1px solid #777;
+  background: #1f1f1f;
+  color: #f9f9f9;
+  cursor: pointer;
+}
+
+.sanitation-tab.active {
+  background: #69140e;
+  border-color: #69140e;
+  font-weight: 600;
+}
+
