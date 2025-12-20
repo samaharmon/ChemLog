@@ -251,6 +251,23 @@
     width: 100%;
 }
 
+/* Ensure all pool rule blocks use the same full width */
+#poolRuleBlocks {
+    max-width: 1100px;
+    margin: 0 auto 40px auto;
+}
+
+.pool-rule-block {
+    width: 100%;
+    box-sizing: border-box;
+}
+
+/* Make sure the table wrappers inside each block also stretch */
+.pool-rule-block .table-wrapper {
+    width: 100%;
+}
+
+
 /* Center the main editor container */
 #mainForm {
   max-width: 1100px;
