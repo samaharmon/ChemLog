@@ -437,59 +437,71 @@ function setActiveModeButton(mode) {
 }
 
 function attachEditorEvents() {
-  const poolSelect = document.getElementById('editorPoolSelect');
-  const rockbridgeBtn = document.getElementById('rockbridgePresetsBtn');
-  const editorModeEditBtn = document.getElementById('editorModeEdit');
-  const editorModeAddBtn = document.getElementById('editorModeAdd');
-  const numPoolsInput = document.getElementById('editorNumPools');
+    const poolSelect        = document.getElementById('editorPoolSelect');
+    const rockbridgeBtn     = document.getElementById('useRockbridgePreset');
+    const editorModeEditBtn = document.getElementById('editorModeEdit');
+    const editorModeAddBtn  = document.getElementById('editorModeAdd');
+    const numPoolsInput     = document.getElementById('editorNumPools');
 
+    // When a pool is chosen in "Edit existing pool" mode
     if (poolSelect) {
-    poolSelect.addEventListener('change', () => {
-        if (!poolSelect.value) {
-        // Back to "Select an existing pool..." — hide details again
-        const poolMetadataSection = document.getElementById('poolMetadataSection');
-        const ruleEditorSection = document.getElementById('ruleEditorSection');
-        poolMetadataSection?.classList.add('hidden');
-        ruleEditorSection?.classList.add('hidden');
-        return;
-        }
+        poolSelect.addEventListener('change', () => {
+            const poolMetadataSection = document.getElementById('poolMetadataSection');
+            const ruleEditorSection   = document.getElementById('ruleEditorSection');
 
-        const poolDoc = findPoolById(poolSelect.value);
-        if (poolDoc) {
-        loadPoolIntoEditor(poolDoc);
-        showEditorDetails();   // will remove .hidden
-        } else {
-        showMessage('Pool not found. Please refresh.', 'error');
-        }
-    });
+            if (!poolSelect.value) {
+                // Back to “no pool selected” – hide details again
+                poolMetadataSection?.classList.add('hidden');
+                ruleEditorSection?.classList.add('hidden');
+                currentPoolId = '';
+                return;
+            }
+
+            const poolDoc = findPoolById(poolSelect.value);
+            if (poolDoc) {
+                loadPoolIntoEditor(poolDoc);
+                showEditorDetails(); // reveals metadata + rule editor
+            } else {
+                showMessage('Pool not found. Please refresh.', 'error');
+            }
+        });
     }
 
+    // Apply Rockbridge preset for “Add new pool”
+    if (rockbridgeBtn) {
+        rockbridgeBtn.addEventListener('click', async () => {
+            try {
+                await cloneRockbridgePresets();
+                showMessage('Rockbridge presets applied.', 'success');
+            } catch (err) {
+                console.error('Error applying Rockbridge presets', err);
+                showMessage('Error applying Rockbridge presets.', 'error');
+            }
+        });
+    }
 
-  if (rockbridgeBtn) {
-    rockbridgeBtn.addEventListener('click', cloneRockbridgePresets);
-  }
+    // Mode buttons (top of the editor)
+    if (editorModeEditBtn) {
+        editorModeEditBtn.addEventListener('click', () => {
+            setActiveModeButton('edit');
+            toggleMode('edit');
+        });
+    }
 
-  if (editorModeEdit) {
-    editorModeEdit.addEventListener('click', () => {
-      setActiveModeButton('edit');
-      toggleMode('edit');
-    });
-  }
+    if (editorModeAddBtn) {
+        editorModeAddBtn.addEventListener('click', () => {
+            setActiveModeButton('add');
+            toggleMode('add');
+        });
+    }
 
-  if (editorModeAdd) {
-    editorModeAdd.addEventListener('click', () => {
-      setActiveModeButton('add');
-      toggleMode('add');
-    });
-  }
-
-  if (numPoolsInput) {
-    numPoolsInput.addEventListener('change', () => {
-      updatePoolBlockVisibility(
-        Math.max(1, Math.min(5, Number(numPoolsInput.value) || 1)),
-      );
-    });
-  }
+    // Number of pools selector
+    if (numPoolsInput) {
+        numPoolsInput.addEventListener('change', () => {
+            const count = Math.max(1, Math.min(5, Number(numPoolsInput.value) || 1));
+            updatePoolBlockVisibility(count);
+        });
+    }
 }
 
 const activeSanitationByPool = {};
