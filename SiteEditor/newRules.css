@@ -446,3 +446,20 @@ body.dark-mode .pool-rule-block {
     background-color: #2b2b2b;
     color: #aaaaaa;
 }
+
+/* Make the rule blocks and their tables full-width inside the editor */
+#poolRuleBlocks {
+    max-width: 1100px;
+    margin: 0 auto 40px auto;
+}
+
+.pool-rule-block {
+    width: 100%;
+    box-sizing: border-box;
+}
+
+/* The two table wrappers under each pool should also stretch */
+#ruleEditorSection .table-wrapper {
+    width: 100%;
+    box-sizing: border-box;
+}
