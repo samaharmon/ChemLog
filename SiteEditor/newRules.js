@@ -128,49 +128,53 @@ function applyRuleToInputs(block, rules = {}) {
  
 function loadPoolIntoEditor(poolDoc) {
   if (!poolDoc) return;
+
   currentPoolId = poolDoc.id || '';
 
-  // When editing, reveal the metadata + rule sections
+  // Reveal the metadata + rule sections when editing
   const metadataSection = document.getElementById('poolMetadataSection');
   const ruleSection = document.getElementById('ruleEditorSection');
   metadataSection?.classList.remove('hidden');
   ruleSection?.classList.remove('hidden');
- 
-  const poolNameInput = document.getElementById('editorPoolName');
-  const numPoolsInput = document.getElementById('editorNumPools');
-  const numPoolsInput = document.getElementById('editorNumPools');
-  const numPools = Math.max(1, Math.min(5, Number(numPoolsInput?.value) || 1));
-    updatePoolBlockVisibility(numPools);
+
+  const poolNameInput   = document.getElementById('editorPoolName');
+  const numPoolsInput   = document.getElementById('editorNumPools');
   const marketCheckboxes = document.querySelectorAll('input[name="editorMarket"]');
- 
-  if (poolNameInput) poolNameInput.value = getPoolName(poolDoc);
-  if (numPoolsInput) numPoolsInput.value = poolDoc.numPools || poolDoc.poolCount || 1;
+
+  // Basic metadata
+  if (poolNameInput) {
+    poolNameInput.value = getPoolName(poolDoc);
+  }
+
+  if (numPoolsInput) {
+    const savedCount = poolDoc.numPools || poolDoc.poolCount || 1;
+    numPoolsInput.value = String(savedCount);
+
+    // Show the right number of pool rule sections
+    const count = Math.max(1, Math.min(5, Number(savedCount) || 1));
+    updatePoolBlockVisibility(count);
+  }
+
   if (marketCheckboxes?.length) {
     const markets = poolDoc.markets || poolDoc.market || [];
     marketCheckboxes.forEach((cb) => {
       cb.checked = markets.includes(cb.value);
     });
   }
- 
+
+  // Load rules for each pool into its tables
   const rulesForPools = poolDoc.rules?.pools || [];
   const blocks = document.querySelectorAll(poolRuleContainerSelector);
-  blocks.forEach((block, idx) => {
-    applyRuleToInputs(block, rulesForPools[idx] || {});
-    setBlockEnabled(block, false);
-    const [editBtn, saveBtn] = block.querySelectorAll('.editAndSave');
-    if (editBtn) editBtn.disabled = false;
-    if (saveBtn) saveBtn.disabled = true;
-  });
- 
-  setMetadataEnabled(false);
-  const metadataEditBtn = document.getElementById('metadataEditBtn');
-  const metadataSaveBtn = document.getElementById('metadataSaveBtn');
-  if (metadataEditBtn) metadataEditBtn.disabled = false;
-  if (metadataSaveBtn) metadataSaveBtn.disabled = true;
- 
 
-  updatePoolBlockVisibility(Number(numPoolsInput?.value) || 1);
- }
+  blocks.forEach((block, idx) => {
+    const rulesForThisPool = rulesForPools[idx] || {};
+    applyRuleToInputs(block, rulesForThisPool);
+  });
+
+  // Everything starts in "view" mode
+  disableAllEditors();
+}
+
  
 function readEditorToObject() {
   const poolNameInput = document.getElementById('editorPoolName');
@@ -438,7 +442,7 @@ function setActiveModeButton(mode) {
 
 function attachEditorEvents() {
     const poolSelect        = document.getElementById('editorPoolSelect');
-    const rockbridgeBtn     = document.getElementById('useRockbridgePreset');
+    const rockbridgeBtn     = document.getElementById('rockbridgePresetsBtn');
     const editorModeEditBtn = document.getElementById('editorModeEdit');
     const editorModeAddBtn  = document.getElementById('editorModeAdd');
     const numPoolsInput     = document.getElementById('editorNumPools');
@@ -621,13 +625,13 @@ async function initEditor() {
   removePoolShapeGallonage();
   startPoolListener();
   await refreshPools();
+
   wireMetadataButtons();
   wireBlockButtons();
   setupSanitationTabs();
   wireConcernDropdowns();
   setupDeletePool();
   attachEditorEvents();
-  toggleMode(document.getElementById('editorModeAdd')?.checked ? 'add' : 'edit');
 
   const editorSection       = document.getElementById('poolRuleEditorSection');
   const poolSelectWrapper   = document.getElementById('editorPoolSelectWrapper');
@@ -635,18 +639,22 @@ async function initEditor() {
   const poolMetadataSection = document.getElementById('poolMetadataSection');
   const ruleEditorSection   = document.getElementById('ruleEditorSection');
 
-  // 🔓 Make sure the main editor section itself is visible
+  // Show the editor header + mode buttons
   editorSection?.classList.remove('hidden');
 
-  // 🧱 Initial state: show ONLY the mode buttons row
+  // Initial state: only the Add/Edit buttons visible
   poolSelectWrapper?.classList.add('hidden');
   rockbridgeWrapper?.classList.add('hidden');
   poolMetadataSection?.classList.add('hidden');
   ruleEditorSection?.classList.add('hidden');
 
-  // Keep all fields disabled until "Edit" is clicked
+  // Hide all pool rule blocks until a pool count is chosen
+  updatePoolBlockVisibility(0);
+
+  // Make sure everything starts in read‑only mode
   disableAllEditors();
 }
+
 
  
 
