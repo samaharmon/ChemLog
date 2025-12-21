@@ -84,28 +84,25 @@ function startPoolListener() {
  
 
 function setBlockEnabled(block, enabled) {
-  if (!block) return;
+  const ruleInputs = block.querySelectorAll('.rules-table textarea, .rules-table select');
+  ruleInputs.forEach(el => el.disabled = !enabled);
 
-  // Toggle styling classes so CSS can grey out just the tables
-  block.classList.toggle('editing', enabled);
-  block.classList.toggle('disabled-block', !enabled);
-
-  // Enable/disable all rule inputs, including Concern dropdowns
-  block.querySelectorAll('textarea, select').forEach(el => {
-    el.disabled = !enabled;
+  // add overlay class only to the rules-table region
+  block.querySelectorAll('.rules-table').forEach(tbl => {
+    tbl.classList.toggle('overlay-disabled', !enabled);
   });
 }
  
 function setMetadataEnabled(enabled) {
-  const metadataFields = [
-    document.getElementById('editorPoolName'),
-    document.getElementById('editorNumPools'),
-    ...document.querySelectorAll('input[name="editorMarket"]'),
-  ];
-  metadataFields.forEach((el) => {
-    if (el) el.disabled = !enabled;
+  const metaSection = document.getElementById('poolMetadataSection');
+  if (!metaSection) return;
+  metaSection.querySelectorAll('input, textarea, select').forEach(el => {
+    el.disabled = !enabled;
   });
- }
+  // apply a dim overlay class to the metadata content wrapper (not on the buttons container)
+  const content = metaSection.querySelector('.metadata-content');
+  if (content) content.classList.toggle('overlay-disabled', !enabled);
+}
  
 function updatePoolBlockVisibility(count) {
   const blocks = document.querySelectorAll('#poolRuleBlocks .pool-rule-block');
@@ -596,30 +593,50 @@ function setupDeletePool() {
 
   cancelBtn.addEventListener('click', closeModal);
 
-  confirmBtn.addEventListener('click', async () => {
-    if (!currentPoolId) return;
+confirmBtn.addEventListener('click', async () => {
+  if (!currentPoolId) return;
 
-    try {
-      await deletePoolDoc(currentPoolId);
-      showMessage('Pool deleted.', 'success');
-      closeModal();
-      await refreshPools();
+  // disable button to prevent double-clicks
+  confirmBtn.disabled = true;
+  try {
+    const ok = await deletePoolDoc(currentPoolId);
 
-      const poolSelect = document.getElementById('editorPoolSelect');
-      if (poolSelect) poolSelect.value = '';
-      currentPoolId = '';
-
-      // Hide details again in edit mode
-      const metadataSection = document.getElementById('poolMetadataSection');
-      const ruleSection = document.getElementById('ruleEditorSection');
-      metadataSection?.classList.add('hidden');
-      ruleSection?.classList.add('hidden');
-    } catch (error) {
-      console.error('Error deleting pool', error);
-      showMessage('Could not delete pool. Please try again.', 'error');
+    if (!ok) {
+      // deletePoolDoc returned false (it handled an error internally)
+      console.error('deletePoolDoc returned false for id:', currentPoolId);
+      showMessage('Could not delete pool. (check console for details)', 'error');
+      return;
     }
-  });
+
+    // success path
+    showMessage('Pool deleted.', 'success');
+    closeModal();
+
+    // refresh pools list / UI
+    await refreshPools();
+
+    const poolSelect = document.getElementById('editorPoolSelect');
+    if (poolSelect) poolSelect.value = '';
+
+    currentPoolId = '';
+
+    // hide details again in edit mode
+    const metadataSection = document.getElementById('poolMetadataSection');
+    const ruleSection = document.getElementById('ruleEditorSection');
+    metadataSection?.classList.add('hidden');
+    ruleSection?.classList.add('hidden');
+
+  } catch (err) {
+    // Unexpected error (network/Firestore exception etc.)
+    console.error('Error deleting pool:', err);
+    showMessage(`Could not delete pool: ${err?.message || String(err)}`, 'error');
+  } finally {
+    // re-enable button regardless of outcome
+    confirmBtn.disabled = false;
+  }
+});
 }
+
 
 async function initEditor() {
   removePoolShapeGallonage();
@@ -632,6 +649,7 @@ async function initEditor() {
   wireConcernDropdowns();
   setupDeletePool();
   attachEditorEvents();
+  toggleMode('add');
 
   const editorSection       = document.getElementById('poolRuleEditorSection');
   const poolSelectWrapper   = document.getElementById('editorPoolSelectWrapper');
@@ -679,7 +697,3 @@ document.addEventListener('DOMContentLoaded', () => {
     }
   });
 });
-
-
-
-console.log('newRules.js loaded');
