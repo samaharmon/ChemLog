@@ -596,42 +596,53 @@ function setupDeletePool() {
 confirmBtn.addEventListener('click', async () => {
   if (!currentPoolId) return;
 
-  // disable button to prevent double-clicks
+  // disable button to prevent double-clicks while working
   confirmBtn.disabled = true;
-  try {
-    const ok = await deletePoolDoc(currentPoolId);
 
-    if (!ok) {
-      // deletePoolDoc returned false (it handled an error internally)
-      console.error('deletePoolDoc returned false for id:', currentPoolId);
-      showMessage('Could not delete pool. (check console for details)', 'error');
+  try {
+    // Attempt deletion (deletePoolDoc may return true/false or throw)
+    const result = await deletePoolDoc(currentPoolId);
+
+    // If the helper returns falsey (explicit false or null/undefined),
+    // treat it as a failure and surface a helpful message.
+    if (!result) {
+      console.error('deletePoolDoc indicated failure for id:', currentPoolId, 'result:', result);
+      showMessage('Could not delete pool. Check console for details.', 'error');
       return;
     }
 
-    // success path
+    // Success path
     showMessage('Pool deleted.', 'success');
-    closeModal();
 
-    // refresh pools list / UI
+    // Close modal & remove overlay if those functions exist
+    try {
+      if (typeof closeModal === 'function') closeModal();
+      if (typeof removeOverlay === 'function') removeOverlay();
+    } catch (e) {
+      // non-fatal: log and continue
+      console.warn('Error closing modal / removing overlay after delete:', e);
+    }
+
+    // Refresh pools list and UI
     await refreshPools();
 
+    // Clear selection and current id
     const poolSelect = document.getElementById('editorPoolSelect');
     if (poolSelect) poolSelect.value = '';
-
     currentPoolId = '';
 
-    // hide details again in edit mode
+    // Hide metadata + rules sections (back to pre-edit state)
     const metadataSection = document.getElementById('poolMetadataSection');
     const ruleSection = document.getElementById('ruleEditorSection');
     metadataSection?.classList.add('hidden');
     ruleSection?.classList.add('hidden');
 
   } catch (err) {
-    // Unexpected error (network/Firestore exception etc.)
+    // Unexpected exception (network / Firestore permission / etc.)
     console.error('Error deleting pool:', err);
     showMessage(`Could not delete pool: ${err?.message || String(err)}`, 'error');
   } finally {
-    // re-enable button regardless of outcome
+    // always re-enable confirm button
     confirmBtn.disabled = false;
   }
 });
