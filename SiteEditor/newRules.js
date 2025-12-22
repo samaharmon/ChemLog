@@ -1,4 +1,4 @@
-import { getPools, listenPools, savePoolDoc } from '../firebase.js';
+import { getPools, listenPools, savePoolDoc, deletePoolDoc } from '../firebase.js';
  
 let poolsCache = [];
 let currentPoolId = '';
