@@ -76,6 +76,14 @@
   min-width: 80px;
  }
 
+/* Make the Delete pool button match Edit / Save sizing */
+#poolMetadataSection #deletePoolBtn {
+  padding: 6px 12px;      /* same vertical/horizontal padding as edit/save */
+  min-width: 120px;       /* wide enough so “Delete pool” is on one line */
+  white-space: nowrap;    /* prevent wrapping */
+  border-radius: 0;       /* override any .danger-button radius */
+}
+
 .market-options {
     display: flex;
     flex-direction: column;
@@ -469,3 +477,5 @@ body.dark-mode .pool-rule-block {
   pointer-events: none;
   transition: opacity 0.15s;
 }
+
+
