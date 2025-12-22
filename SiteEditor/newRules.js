@@ -3,6 +3,62 @@ import { getPools, listenPools, savePoolDoc, deletePoolDoc } from '../firebase.j
 let poolsCache = [];
 let currentPoolId = '';
 let poolsListenerStarted = false;
+
+// ---- Per‑sanitation rule state ----
+const SANITATION_METHODS = ['bleach', 'granular'];
+
+// ruleStateByPool[poolIndex] = { bleach: { ph:{}, cl:{} }, granular: { ph:{}, cl:{} } }
+const ruleStateByPool = {};
+
+function createEmptyMethodRules() {
+  return { ph: {}, cl: {} };
+}
+
+function getOrCreatePoolRuleState(poolIndex) {
+  if (!ruleStateByPool[poolIndex]) {
+    ruleStateByPool[poolIndex] = {
+      bleach: createEmptyMethodRules(),
+      granular: createEmptyMethodRules(),
+    };
+  }
+  return ruleStateByPool[poolIndex];
+}
+
+/**
+ * Read the currently visible textareas + Concern dropdowns for a block
+ * into ruleStateByPool[poolIndex][method].
+ */
+function captureRulesFromBlock(block, method) {
+  const poolIndex = block.dataset.poolIndex;
+  const state = getOrCreatePoolRuleState(poolIndex);
+
+  const methodRules = { ph: {}, cl: {} };
+
+  block.querySelectorAll(`textarea[id^="pool${poolIndex}_"]`).forEach((area) => {
+    const typeKey = area.id.includes('_ph_') ? 'ph' : 'cl';
+    const key = area.id.replace(`pool${poolIndex}_${typeKey}_`, '');
+    const levelSelect = document.getElementById(`${area.id}_level`);
+    methodRules[typeKey][key] = {
+      response: area.value.trim(),
+      concernLevel: levelSelect ? levelSelect.value : 'none',
+    };
+  });
+
+  state[method] = methodRules;
+}
+
+/**
+ * Push one method’s rules from ruleStateByPool back into the DOM
+ * for a single pool block.
+ */
+function showRulesForMethod(block, method) {
+  const poolIndex = block.dataset.poolIndex;
+  const state = getOrCreatePoolRuleState(poolIndex);
+  const rulesForMethod = state[method] || createEmptyMethodRules();
+
+  applyRuleToInputs(block, rulesForMethod);
+  block.dataset.activeMethod = method;
+}
  
 const poolRuleContainerSelector = '#poolRuleBlocks .pool-rule-block';
 
@@ -94,15 +150,22 @@ function setBlockEnabled(block, enabled) {
 }
  
 function setMetadataEnabled(enabled) {
-  const metaSection = document.getElementById('poolMetadataSection');
-  if (!metaSection) return;
-  metaSection.querySelectorAll('input, textarea, select').forEach(el => {
-    el.disabled = !enabled;
+  const metadataSection = document.getElementById('poolMetadataSection');
+  if (!metadataSection) return;
+
+  const fields = [
+    document.getElementById('editorPoolName'),
+    document.getElementById('editorNumPools'),
+    ...document.querySelectorAll('input[name="editorMarket"]'),
+  ];
+
+  fields.forEach((el) => {
+    if (el) el.disabled = !enabled;
   });
-  // apply a dim overlay class to the metadata content wrapper (not on the buttons container)
-  const content = metaSection.querySelector('.metadata-content');
-  if (content) content.classList.toggle('overlay-disabled', !enabled);
+
+  metadataSection.classList.toggle('overlay-disabled', !enabled);
 }
+
  
 function updatePoolBlockVisibility(count) {
   const blocks = document.querySelectorAll('#poolRuleBlocks .pool-rule-block');
@@ -113,15 +176,20 @@ function updatePoolBlockVisibility(count) {
 
 function applyRuleToInputs(block, rules = {}) {
   const poolIndex = block.dataset.poolIndex;
+
   block.querySelectorAll(`textarea[id^="pool${poolIndex}_"]`).forEach((area) => {
     const typeKey = area.id.includes('_ph_') ? 'ph' : 'cl';
     const key = area.id.replace(`pool${poolIndex}_${typeKey}_`, '');
     const levelSelect = document.getElementById(`${area.id}_level`);
+
     const ruleEntry = rules[typeKey]?.[key] || {};
     area.value = ruleEntry.response || '';
-    if (levelSelect) levelSelect.value = ruleEntry.concernLevel || 'none';
+
+    if (levelSelect) {
+      levelSelect.value = ruleEntry.concernLevel || 'none';
+    }
   });
- }
+}
  
 function loadPoolIntoEditor(poolDoc) {
   if (!poolDoc) return;
@@ -159,13 +227,43 @@ function loadPoolIntoEditor(poolDoc) {
     });
   }
 
-  // Load rules for each pool into its tables
+  // Load rules for each pool (bleach + granular) into editor state
   const rulesForPools = poolDoc.rules?.pools || [];
   const blocks = document.querySelectorAll(poolRuleContainerSelector);
 
   blocks.forEach((block, idx) => {
-    const rulesForThisPool = rulesForPools[idx] || {};
-    applyRuleToInputs(block, rulesForThisPool);
+    const poolIndex = block.dataset.poolIndex;
+    const state = getOrCreatePoolRuleState(poolIndex);
+    const fromDoc = rulesForPools[idx] || {};
+
+    if (fromDoc.bleach || fromDoc.granular) {
+      // New shape: { bleach:{ph,cl}, granular:{ph,cl} }
+      state.bleach = {
+        ph: { ...(fromDoc.bleach?.ph || {}) },
+        cl: { ...(fromDoc.bleach?.cl || {}) },
+      };
+      state.granular = {
+        ph: { ...(fromDoc.granular?.ph || {}) },
+        cl: { ...(fromDoc.granular?.cl || {}) },
+      };
+    } else {
+      // Old shape: { ph, cl } – treat as both methods
+      const base = {
+        ph: { ...(fromDoc.ph || {}) },
+        cl: { ...(fromDoc.cl || {}) },
+      };
+      state.bleach = base;
+      state.granular = JSON.parse(JSON.stringify(base));
+    }
+
+    // Default to Bleach visible
+    showRulesForMethod(block, 'bleach');
+
+    // Update tab styling
+    block.querySelectorAll('.sanitation-tab').forEach((tab) => {
+      const method = tab.dataset.method || 'bleach';
+      tab.classList.toggle('active', method === 'bleach');
+    });
   });
 
   // Everything starts in "view" mode
@@ -174,46 +272,46 @@ function loadPoolIntoEditor(poolDoc) {
 
  
 function readEditorToObject() {
-  const poolNameInput = document.getElementById('editorPoolName');
-  const numPoolsInput = document.getElementById('editorNumPools');
-  if (!poolNameInput || !numPoolsInput) return null;
- 
-  const name = poolNameInput.value.trim();
-  if (!name) {
-    showMessage('Pool name is required.', 'error');
-    return null;
-  }
- 
-  const numPools = Math.max(1, Math.min(5, Number(numPoolsInput.value) || 1));
-  const markets = Array.from(document.querySelectorAll('input[name="editorMarket"]'))
-    .filter((cb) => cb.checked)
-    .map((cb) => cb.value);
+  const poolNameInput   = document.getElementById('editorPoolName');
+  const numPoolsInput   = document.getElementById('editorNumPools');
+  const marketCheckboxes = document.querySelectorAll('input[name="editorMarket"]');
 
-  const pools = [];
-  const blocks = document.querySelectorAll(poolRuleContainerSelector);
-  blocks.forEach((block, idx) => {
-    if (idx >= numPools) return;
-    const poolIndex = block.dataset.poolIndex;
-    const ph = {};
-    const cl = {};
+  const name = poolNameInput?.value.trim() || '';
+  const numPools = numPoolsInput ? parseInt(numPoolsInput.value || '1', 10) : 1;
 
-    block.querySelectorAll(`textarea[id^="pool${poolIndex}_"]`).forEach((area) => {
-      const typeKey = area.id.includes('_ph_') ? 'ph' : 'cl';
-      const key = area.id.replace(`pool${poolIndex}_${typeKey}_`, '');
-      const levelSelect = document.getElementById(`${area.id}_level`);
-      const entry = { response: area.value.trim(), concernLevel: levelSelect?.value || 'none' };
-      if (typeKey === 'ph') {
-        ph[key] = entry;
-      } else {
-        cl[key] = entry;
-      }
-     });
- 
-    pools.push({ ph, cl });
+  const markets = [];
+  marketCheckboxes.forEach((cb) => {
+    if (cb.checked) markets.push(cb.value);
   });
 
-  return { name, markets, numPools, rules: { pools } };
+  const blocks = document.querySelectorAll(poolRuleContainerSelector);
+  const pools = [];
+
+  blocks.forEach((block, idx) => {
+    if (idx >= numPools) return; // respect "Number of pools"
+
+    const poolIndex = block.dataset.poolIndex;
+    const currentMethod = block.dataset.activeMethod || 'bleach';
+
+    // Make sure the currently visible method is captured from DOM
+    captureRulesFromBlock(block, currentMethod);
+
+    const state = getOrCreatePoolRuleState(poolIndex);
+
+    pools.push({
+      bleach: state.bleach || createEmptyMethodRules(),
+      granular: state.granular || createEmptyMethodRules(),
+    });
+  });
+
+  return {
+    name,
+    markets,
+    numPools,
+    rules: { pools },
+  };
 }
+
  
 async function attemptSave() {
   const poolData = readEditorToObject();
@@ -421,8 +519,17 @@ async function cloneRockbridgePresets() {
       applyRuleToInputs(block, secondary);
     } else {
       applyRuleToInputs(block, primary);
-     }
+    }
+
+    // After applying presets for Bleach, store them in state and
+    // duplicate into Granular as a starting point.
+    const poolIndex = block.dataset.poolIndex;
+    captureRulesFromBlock(block, 'bleach');
+    const state = getOrCreatePoolRuleState(poolIndex);
+    state.granular = JSON.parse(JSON.stringify(state.bleach));
+    block.dataset.activeMethod = 'bleach';
   });
+
  
   showMessage('Rockbridge presets applied.', 'success');
  }
@@ -510,29 +617,28 @@ const activeSanitationByPool = {};
 function setupSanitationTabs() {
   document.querySelectorAll('.sanitation-tab').forEach((tab) => {
     tab.addEventListener('click', () => {
-      const poolIndex = tab.dataset.poolIndex;
-      const method = tab.dataset.method || 'bleach';
-
-      const block = tab.closest('.pool-rule-block');
+      const block = tab.closest(poolRuleContainerSelector);
       if (!block) return;
 
-      // Visual active state
-      block.querySelectorAll('.sanitation-tab').forEach((t) => {
-        t.classList.toggle('active', t === tab);
+      const newMethod = tab.dataset.method || 'bleach';
+      const currentMethod = block.dataset.activeMethod || 'bleach';
+      if (newMethod === currentMethod) return;
+
+      // Save what’s currently on screen for the old method
+      captureRulesFromBlock(block, currentMethod);
+
+      // Toggle active tab styling
+      block.querySelectorAll('.sanitation-tab').forEach((btn) => {
+        const method = btn.dataset.method || 'bleach';
+        btn.classList.toggle('active', method === newMethod);
       });
 
-      // Remember the active method for this pool
-      activeSanitationByPool[poolIndex] = method;
-      block.dataset.activeMethod = method;
-
-      // NOTE: with the current data model, Bleach and Granular
-      // share the same underlying rules. This wiring makes the
-      // tabs behave correctly in the UI and keeps track of which
-      // method is "active" per pool so we can extend the data
-      // model later to store separate rules per method.
+      // Load the rules for the newly selected method
+      showRulesForMethod(block, newMethod);
     });
   });
 }
+
 
 function applyConcernToRow(select) {
   const row = select.closest('.table-row');
