@@ -25,7 +25,7 @@
  </head>
 
 <body>
-    <div id="mainForm">
+    <div id="mainForm" style="min-height: 100vh; display: flex; flex-direction: column;">
         <div class="header">
             <div class="header-content">
                 <div class="header-left">
@@ -76,71 +76,78 @@
                 </div>
 
                 <div class="section hidden" id="poolMetadataSection">
-                    <h3>Pool Metadata</h3>
-                    <div class="form-group">
-                        <label for="editorPoolName">Pool name</label>
-                        <input type="text" id="editorPoolName" class="adjustment-feedback" value="New Pool" disabled>
-                     </div>
-                    <div class="form-group">
-                        <label for="editorNumPools">Number of pools</label>
-                        <select id="editorNumPools" disabled>
-                            <option value="1">1</option>
-                            <option value="2" selected>2</option>
-                            <option value="3">3</option>
-                            <option value="4">4</option>
-                            <option value="5">5</option>
-                        </select>
-                    </div>
-                    <div class="form-group">
-                        <label>Market</label>
-                        <div class="market-options">
-                            <label class="market-option">
-                                <input
-                                    type="checkbox"
-                                    name="editorMarket"
-                                    value="Charleston"
-                                    class="sanitation-checkbox market-checkbox"
-                                    disabled
-                                >
-                                <span>Charleston</span>
-                            </label>
-                            <label class="market-option">
-                                <input
-                                    type="checkbox"
-                                    name="editorMarket"
-                                    value="Charlotte"
-                                    class="sanitation-checkbox market-checkbox"
-                                    disabled
-                                >
-                                <span>Charlotte</span>
-                            </label>
-                            <label class="market-option">
-                                <input
-                                    type="checkbox"
-                                    name="editorMarket"
-                                    value="Columbia"
-                                    class="sanitation-checkbox market-checkbox"
-                                    disabled
-                                >
-                                <span>Columbia</span>
-                            </label>
-                            <label class="market-option">
-                                <input
-                                    type="checkbox"
-                                    name="editorMarket"
-                                    value="Greenville"
-                                    class="sanitation-checkbox market-checkbox"
-                                    disabled
-                                >
-                                <span>Greenville</span>
-                            </label>
+                    <div class="metadata-content">
+                        <h3>Pool Metadata</h3>
+
+                        <div class="form-group">
+                            <label for="editorPoolName">Pool name</label>
+                            <input type="text" id="editorPoolName" class="adjustment-feedback" value="New Pool" disabled>
                         </div>
-                    </div>
+
+                        <div class="form-group">
+                            <label for="editorNumPools">Number of pools</label>
+                            <select id="editorNumPools" disabled>
+                                <option value="1">1</option>
+                                <option value="2" selected>2</option>
+                                <option value="3">3</option>
+                                <option value="4">4</option>
+                                <option value="5">5</option>
+                            </select>
+                        </div>
+
+                        <div class="form-group">
+                            <label>Market</label>
+                            <div class="market-options">
+                                <label class="market-option">
+                                    <input
+                                        type="checkbox"
+                                        class="market-checkbox"
+                                        name="editorMarket"
+                                        value="Columbia"
+                                        disabled
+                                    >
+                                    Columbia
+                                </label>
+                                <label class="market-option">
+                                    <input
+                                        type="checkbox"
+                                        class="market-checkbox"
+                                        name="editorMarket"
+                                        value="Greenville"
+                                        disabled
+                                    >
+                                    Greenville
+                                </label>
+                                <label class="market-option">
+                                    <input
+                                        type="checkbox"
+                                        class="market-checkbox"
+                                        name="editorMarket"
+                                        value="Charlotte"
+                                        disabled
+                                    >
+                                    Charlotte
+                                </label>
+                                <label class="market-option">
+                                    <input
+                                        type="checkbox"
+                                        class="market-checkbox"
+                                        name="editorMarket"
+                                        value="Charleston"
+                                        disabled
+                                    >
+                                    Charleston
+                                </label>
+                            </div>
+                        </div>
+                    </div> <!-- .metadata-content -->
+
                     <div class="form-row" style="gap: 10px; margin-top: 10px; justify-content: flex-start;">
-                        <button type="button" id="metadataEditBtn" class="editAndSave">Edit</button>
-                        <button type="button" id="metadataSaveBtn" class="editAndSave" disabled>Save</button>
+                        <button type="button" class="editAndSave" id="editMetadataBtn">Edit metadata</button>
+                        <button type="button" class="editAndSave" id="saveMetadataBtn" disabled>Save metadata</button>
                         <button type="button" id="deletePoolBtn" class="editAndSave danger-button">Delete pool</button>
                     </div>
+                </div>
                 <div id="ruleEditorSection">
                     <h3>Rule Editor</h3>
                     <div id="poolRuleBlocks">
@@ -1262,7 +1269,7 @@
     </div>
 </div>
     <!-- end of form-container / sections -->
-    <div class="footer">
+    <div class="footer" style="margin-top: auto;">
         <em>Developed by Sam Harmon | 2025<br>v2.1</em>
     </div>
     </div> <!-- #mainForm -->
