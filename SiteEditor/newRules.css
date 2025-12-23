@@ -261,11 +261,6 @@
     width: 100%;
 }
 
-/* Ensure all pool rule blocks use the same full width */
-#poolRuleBlocks {
-    margin: 0 auto 40px auto;
-}
-
 .pool-rule-block {
     width: 100%;
     box-sizing: border-box;
