@@ -539,3 +539,23 @@ body.dark-mode .pool-rule-block {
   width: 60%;
   max-width: 420px;
 }
+
+/* Make "Choose a pool to edit" longer */
+#editorPoolSelect {
+  padding: 10px;
+  border: 1px solid #ccc;
+  background-color: #fff;
+  font-size: 14px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.08);
+
+  /* NEW */
+  width: 320px;
+  max-width: 70%;
+}
+
+/* Make Pool name + Number of pools inputs shorter */
+#editorPoolName,
+#editorNumPools {
+  width: 60%;
+  max-width: 420px;
+}
