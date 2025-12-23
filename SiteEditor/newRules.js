@@ -10,6 +10,134 @@ const SANITATION_METHODS = ['bleach', 'granular'];
 // ruleStateByPool[poolIndex] = { bleach: { ph:{}, cl:{} }, granular: { ph:{}, cl:{} } }
 const ruleStateByPool = {};
 
+// ---------- Rockbridge preset handling ----------
+
+const ROCKBRIDGE_PRESET_STORAGE_KEY = 'chemlog_rockbridge_preset_v1';
+
+/**
+ * Read the current metadata + rule tables from the editor and, if the
+ * pool name is "Rockbridge", store them in localStorage so they can be
+ * used as defaults for any *new* pools that get created later.
+ */
+function captureRockbridgePresetIfNeeded() {
+  const nameInput = document.getElementById('editorPoolName');
+  if (!nameInput) return;
+
+  const poolName = (nameInput.value || '').trim();
+  if (poolName !== 'Rockbridge') return;
+
+  const numPoolsSelect = document.getElementById('editorNumPools');
+  const marketCheckboxes = document.querySelectorAll('input[name="editorMarket"]');
+
+  const preset = {
+    metadata: {
+      numPools: numPoolsSelect ? Number(numPoolsSelect.value || 2) : 2,
+      markets: Array.from(marketCheckboxes)
+        .filter(cb => cb.checked)
+        .map(cb => cb.value),
+    },
+    rulesByPoolIndex: {},
+  };
+
+  // Capture all rules from each pool rule block
+  document.querySelectorAll('.pool-rule-block').forEach(block => {
+    const poolIndex = block.dataset.poolIndex;
+    if (!poolIndex) return;
+
+    const poolRules = { ph: {}, cl: {} };
+
+    block.querySelectorAll(`textarea[id^="pool${poolIndex}_"]`).forEach(area => {
+      const typeKey = area.id.includes('_ph_') ? 'ph' : 'cl';
+      const key = area.id.replace(`pool${poolIndex}_${typeKey}_`, '');
+      const levelSelect = document.getElementById(`${area.id}_level`);
+
+      poolRules[typeKey][key] = {
+        response: area.value.trim(),
+        concernLevel: levelSelect ? levelSelect.value : 'none',
+      };
+    });
+
+    preset.rulesByPoolIndex[poolIndex] = poolRules;
+  });
+
+  try {
+    localStorage.setItem(
+      ROCKBRIDGE_PRESET_STORAGE_KEY,
+      JSON.stringify(preset)
+    );
+    // console.log('Rockbridge preset updated', preset);
+  } catch (err) {
+    console.error('Unable to save Rockbridge preset', err);
+  }
+}
+
+/**
+ * Apply the last-saved Rockbridge preset to the editor while in
+ * "Add new pool" mode.  Pool name is intentionally reset to "New Pool"
+ * so you don't accidentally create another Rockbridge.
+ */
+function applyRockbridgePresetToNewPool() {
+  let raw = null;
+  try {
+    raw = localStorage.getItem(ROCKBRIDGE_PRESET_STORAGE_KEY);
+  } catch {
+    raw = null;
+  }
+  if (!raw) return;
+
+  let preset;
+  try {
+    preset = JSON.parse(raw);
+  } catch {
+    return;
+  }
+
+  const nameInput = document.getElementById('editorPoolName');
+  const numPoolsSelect = document.getElementById('editorNumPools');
+  const marketCheckboxes = document.querySelectorAll('input[name="editorMarket"]');
+
+  // Always reset the name to something generic for a new pool
+  if (nameInput) {
+    nameInput.value = 'New Pool';
+  }
+  if (numPoolsSelect && preset.metadata && preset.metadata.numPools) {
+    numPoolsSelect.value = String(preset.metadata.numPools);
+  }
+
+  // Markets
+  if (preset.metadata && Array.isArray(preset.metadata.markets)) {
+    const set = new Set(preset.metadata.markets);
+    marketCheckboxes.forEach(cb => {
+      cb.checked = set.has(cb.value);
+    });
+  }
+
+  // Rules for each pool index (1, 2, etc.)
+  if (!preset.rulesByPoolIndex) return;
+
+  Object.entries(preset.rulesByPoolIndex).forEach(([poolIndex, rules]) => {
+    ['ph', 'cl'].forEach(typeKey => {
+      const group = rules[typeKey] || {};
+      Object.entries(group).forEach(([key, rule]) => {
+        const textarea = document.getElementById(
+          `pool${poolIndex}_${typeKey}_${key}`
+        );
+        const levelSelect = document.getElementById(
+          `pool${poolIndex}_${typeKey}_${key}_level`
+        );
+
+        if (textarea && typeof rule.response === 'string') {
+          textarea.value = rule.response;
+        }
+        if (levelSelect && rule.concernLevel) {
+          levelSelect.value = rule.concernLevel;
+        }
+      });
+    });
+  });
+}
+
+
 function createEmptyMethodRules() {
   return { ph: {}, cl: {} };
 }
@@ -367,6 +495,7 @@ function disableAllEditors() {
   }
 
   setMetadataEnabled(false);
+  captureRockbridgePresetIfNeeded();
 }
 
  
@@ -389,6 +518,7 @@ function wireBlockButtons() {
         editBtn.disabled = false;
         saveBtn.disabled = true;
       }
+       captureRockbridgePresetIfNeeded();
      });
   });
  }
@@ -611,7 +741,8 @@ function attachEditorEvents() {
                 console.error('Error applying Rockbridge presets', err);
                 showMessage('Error applying Rockbridge presets.', 'error');
             }
-        });
+          captureRockbridgePresetIfNeeded();
+          });
     }
 
     // Mode buttons (top of the editor)
