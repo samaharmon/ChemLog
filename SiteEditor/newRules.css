@@ -483,4 +483,32 @@ body.dark-mode .pool-rule-block {
   transition: opacity 0.15s;
 }
 
+/* Full grey-out overlay for the Pool Metadata section when locked */
+#poolMetadataSection {
+  position: relative;
+}
 
+#poolMetadataSection.overlay-disabled .metadata-content {
+  position: relative;
+  pointer-events: none;            /* block clicks on the fields */
+}
+
+#poolMetadataSection.overlay-disabled .metadata-content::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.35); /* translucent grey layer */
+  z-index: 1;
+}
+
+/* Keep the actual metadata content above the section background */
+#poolMetadataSection.overlay-disabled .metadata-content > * {
+  position: relative;
+  z-index: 2;
+}
+
+/* But leave the Edit / Save / Delete buttons clickable */
+#poolMetadataSection .form-row {
+  position: relative;
+  z-index: 3;
+}
