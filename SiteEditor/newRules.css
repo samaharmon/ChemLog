@@ -45,7 +45,7 @@
 #poolMetadataSection {
   border: 1px solid #ddd;
   padding: 16px;
-  background: #333;
+  background: #464646;
 }
 
 #poolMetadataSection h3 {
@@ -55,7 +55,6 @@
 #poolMetadataSection input[type="text"],
 #poolMetadataSection input[type="number"] {
   padding: 10px;
-  border: 1px solid #ccc;
   font-size: 14px;
    background-color: #eee;
   width: 100%;
@@ -117,8 +116,7 @@
 .pool-rule-block {
   width: 100%;
   box-sizing: border-box;
-  border: 1px solid #555;       /* same border feel as metadata */
-  background-color: #333;
+  background-color: #464646;
   margin-bottom: 24px;
   padding: 16px;
 }
@@ -155,7 +153,7 @@
  }
 
 .table-cell {
-  border: 1px solid #333;
+  border: 1px solid #464646;
   padding: 8px;
   display: flex;
   align-items: center;
@@ -163,7 +161,7 @@
  
 
 .table-cell:first-child {
-  background: #333;
+  background: #464646;
   font-weight: 600;
   justify-content: center;
  }
@@ -257,7 +255,7 @@
     font-size: 14px;
     font-family: 'Franklin Gothic Medium', Arial, sans-serif;
     background-color: #C8C8C8;
-    color: #333;
+    color: #464646;
 }
 
 /* Ensure concern-level dropdowns fill their cell neatly */
@@ -267,7 +265,6 @@
 
 /* Ensure all pool rule blocks use the same full width */
 #poolRuleBlocks {
-    max-width: 1100px;
     margin: 0 auto 40px auto;
 }
 
@@ -317,11 +314,6 @@ body.dark-mode #poolMetadataSection,
 body.dark-mode #ruleEditorSection,
 body.dark-mode .pool-rule-block {
   background-color: #2e2e2e;
-}
-
-/* Optional: keep a subtle border so blocks don't visually merge */
-.pool-rule-block {
-  border: 1px solid #555;
 }
 
 /* --- Column header row for the rule tables --- */
@@ -402,7 +394,6 @@ body.dark-mode .pool-rule-block {
 
 .pool-rule-block {
     background-color: #303030;      /* darker block background */
-    border: 1px solid #999;
 }
 
 /* Very obvious “view‑only” state */
