@@ -15,8 +15,12 @@ import {
   writeBatch,
   onAuthStateChanged,
   signInWithEmailAndPassword,
-  signOut
-} from './firebase.js'; // ✅ adjust path if needed
+  signOut,
+  getPools,
+  listenPools
+} from './firebase.js';
+
+
 
 let formSubmissions = [];           // ✅ fixes ReferenceError at line 792
 let filteredSubmissions = [];
@@ -28,6 +32,13 @@ const itemsPerPage = 20;
 let isLoggedIn = false;
 let sanitationSettings = {};        // ✅ fixes ReferenceError at line 695
 let currentView = 'form';
+
+// Pools from the Rule Editor (Firestore "pools" collection)
+let availablePools = [];
+
+// Markets used both in Metadata and dashboard filters
+const MARKET_NAMES = ['Columbia', 'Greenville', 'Charlotte', 'Charleston'];
+let marketVisibility = {};  // filled from settings
 
 //===================================================
 //Hoisted Functions
@@ -198,7 +209,9 @@ function validateForm() {
     const poolLocationSelect = document.getElementById('poolLocation');
     const secondaryPoolSection = document.getElementById('secondaryPoolSection');
 
-    if (poolLocationSelect && POOLS_WITH_SECONDARY.includes(poolLocationSelect.value) && secondaryPoolSection && !secondaryPoolSection.classList.contains('hidden')) {
+if (poolLocationSelect && poolHasSecondary(poolLocationSelect.value) &&
+    secondaryPoolSection && !secondaryPoolSection.classList.contains('hidden')) {
+
         const secondaryPHInput = document.getElementById('secondaryPoolPH');
         const secondaryClInput = document.getElementById('secondaryPoolCl');
 
@@ -254,23 +267,31 @@ function openLoginModal() {
 }
 window.openLoginModal = openLoginModal; 
 function handlePoolLocationChange() {
-    const poolLocation = document.getElementById('poolLocation').value;
-    const secondaryPoolSection = document.getElementById('secondaryPoolSection');
-    const secondaryPH = document.getElementById('secondaryPoolPH');
-    const secondaryCl = document.getElementById('secondaryPoolCl');
-    
-    if (poolLocation === 'Camden CC') {
-        secondaryPoolSection.classList.add('hidden');
-        secondaryPH.removeAttribute('required');
-        secondaryCl.removeAttribute('required');
-        secondaryPH.value = '';
-        secondaryCl.value = '';
-    } else {
-        secondaryPoolSection.classList.remove('hidden');
-        secondaryPH.setAttribute('required', '');
-        secondaryCl.setAttribute('required', '');
-    }
+  const poolLocationSelect = document.getElementById('poolLocation');
+  const secondaryPoolSection = document.getElementById('secondaryPoolSection');
+  const secondaryPH = document.getElementById('secondaryPoolPH');
+  const secondaryCl = document.getElementById('secondaryPoolCl');
+
+  if (!poolLocationSelect || !secondaryPoolSection || !secondaryPH || !secondaryCl) {
+    return;
+  }
+
+  const poolLocation = poolLocationSelect.value;
+  const hasSecondary = poolHasSecondary(poolLocation);
+
+  if (!hasSecondary) {
+    secondaryPoolSection.classList.add('hidden');
+    secondaryPH.removeAttribute('required');
+    secondaryCl.removeAttribute('required');
+    secondaryPH.value = '';
+    secondaryCl.value = '';
+  } else {
+    secondaryPoolSection.classList.remove('hidden');
+    secondaryPH.setAttribute('required', '');
+    secondaryCl.setAttribute('required', '');
+  }
 }
+
 // In your script.js file
 
 function closeLoginModal() {
@@ -445,45 +466,7 @@ function exportToCSV() {
 }
 
 function filterData() {
-    const poolFilter = document.getElementById('poolFilter')?.value || '';
-    const dateFilter = document.getElementById('dateFilter')?.value || '';
-
-    function parseLocalDate(dateString) {
-        if (!dateString) return null;
-        const parts = dateString.split('-');
-        return new Date(parts[0], parts[1] - 1, parts[2]);
-    }
-
-    function getDateWithoutTime(date) {
-        return new Date(date.getFullYear(), date.getMonth(), date.getDate());
-    }
-
-    const filterDateObj = parseLocalDate(dateFilter);
-
-    // Apply filters to all submissions
-    const filtered = allSubmissions.filter(submission => {
-        let passes = true;
-
-        if (poolFilter && submission.poolLocation !== poolFilter) passes = false;
-
-        if (dateFilter) {
-            const submissionDate = submission.timestamp ? new Date(submission.timestamp) : null;
-            if (!submissionDate) return false;
-
-            const normalizedFilterDate = getDateWithoutTime(filterDateObj);
-            const normalizedSubmissionDate = getDateWithoutTime(submissionDate);
-
-            if (normalizedSubmissionDate.getTime() !== normalizedFilterDate.getTime()) passes = false;
-        }
-
-        return passes;
-    });
-
-    filteredSubmissions = filtered;
-    paginatedData = organizePaginatedData(filteredSubmissions);
-    currentPage = 0;
-    displayData();
-    updatePaginationControls();
+    filterAndDisplayData();
 }
 
 
@@ -1248,6 +1231,18 @@ function filterAndDisplayData() {
     filteredSubmissions = allSubmissions.filter(sub => {
         let passes = true;
 
+            // Market visibility: only show pools whose markets intersect the enabled set
+            if (hasMarketSettings) {
+                const poolMarkets = getPoolMarketsForName(sub.poolLocation);
+                const matchesMarket =
+                    enabledMarkets.length > 0 &&
+                    poolMarkets.some(m => enabledMarkets.includes(m));
+
+                if (!matchesMarket) {
+                    return false;
+                }
+            }
+
         if (poolFilter && poolFilter !== '' && poolFilter !== 'All Pools') {
             if (sub.poolLocation !== poolFilter) passes = false;
         }
@@ -1257,6 +1252,11 @@ function filterAndDisplayData() {
             if (!submissionDate) return false;
 
             const normalizedFilterDate = getDateWithoutTime(filterDateObj);
+            const enabledMarkets = getEnabledMarkets();
+            const hasMarketSettings = MARKET_NAMES.some(m =>
+            Object.prototype.hasOwnProperty.call(marketVisibility, m)
+            );
+
             const normalizedSubmissionDate = getDateWithoutTime(submissionDate);
 
             if (normalizedSubmissionDate.getTime() !== normalizedFilterDate.getTime()) passes = false;
@@ -2044,6 +2044,8 @@ document.addEventListener("DOMContentLoaded", () => {
     // ✅ Firebase is already initialized via firebase.js, so just proceed:
     initializeSanitationSettings();
     startSanitationSettingsListener();
+    initializeMarketSettings();
+    initializePoolsForUI();
     cleanupTestSubmissions();
     checkLogin();
     initializeFormSubmissions();
@@ -2239,7 +2241,6 @@ function updateHeaderButtons() {
     }
 }
 
-
 // ===================================================
 // UTILITY FUNCTIONS
 // ===================================================
@@ -2362,6 +2363,118 @@ function debugLoginState() {
 window.debugLoginState = debugLoginState;
 
 console.log('🔧 Login functionality fixes applied');
+
+function getPoolNameFromDoc(poolDoc) {
+  if (!poolDoc) return '';
+  return poolDoc.name || poolDoc.poolName || poolDoc.id || '';
+}
+
+function getPoolMarketsFromDoc(poolDoc) {
+  if (!poolDoc) return [];
+  const raw = poolDoc.markets ?? poolDoc.market ?? [];
+  if (Array.isArray(raw)) {
+    return raw.filter(Boolean);
+  }
+  if (typeof raw === 'string' && raw.trim()) {
+    return [raw.trim()];
+  }
+  return [];
+}
+
+function getPoolMarketsForName(poolName) {
+  if (!poolName || !Array.isArray(availablePools)) return [];
+  const poolDoc = availablePools.find(p => getPoolNameFromDoc(p) === poolName);
+  return getPoolMarketsFromDoc(poolDoc);
+}
+
+function poolHasSecondary(poolName) {
+  if (!poolName) return false;
+
+  if (Array.isArray(availablePools) && availablePools.length) {
+    const poolDoc = availablePools.find(p => getPoolNameFromDoc(p) === poolName);
+    if (poolDoc && poolDoc.numPools != null) {
+      const num = Number(poolDoc.numPools);
+      if (!Number.isNaN(num)) {
+        return num > 1;
+      }
+    }
+  }
+
+  // Legacy fallback
+  return POOLS_WITH_SECONDARY.includes(poolName);
+}
+
+async function initializeMarketSettings() {
+  const marketCheckboxes = document.querySelectorAll('input[name="marketFilter"]');
+  if (!marketCheckboxes.length) {
+    // No Market section on this page
+    return;
+  }
+
+  // Default: everything on
+  MARKET_NAMES.forEach((m) => {
+    if (marketVisibility[m] === undefined) {
+      marketVisibility[m] = true;
+    }
+  });
+
+  if (!db) {
+    console.warn('No Firestore DB; using in-memory market settings only');
+    applyMarketSettingsToUI();
+    return;
+  }
+
+  const settingsRef = doc(db, 'settings', 'markets');
+
+  try {
+    const snap = await getDoc(settingsRef);
+    if (snap.exists()) {
+      const data = snap.data() || {};
+      MARKET_NAMES.forEach((m) => {
+        if (typeof data[m] === 'boolean') {
+          marketVisibility[m] = data[m];
+        }
+      });
+    } else {
+      await setDoc(settingsRef, marketVisibility);
+    }
+  } catch (err) {
+    console.error('Error loading market settings', err);
+  }
+
+  applyMarketSettingsToUI();
+}
+
+function applyMarketSettingsToUI() {
+  const marketCheckboxes = document.querySelectorAll('input[name="marketFilter"]');
+
+  marketCheckboxes.forEach((cb) => {
+    const market = cb.value;
+    cb.checked = !!marketVisibility[market];
+    cb.addEventListener('change', onMarketCheckboxChanged);
+  });
+
+  updatePoolFilterDropdown();
+  filterAndDisplayData?.();
+}
+
+async function saveMarketSettings() {
+  if (!db) return;
+  try {
+    const settingsRef = doc(db, 'settings', 'markets');
+    await setDoc(settingsRef, marketVisibility, { merge: true });
+  } catch (err) {
+    console.error('Failed to save market settings', err);
+  }
+}
+
+function onMarketCheckboxChanged(event) {
+  const market = event.target.value;
+  marketVisibility[market] = event.target.checked;
+  updatePoolFilterDropdown();
+  filterAndDisplayData?.();
+  saveMarketSettings();
+}
 
 // ===================================================
 // DATA MANAGEMENT & DASHBOARD
@@ -2579,19 +2692,164 @@ function notifySupervisor() {
 }
 
 function handleLocationChange() {
-    const poolLocation = document.getElementById('poolLocation').value;
-    const secondarySection = document.getElementById('secondaryPoolSection');
-    
-    if (POOLS_WITH_SECONDARY.includes(poolLocation)) {
-        if (secondarySection) {
-            secondarySection.style.display = 'block';
-        }
-    } else {
-        if (secondarySection) {
-            secondarySection.style.display = 'none';
-        }
-    }
+  // Backwards compat for any older templates using this handler
+  handlePoolLocationChange();
 }
+
+function buildPoolsByMarket(pools) {
+  const byMarket = {};
+  MARKET_NAMES.forEach(m => { byMarket[m] = []; });
+  const unassigned = [];
+
+  const list = Array.isArray(pools) ? pools : [];
+  const nameSorter = (a, b) => a.name.localeCompare(b.name);
+
+  for (const pool of list) {
+    const name = getPoolNameFromDoc(pool);
+    if (!name) continue;
+
+    const markets = getPoolMarketsFromDoc(pool);
+    if (!markets.length) {
+      unassigned.push({ name, pool });
+      continue;
+    }
+
+    const primary = markets[0];
+    if (!byMarket[primary]) byMarket[primary] = [];
+    byMarket[primary].push({ name, pool });
+  }
+
+  MARKET_NAMES.forEach(m => byMarket[m].sort(nameSorter));
+  unassigned.sort(nameSorter);
+
+  return { byMarket, unassigned };
+}
+
+function updatePoolLocationDropdown() {
+  const poolLocationSelect = document.getElementById('poolLocation');
+  if (!poolLocationSelect) return;
+
+  const previous = poolLocationSelect.value;
+  poolLocationSelect.innerHTML = '';
+
+  // Placeholder
+  const placeholder = document.createElement('option');
+  placeholder.value = '';
+  placeholder.textContent = 'Select a pool';
+  poolLocationSelect.appendChild(placeholder);
+
+  const { byMarket, unassigned } = buildPoolsByMarket(availablePools);
+
+  // One non‑selectable title per market, followed by its pools
+  for (const market of MARKET_NAMES) {
+    const poolsInMarket = byMarket[market];
+    if (!poolsInMarket || !poolsInMarket.length) continue;
+
+    const group = document.createElement('optgroup');
+    group.label = market;
+
+    for (const { name } of poolsInMarket) {
+      const opt = document.createElement('option');
+      opt.value = name;
+      opt.textContent = name;
+      group.appendChild(opt);
+    }
+    poolLocationSelect.appendChild(group);
+  }
+
+  // Optionally group pools with no market under "Other"
+  if (unassigned.length) {
+    const group = document.createElement('optgroup');
+    group.label = 'Other';
+
+    for (const { name } of unassigned) {
+      const opt = document.createElement('option');
+      opt.value = name;
+      opt.textContent = name;
+      group.appendChild(opt);
+    }
+    poolLocationSelect.appendChild(group);
+  }
+
+  // Try to preserve the previous selection
+  if (previous && poolLocationSelect.querySelector(`option[value="${previous}"]`)) {
+    poolLocationSelect.value = previous;
+  }
+}
+
+function getEnabledMarkets() {
+  // If settings haven't loaded yet, treat all as enabled
+  const anyConfigured = MARKET_NAMES.some(m =>
+    Object.prototype.hasOwnProperty.call(marketVisibility, m)
+  );
+  if (!anyConfigured) {
+    return [...MARKET_NAMES];
+  }
+  return MARKET_NAMES.filter(m => marketVisibility[m]);
+}
+
+function updatePoolFilterDropdown() {
+  const poolFilterSelect = document.getElementById('poolFilter');
+  if (!poolFilterSelect) return;
+
+  const previous = poolFilterSelect.value;
+  poolFilterSelect.innerHTML = '';
+
+  // "All Pools" option
+  const allOption = document.createElement('option');
+  allOption.value = '';
+  allOption.textContent = 'All Pools';
+  poolFilterSelect.appendChild(allOption);
+
+  const enabledMarkets = getEnabledMarkets();
+  const seen = new Set();
+
+  const list = Array.isArray(availablePools) ? availablePools : [];
+  for (const pool of list) {
+    const name = getPoolNameFromDoc(pool);
+    if (!name || seen.has(name)) continue;
+
+    const markets = getPoolMarketsFromDoc(pool);
+    if (markets.length && !markets.some(m => enabledMarkets.includes(m))) {
+      // Hidden by Market settings
+      continue;
+    }
+
+    seen.add(name);
+    const opt = document.createElement('option');
+    opt.value = name;
+    opt.textContent = name;
+    poolFilterSelect.appendChild(opt);
+  }
+
+  if (previous && poolFilterSelect.querySelector(`option[value="${previous}"]`)) {
+    poolFilterSelect.value = previous;
+  }
+}
+
+function initializePoolsForUI() {
+  // Initial fill using whatever we have (may be empty at first)
+  updatePoolLocationDropdown();
+  updatePoolFilterDropdown();
+
+  if (typeof listenPools !== 'function') {
+    console.warn('listenPools() helper is not available; pool list will not be dynamic');
+    return;
+  }
+
+  try {
+    listenPools((pools) => {
+      availablePools = Array.isArray(pools) ? pools : [];
+      updatePoolLocationDropdown();
+      updatePoolFilterDropdown();
+      // Refresh dashboard display with the new pools
+      filterAndDisplayData?.();
+    });
+  } catch (err) {
+    console.error('Failed to attach pool listener', err);
+  }
+}
+
 
 // ===================================================
 // DATA PERSISTENCE
