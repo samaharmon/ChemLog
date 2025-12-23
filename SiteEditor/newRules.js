@@ -44,7 +44,17 @@ function captureRulesFromBlock(block, method) {
     };
   });
 
-  state[method] = methodRules;
+  // 🔁 pH is shared across ALL sanitation methods (Bleach + Granular).
+  // Whatever is on screen right now becomes the single source of truth
+  // for pH for this pool, regardless of which tab is active.
+  SANITATION_METHODS.forEach((m) => {
+    if (!state[m]) state[m] = createEmptyMethodRules();
+    state[m].ph = JSON.parse(JSON.stringify(methodRules.ph));
+  });
+
+  // 💧 Chlorine rules remain method‑specific.
+  if (!state[method]) state[method] = createEmptyMethodRules();
+  state[method].cl = JSON.parse(JSON.stringify(methodRules.cl));
 }
 
 /**
@@ -238,22 +248,33 @@ function loadPoolIntoEditor(poolDoc) {
 
     if (fromDoc.bleach || fromDoc.granular) {
       // New shape: { bleach:{ph,cl}, granular:{ph,cl} }
+      // pH is shared across both methods; merge any existing ph rules.
+      const sharedPh = {
+        ...(fromDoc.bleach?.ph || {}),
+        ...(fromDoc.granular?.ph || {}),
+      };
+
       state.bleach = {
-        ph: { ...(fromDoc.bleach?.ph || {}) },
+        ph: { ...sharedPh },
         cl: { ...(fromDoc.bleach?.cl || {}) },
       };
       state.granular = {
-        ph: { ...(fromDoc.granular?.ph || {}) },
+        ph: { ...sharedPh },
         cl: { ...(fromDoc.granular?.cl || {}) },
       };
     } else {
       // Old shape: { ph, cl } – treat as both methods
-      const base = {
-        ph: { ...(fromDoc.ph || {}) },
-        cl: { ...(fromDoc.cl || {}) },
+      const sharedPh = { ...(fromDoc.ph || {}) };
+      const baseCl   = { ...(fromDoc.cl || {}) };
+
+      state.bleach = {
+        ph: { ...sharedPh },
+        cl: { ...baseCl },
       };
-      state.bleach = base;
-      state.granular = JSON.parse(JSON.stringify(base));
+      state.granular = {
+        ph: { ...sharedPh },
+        cl: { ...baseCl },
+      };
     }
 
     // Default to Bleach visible
