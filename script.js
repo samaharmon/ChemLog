@@ -470,7 +470,6 @@ function filterData() {
 }
 
 
-
 function goToPreviousPage() {
     if (currentPage > 0) {
         currentPage--;
@@ -1207,16 +1206,14 @@ function filterAndDisplayData() {
     const poolFilter = document.getElementById('poolFilter')?.value || '';
     const dateFilter = document.getElementById('dateFilter')?.value || '';
 
-    if (!Array.isArray(allSubmissions)) {
-        console.warn('⚠ allSubmissions is not defined or not an array.');
-        console.groupEnd();
-        return;
-    }
-
     function parseLocalDate(dateString) {
         if (!dateString) return null;
         const parts = dateString.split('-');
-        return new Date(parts[0], parts[1] - 1, parts[2]);
+        if (parts.length !== 3) return null;
+        const year  = Number(parts[0]);
+        const month = Number(parts[1]) - 1;
+        const day   = Number(parts[2]);
+        return new Date(year, month, day);
     }
 
     function getDateWithoutTime(date) {
@@ -1225,55 +1222,72 @@ function filterAndDisplayData() {
 
     const filterDateObj = parseLocalDate(dateFilter);
 
+    // Market settings: which markets are enabled?
+    const enabledMarkets = getEnabledMarkets();
+    const hasMarketSettings = MARKET_NAMES.some(m =>
+        Object.prototype.hasOwnProperty.call(marketVisibility, m)
+    );
+
+    console.log('Pool filter:', poolFilter);
+    console.log('Date filter (raw):', dateFilter);
+    console.log('Date filter (parsed):', filterDateObj);
+    console.log('Enabled markets:', enabledMarkets);
+    console.log('Has market settings:', hasMarketSettings);
     console.log('Total submissions before filter:', allSubmissions.length);
-    console.log('Pool filter:', poolFilter || '(none)', 'Date filter:', dateFilter || '(none)');
 
     filteredSubmissions = allSubmissions.filter(sub => {
-        let passes = true;
-
-            // Market visibility: only show pools whose markets intersect the enabled set
-            if (hasMarketSettings) {
-                const poolMarkets = getPoolMarketsForName(sub.poolLocation);
-                const matchesMarket =
-                    enabledMarkets.length > 0 &&
-                    poolMarkets.some(m => enabledMarkets.includes(m));
-
+        // 1. Market filter from settings (union of selected markets)
+        if (hasMarketSettings) {
+            const poolMarkets = getPoolMarketsForName(sub.poolLocation);
+            if (enabledMarkets.length > 0) {
+                const matchesMarket = poolMarkets.some(m => enabledMarkets.includes(m));
                 if (!matchesMarket) {
                     return false;
                 }
             }
-
-        if (poolFilter && poolFilter !== '' && poolFilter !== 'All Pools') {
-            if (sub.poolLocation !== poolFilter) passes = false;
         }
 
-        if (dateFilter) {
-            const submissionDate = sub.timestamp ? new Date(sub.timestamp) : null;
-            if (!submissionDate) return false;
+        // 2. Explicit pool filter from the dropdown
+        if (poolFilter && poolFilter !== '' && poolFilter !== 'All Pools') {
+            if (sub.poolLocation !== poolFilter) {
+                return false;
+            }
+        }
 
-            const normalizedFilterDate = getDateWithoutTime(filterDateObj);
-            const enabledMarkets = getEnabledMarkets();
-            const hasMarketSettings = MARKET_NAMES.some(m =>
-            Object.prototype.hasOwnProperty.call(marketVisibility, m)
-            );
+        // 3. Date filter (normalize both to yyyy-mm-dd)
+        if (filterDateObj) {
+            let submissionDate;
 
+            if (sub.timestamp instanceof Date) {
+                submissionDate = sub.timestamp;
+            } else if (sub.timestamp && typeof sub.timestamp.toDate === 'function') {
+                submissionDate = sub.timestamp.toDate();   // Firestore Timestamp
+            } else if (sub.timestamp) {
+                submissionDate = new Date(sub.timestamp);
+            } else {
+                return false;
+            }
+
+            if (Number.isNaN(submissionDate.getTime())) {
+                return false;
+            }
+
+            const normalizedFilterDate     = getDateWithoutTime(filterDateObj);
             const normalizedSubmissionDate = getDateWithoutTime(submissionDate);
 
-            if (normalizedSubmissionDate.getTime() !== normalizedFilterDate.getTime()) passes = false;
+            if (normalizedSubmissionDate.getTime() !== normalizedFilterDate.getTime()) {
+                return false;
+            }
         }
 
-        return passes;
+        // If we got here, the submission passes all active filters
+        return true;
     });
 
     console.log('Filtered submissions count:', filteredSubmissions.length);
 
     paginatedData = organizePaginatedData(filteredSubmissions || []);
-
     currentPage = 0;
-    if (paginatedData.length === 0) currentPage = 0;
-    else currentPage = Math.max(0, Math.min(currentPage, paginatedData.length - 1));
-
-    console.log('Paginated pages:', paginatedData.length, 'currentPage:', currentPage);
 
     displayData();
     updatePaginationControls();
