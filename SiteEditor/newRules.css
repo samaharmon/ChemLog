@@ -36,7 +36,12 @@
   background-color: #fff;
   font-size: 14px;
   box-shadow: 0 2px 4px rgba(0, 0, 0, 0.08);
+
+  /* NEW: make this dropdown noticeably longer */
+  width: 320px;
+  max-width: 70%;
 }
+
 
 #rockbridgePresetsBtn {
   margin-top: 6px;
@@ -316,7 +321,6 @@ body.dark-mode .pool-rule-block {
   text-transform: uppercase;
   letter-spacing: 0.04em;
   padding: 6px 8px;
-  margin-top: 20px !important;
   border-bottom: 1px solid #555;
 }
 
@@ -529,3 +533,9 @@ body.dark-mode .pool-rule-block {
     margin: 0;
 }
 
+/* Make the metadata inputs a bit shorter than full row width */
+#editorPoolName,
+#editorNumPools {
+  width: 60%;
+  max-width: 420px;
+}
