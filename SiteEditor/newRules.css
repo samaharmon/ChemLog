@@ -410,6 +410,7 @@ body.dark-mode .pool-rule-block {
 .table-header-row .header-cell {
     font-weight: bold;
     background-color: #252525;
+    margin-top: 20px;
 }
 
 /* concern-level visual states */
