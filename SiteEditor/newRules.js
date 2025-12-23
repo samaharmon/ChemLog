@@ -587,14 +587,58 @@ function findPoolById(poolId) {
   return poolsCache.find((pool) => pool.id === poolId);
  }
  
+function applyRockbridgeMetadataFromCache() {
+  const poolNameInput    = document.getElementById('editorPoolName');
+  const numPoolsInput    = document.getElementById('editorNumPools');
+  const marketCheckboxes = document.querySelectorAll('input[name="editorMarket"]');
+
+  const rockbridge = poolsCache.find((pool) => getPoolName(pool) === 'Rockbridge');
+
+  // If we can't find Rockbridge, fall back to a simple default
+  if (!rockbridge) {
+    if (poolNameInput) poolNameInput.value = 'New Pool';
+    if (numPoolsInput) {
+      numPoolsInput.value = '2';
+      updatePoolBlockVisibility(2);
+    }
+    if (marketCheckboxes?.length) {
+      marketCheckboxes.forEach((cb) => {
+        cb.checked = cb.value === 'Columbia';
+      });
+    }
+    return;
+  }
+
+  // Use a generic name so you don't accidentally create a second “Rockbridge”
+  if (poolNameInput) {
+    poolNameInput.value = 'New Pool';
+  }
+
+  // Copy numPools
+  if (numPoolsInput) {
+    const count = typeof rockbridge.numPools === 'number' ? rockbridge.numPools : 2;
+    numPoolsInput.value = String(count);
+    updatePoolBlockVisibility(count);
+  }
+
+  // Copy markets
+  if (marketCheckboxes?.length) {
+    const set = new Set(rockbridge.markets || []);
+    marketCheckboxes.forEach((cb) => {
+      cb.checked = set.size ? set.has(cb.value) : cb.value === 'Columbia';
+    });
+  }
+}
+
+
 function toggleMode(mode) {
   const poolSelectWrapper = document.getElementById('editorPoolSelectWrapper');
   const rockbridgeWrapper = document.getElementById('rockbridgePresetWrapper');
-  const metadataSection = document.getElementById('poolMetadataSection');
-  const ruleSection = document.getElementById('ruleEditorSection');
-  const poolNameInput = document.getElementById('editorPoolName');
-  const numPoolsInput = document.getElementById('editorNumPools');
-  const marketCheckboxes = document.querySelectorAll('input[name="editorMarket"]');
+  const metadataSection   = document.getElementById('poolMetadataSection');
+  const ruleSection       = document.getElementById('ruleEditorSection');
+  const poolNameInput     = document.getElementById('editorPoolName');
+  const numPoolsInput     = document.getElementById('editorNumPools');
+  const marketCheckboxes  = document.querySelectorAll('input[name="editorMarket"]');
 
   if (!poolSelectWrapper || !rockbridgeWrapper || !metadataSection || !ruleSection) {
     console.warn('Editor sections not found – cannot toggle mode.');
@@ -611,19 +655,10 @@ function toggleMode(mode) {
     metadataSection.classList.remove('hidden');
     ruleSection.classList.remove('hidden');
 
-    // Preset metadata for Rockbridge
-    if (poolNameInput) poolNameInput.value = 'Rockbridge';
-    if (numPoolsInput) {
-      numPoolsInput.value = '2';
-      updatePoolBlockVisibility(2);
-    }
-    if (marketCheckboxes?.length) {
-      marketCheckboxes.forEach((cb) => {
-        cb.checked = cb.value === 'Columbia';
-      });
-    }
+    // Use Rockbridge's saved metadata as the template for new pools
+    applyRockbridgeMetadataFromCache();
 
-    // Clear rules, then apply Rockbridge presets
+    // Clear rules in the UI before cloning presets
     document.querySelectorAll(poolRuleContainerSelector).forEach((block) => {
       applyRuleToInputs(block, {});
     });
@@ -632,6 +667,7 @@ function toggleMode(mode) {
     cloneRockbridgePresets().catch((err) => {
       console.error('Error applying Rockbridge presets in add mode', err);
     });
+
   } else if (mode === 'edit') {
     // EDIT MODE: only the pool dropdown visible until user picks a pool
     poolSelectWrapper.classList.remove('hidden');
@@ -649,46 +685,56 @@ function toggleMode(mode) {
     }
   }
 
+  // Lock everything by default; Edit buttons will re‑enable sections
   disableAllEditors();
 }
+
  
 async function cloneRockbridgePresets() {
+  // Make sure we have the latest pools
   if (!poolsCache.length) {
     await refreshPools();
   }
+
   const rockbridge = poolsCache.find((pool) => getPoolName(pool) === 'Rockbridge');
   if (!rockbridge) {
     showMessage('Rockbridge pool not found.', 'error');
     return;
   }
 
-  const rules = rockbridge.rules?.pools || [];
-  const primary = rules[0] || {};
-  const secondary = rules[1] || primary;
+  const rulesArray = rockbridge.rules?.pools || [];
+  const primaryDoc   = rulesArray[0] || {};
+  const secondaryDoc = rulesArray[1] || primaryDoc;
+
   const blocks = document.querySelectorAll(poolRuleContainerSelector);
- 
 
   blocks.forEach((block, idx) => {
-    if (idx === 0) {
-      applyRuleToInputs(block, primary);
-    } else if (idx === 1) {
-      applyRuleToInputs(block, secondary);
-    } else {
-      applyRuleToInputs(block, primary);
-    }
+    // Pick which pool’s rules to clone into this block
+    const fromDoc =
+      idx === 0 ? primaryDoc :
+      idx === 1 ? secondaryDoc :
+      primaryDoc;
 
-    // After applying presets for Bleach, store them in state and
-    // duplicate into Granular as a starting point.
+    // Use Bleach as the canonical set (or fall back to Granular)
+    const baseRules =
+      fromDoc.bleach ||
+      fromDoc.granular ||
+      { ph: {}, cl: {} };
+
+    // 1) Write Rockbridge rules into the textareas/selects
+    applyRuleToInputs(block, baseRules);
+
+    // 2) Persist into in‑memory state; make granular match bleach
     const poolIndex = block.dataset.poolIndex;
-    captureRulesFromBlock(block, 'bleach');
+    captureRulesFromBlock(block, 'bleach');  // this also syncs pH to all methods
     const state = getOrCreatePoolRuleState(poolIndex);
     state.granular = JSON.parse(JSON.stringify(state.bleach));
     block.dataset.activeMethod = 'bleach';
   });
 
- 
   showMessage('Rockbridge presets applied.', 'success');
- }
+}
+
  
 function setActiveModeButton(mode) {
   const addBtn = document.getElementById('editorModeAdd');
