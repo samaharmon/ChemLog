@@ -316,6 +316,7 @@ body.dark-mode .pool-rule-block {
   text-transform: uppercase;
   letter-spacing: 0.04em;
   padding: 6px 8px;
+  margin-top: 20px;
   border-bottom: 1px solid #555;
 }
 
@@ -410,7 +411,6 @@ body.dark-mode .pool-rule-block {
 .table-header-row .header-cell {
     font-weight: bold;
     background-color: #252525;
-    margin-top: 20px;
 }
 
 /* concern-level visual states */
