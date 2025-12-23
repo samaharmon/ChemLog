@@ -332,18 +332,22 @@ async function attemptSave() {
 }
  
 function disableAllEditors() {
-  document.querySelectorAll(poolRuleContainerSelector).forEach((block) => {
+  const blocks = document.querySelectorAll(poolRuleContainerSelector);
+  blocks.forEach((block) => {
     setBlockEnabled(block, false);
-    const [editBtn, saveBtn] = block.querySelectorAll('.editAndSave');
-    if (editBtn) editBtn.disabled = false;
-    if (saveBtn) saveBtn.disabled = true;
   });
+
+  // Match the IDs in NewRules.html
+  const metadataEditBtn = document.getElementById('editMetadataBtn');
+  const metadataSaveBtn = document.getElementById('saveMetadataBtn');
+  if (metadataEditBtn && metadataSaveBtn) {
+    metadataEditBtn.disabled = false;
+    metadataSaveBtn.disabled = true;
+  }
+
   setMetadataEnabled(false);
-  const metadataEditBtn = document.getElementById('metadataEditBtn');
-  const metadataSaveBtn = document.getElementById('metadataSaveBtn');
-  if (metadataEditBtn) metadataEditBtn.disabled = false;
-  if (metadataSaveBtn) metadataSaveBtn.disabled = true;
- }
+}
+
  
 function wireBlockButtons() {
   const blocks = document.querySelectorAll(poolRuleContainerSelector);
@@ -369,10 +373,11 @@ function wireBlockButtons() {
  }
  
 function wireMetadataButtons() {
-  const editBtn = document.getElementById('metadataEditBtn');
-  const saveBtn = document.getElementById('metadataSaveBtn');
+  // Match button IDs from NewRules.html
+  const editBtn = document.getElementById('editMetadataBtn');
+  const saveBtn = document.getElementById('saveMetadataBtn');
+
   if (!editBtn || !saveBtn) return;
- 
 
   editBtn.addEventListener('click', () => {
     setMetadataEnabled(true);
@@ -386,7 +391,7 @@ function wireMetadataButtons() {
       setMetadataEnabled(false);
       editBtn.disabled = false;
       saveBtn.disabled = true;
-     }
+    }
   });
 }
 
