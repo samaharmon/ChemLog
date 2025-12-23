@@ -192,12 +192,33 @@ function captureRulesFromBlock(block, method) {
 function showRulesForMethod(block, method) {
   const poolIndex = block.dataset.poolIndex;
   const state = getOrCreatePoolRuleState(poolIndex);
-  const rulesForMethod = state[method] || createEmptyMethodRules();
 
-  applyRuleToInputs(block, rulesForMethod);
+  // If we switch to Granular and its Cl rules are empty
+  // but Bleach has Cl rules, clone them so the user
+  // never sees a blank granular Cl section by default.
+  if (method === 'granular') {
+    const bleach   = state.bleach   || createEmptyMethodRules();
+    const granular = state.granular || createEmptyMethodRules();
+
+    const granularCl = granular.cl || {};
+    const hasAnyGranularCl = Object.values(granularCl).some(
+      (rule) =>
+        rule &&
+        typeof rule.response === 'string' &&
+        rule.response.trim() !== ''
+    );
+
+    if (!hasAnyGranularCl && bleach.cl) {
+      granular.cl = JSON.parse(JSON.stringify(bleach.cl));
+      state.granular = granular;
+    }
+  }
+
+  const methodState = state[method] || createEmptyMethodRules();
+  applyRuleToInputs(block, methodState);
   block.dataset.activeMethod = method;
 }
- 
+
 const poolRuleContainerSelector = '#poolRuleBlocks .pool-rule-block';
 
 function setModeButtonsActive(mode) {
@@ -691,49 +712,69 @@ function toggleMode(mode) {
 
  
 async function cloneRockbridgePresets() {
-  // Make sure we have the latest pools
+  // Make sure we have the latest list of pools
   if (!poolsCache.length) {
     await refreshPools();
   }
 
   const rockbridge = poolsCache.find((pool) => getPoolName(pool) === 'Rockbridge');
-  if (!rockbridge) {
-    showMessage('Rockbridge pool not found.', 'error');
+  if (!rockbridge || !rockbridge.rules || !Array.isArray(rockbridge.rules.pools)) {
+    console.warn('Rockbridge rules not found or malformed', rockbridge);
+    showMessage('Rockbridge rules could not be loaded for presets.', 'error');
     return;
   }
 
-  const rulesArray = rockbridge.rules?.pools || [];
-  const primaryDoc   = rulesArray[0] || {};
-  const secondaryDoc = rulesArray[1] || primaryDoc;
-
+  const rulesArray = rockbridge.rules.pools || [];
   const blocks = document.querySelectorAll(poolRuleContainerSelector);
 
   blocks.forEach((block, idx) => {
-    // Pick which pool’s rules to clone into this block
-    const fromDoc =
-      idx === 0 ? primaryDoc :
-      idx === 1 ? secondaryDoc :
-      primaryDoc;
-
-    // Use Bleach as the canonical set (or fall back to Granular)
-    const baseRules =
-      fromDoc.bleach ||
-      fromDoc.granular ||
-      { ph: {}, cl: {} };
-
-    // 1) Write Rockbridge rules into the textareas/selects
-    applyRuleToInputs(block, baseRules);
-
-    // 2) Persist into in‑memory state; make granular match bleach
     const poolIndex = block.dataset.poolIndex;
-    captureRulesFromBlock(block, 'bleach');  // this also syncs pH to all methods
+    if (!poolIndex) return;
+
+    // Pick the Rockbridge pool rules to clone into this block
+    const fromDoc = rulesArray[idx] || rulesArray[0] || {};
+
+    // Support both the new {bleach, granular} shape and the older {ph, cl} shape
+    const bleachDoc   = fromDoc.bleach || fromDoc || {};
+    const granularDoc = fromDoc.granular || {};
+
+    const bleachPh   = bleachDoc.ph   || {};
+    const bleachCl   = bleachDoc.cl   || {};
+    const granularPh = granularDoc.ph || {};
+    const granularCl = granularDoc.cl || {};
+
+    // pH is shared across methods – merge any separate ph rules
+    const sharedPh = {
+      ...bleachPh,
+      ...granularPh,
+    };
+
+    // If granular has no Cl defined, fall back to bleach Cl
+    const granularClSource =
+      Object.keys(granularCl).length > 0
+        ? granularCl
+        : bleachCl;
+
     const state = getOrCreatePoolRuleState(poolIndex);
-    state.granular = JSON.parse(JSON.stringify(state.bleach));
+
+    state.bleach = {
+      ph: JSON.parse(JSON.stringify(sharedPh)),
+      cl: JSON.parse(JSON.stringify(bleachCl)),
+    };
+
+    state.granular = {
+      ph: JSON.parse(JSON.stringify(sharedPh)),
+      cl: JSON.parse(JSON.stringify(granularClSource)),
+    };
+
+    // Default view is Bleach
+    showRulesForMethod(block, 'bleach');
     block.dataset.activeMethod = 'bleach';
   });
 
   showMessage('Rockbridge presets applied.', 'success');
 }
+
 
  
 function setActiveModeButton(mode) {
