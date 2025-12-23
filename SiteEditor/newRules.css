@@ -512,3 +512,42 @@ body.dark-mode .pool-rule-block {
   position: relative;
   z-index: 3;
 }
+
+/* Pool metadata overlay – grey out the entire metadata area except buttons */
+#poolMetadataSection {
+    position: relative;
+}
+
+#poolMetadataSection.overlay-disabled .metadata-content {
+    position: relative;
+    opacity: 0.6;          /* visual grey-out */
+}
+
+/* Optional: more explicit overlay */
+#poolMetadataSection.overlay-disabled .metadata-content::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    background: rgba(255, 255, 255, 0.5);
+    pointer-events: none;  /* we already disable the inputs via JS */
+}
+
+/* Market filter section inside Settings modal */
+.market-options {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    margin-top: 4px;
+}
+
+.market-option {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 14px;
+}
+
+.market-option input[type="checkbox"] {
+    margin: 0;
+}
+
