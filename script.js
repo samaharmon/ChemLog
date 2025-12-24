@@ -3162,58 +3162,6 @@ function buildPoolsByMarket(pools) {
   return { byMarket, unassigned };
 }
 
-function updatePoolLocationDropdown() {
-  const poolLocationSelect = document.getElementById('poolLocation');
-  if (!poolLocationSelect) return;
-
-  const previous = poolLocationSelect.value;
-  poolLocationSelect.innerHTML = '';
-
-  // Placeholder
-  const placeholder = document.createElement('option');
-  placeholder.value = '';
-  placeholder.textContent = 'Select a pool';
-  poolLocationSelect.appendChild(placeholder);
-
-  const { byMarket, unassigned } = buildPoolsByMarket(availablePools);
-
-  // One non‑selectable title per market, followed by its pools
-  for (const market of MARKET_NAMES) {
-    const poolsInMarket = byMarket[market];
-    if (!poolsInMarket || !poolsInMarket.length) continue;
-
-    const group = document.createElement('optgroup');
-    group.label = market;
-
-    for (const { name } of poolsInMarket) {
-      const opt = document.createElement('option');
-      opt.value = name;
-      opt.textContent = name;
-      group.appendChild(opt);
-    }
-    poolLocationSelect.appendChild(group);
-  }
-
-  // Optionally group pools with no market under "Other"
-  if (unassigned.length) {
-    const group = document.createElement('optgroup');
-    group.label = 'Other';
-
-    for (const { name } of unassigned) {
-      const opt = document.createElement('option');
-      opt.value = name;
-      opt.textContent = name;
-      group.appendChild(opt);
-    }
-    poolLocationSelect.appendChild(group);
-  }
-
-  // Try to preserve the previous selection
-  if (previous && poolLocationSelect.querySelector(`option[value="${previous}"]`)) {
-    poolLocationSelect.value = previous;
-  }
-}
-
 function getEnabledMarkets() {
   // If settings haven't loaded yet, treat all as enabled
   const anyConfigured = MARKET_NAMES.some(m =>
