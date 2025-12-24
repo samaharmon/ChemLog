@@ -863,6 +863,21 @@ input[type="text"], select, input[type="password"] {
     cursor: not-allowed;
 }
 
+.market-filter-checkbox {
+    appearance: none; /* Remove default browser styling */
+    -webkit-appearance: none; /* Remove Safari default styling */
+    -moz-appearance: none; /* Remove Firefox default styling */
+    margin-right: 10px; /* Space between checkbox and text */
+    width: 18px; /* Ensure consistent width */
+    height: 18px; /* Ensure consistent height */
+    cursor: pointer;
+    border: 1px solid #69140e; /* 1px border of header red color */
+    background-color: white; /* Default white background */
+    border-radius: 0; /* Ensure perfect squares */
+    display: inline-block; /* Prevent layout issues */
+    position: relative; /* For positioning the checkmark */
+    flex-shrink: 0; /* Prevent shrinking */
+}
 
 .sanitation-table tr:nth-child(even) {
     background-color: #f9f9f9;
