@@ -55,16 +55,9 @@
                     </div>
                     <div class="form-group full-width">
                         <label for="poolLocation">Which pool are you recording data for?</label>
-                        <select id="poolLocation" name="poolLocation" required onchange="handlePoolLocationChange()" style="width: 70.5%;">
+                        <select id="poolLocation" name="poolLocation" required style="width: 70.5%;">
                             <option value="">Select</option>
-                            <option value="Camden CC">Camden CC</option>
-                            <option value="Columbia CC">Columbia CC</option>
-                            <option value="Forest Lake">Forest Lake</option>
-                            <option value="CC of Lexington">CC of Lexington</option>
-                            <option value="Quail Hollow">Quail Hollow</option>
-                            <option value="Rockbridge">Rockbridge</option>
-                            <option value="Wildewood">Wildewood</option>
-                            <option value="Winchester">Winchester</option>
+                            <!-- Options will be injected by script.js -->
                         </select>
                     </div>
                 </div>
@@ -74,7 +67,7 @@
                 <div class="section">
                     <h2>Chemistry Log</h2>
                     
-                    <div class="pool-section">
+                    <div class="pool-section" id="mainPoolSection">
                         <h3>Main Pool</h3>
                         <div class="pool-section-content">
                             <div class="form-row">
@@ -131,6 +124,117 @@
                                 <div class="form-group">
                                     <label for="secondaryPoolCl">What is the Secondary Pool Cl level?</label>
                                     <select id="secondaryPoolCl" name="secondaryPoolCl" required>
+                                        <option value="">Select</option>
+                                        <option value="0">0</option>
+                                        <option value="1">1</option>
+                                        <option value="2">2</option>
+                                        <option value="3">3</option>
+                                        <option value="5">5</option>
+                                        <option value="7.5">7.5</option>
+                                        <option value="10">10</option>
+                                        <option value="> 10">> 10</option>
+                                    </select>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Pool 3 -->
+                    <div class="pool-section hidden" id="pool3Section">
+                        <h3>Pool 3</h3>
+                        <div class="pool-section-content">
+                            <div class="form-row">
+                                <div class="form-group">
+                                    <label for="pool3PH">What is Pool 3 pH?</label>
+                                    <select id="pool3PH" name="pool3PH">
+                                        <option value="">Select</option>
+                                        <option value="< 7.0">< 7.0</option>
+                                        <option value="7.0">7.0</option>
+                                        <option value="7.2">7.2</option>
+                                        <option value="7.4">7.4</option>
+                                        <option value="7.6">7.6</option>
+                                        <option value="7.8">7.8</option>
+                                        <option value="8.0">8.0</option>
+                                        <option value="> 8.0">> 8.0</option>
+                                    </select>
+                                </div>
+                                <div class="form-group">
+                                    <label for="pool3Cl">What is Pool 3 Cl level?</label>
+                                    <select id="pool3Cl" name="pool3Cl">
+                                        <option value="">Select</option>
+                                        <option value="0">0</option>
+                                        <option value="1">1</option>
+                                        <option value="2">2</option>
+                                        <option value="3">3</option>
+                                        <option value="5">5</option>
+                                        <option value="7.5">7.5</option>
+                                        <option value="10">10</option>
+                                        <option value="> 10">> 10</option>
+                                    </select>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Pool 4 -->
+                    <div class="pool-section hidden" id="pool4Section">
+                        <h3>Pool 4</h3>
+                        <div class="pool-section-content">
+                            <div class="form-row">
+                                <div class="form-group">
+                                    <label for="pool4PH">What is Pool 4 pH?</label>
+                                    <select id="pool4PH" name="pool4PH">
+                                        <option value="">Select</option>
+                                        <option value="< 7.0">< 7.0</option>
+                                        <option value="7.0">7.0</option>
+                                        <option value="7.2">7.2</option>
+                                        <option value="7.4">7.4</option>
+                                        <option value="7.6">7.6</option>
+                                        <option value="7.8">7.8</option>
+                                        <option value="8.0">8.0</option>
+                                        <option value="> 8.0">> 8.0</option>
+                                    </select>
+                                </div>
+                                <div class="form-group">
+                                    <label for="pool4Cl">What is Pool 4 Cl level?</label>
+                                    <select id="pool4Cl" name="pool4Cl">
+                                        <option value="">Select</option>
+                                        <option value="0">0</option>
+                                        <option value="1">1</option>
+                                        <option value="2">2</option>
+                                        <option value="3">3</option>
+                                        <option value="5">5</option>
+                                        <option value="7.5">7.5</option>
+                                        <option value="10">10</option>
+                                        <option value="> 10">> 10</option>
+                                    </select>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Pool 5 -->
+                    <div class="pool-section hidden" id="pool5Section">
+                        <h3>Pool 5</h3>
+                        <div class="pool-section-content">
+                            <div class="form-row">
+                                <div class="form-group">
+                                    <label for="pool5PH">What is Pool 5 pH?</label>
+                                    <select id="pool5PH" name="pool5PH">
+                                        <option value="">Select</option>
+                                        <option value="< 7.0">< 7.0</option>
+                                        <option value="7.0">7.0</option>
+                                        <option value="7.2">7.2</option>
+                                        <option value="7.4">7.4</option>
+                                        <option value="7.6">7.6</option>
+                                        <option value="7.8">7.8</option>
+                                        <option value="8.0">8.0</option>
+                                        <option value="> 8.0">> 8.0</option>
+                                    </select>
+                                </div>
+                                <div class="form-group">
+                                    <label for="pool5Cl">What is Pool 5 Cl level?</label>
+                                    <select id="pool5Cl" name="pool5Cl">
                                         <option value="">Select</option>
                                         <option value="0">0</option>
                                         <option value="1">1</option>
@@ -278,52 +382,8 @@
                             <th>Granular</th>
                         </tr>
                     </thead>
-                    <tbody>
-                        <tr>
-                            <td>Camden CC</td>
-                            <td><input type="checkbox" class="sanitation-checkbox bleach-checkbox" data-pool="Camden CC" data-method="bleach" onchange="handleSanitationChange(this)"></td>
-                            <td><input type="checkbox" class="sanitation-checkbox granular-checkbox" data-pool="Camden CC" data-method="granular" onchange="handleSanitationChange(this)"></td>
-                        </tr>
-                        <tr>
-                            <td>CC of Lexington</td>
-                            <td><input type="checkbox" class="sanitation-checkbox bleach-checkbox" data-pool="CC of Lexington" data-method="bleach" onchange="handleSanitationChange(this)"></td>
-                            <td><input type="checkbox" class="sanitation-checkbox granular-checkbox" data-pool="CC of Lexington" data-method="granular" onchange="handleSanitationChange(this)"></td>
-                        </tr>
-                        <tr>
-                            <td>Columbia CC</td>
-                            <td><input type="checkbox" class="sanitation-checkbox bleach-checkbox" data-pool="Columbia CC" data-method="bleach" onchange="handleSanitationChange(this)"></td>
-                            <td><input type="checkbox" class="sanitation-checkbox granular-checkbox" data-pool="Columbia CC" data-method="granular" onchange="handleSanitationChange(this)"></td>
-                        </tr>
-                        <tr>
-                            <td>Forest Lake Lap Pool</td>
-                            <td><input type="checkbox" class="sanitation-checkbox bleach-checkbox" data-pool="Forest Lake Lap Pool" data-method="bleach" onchange="handleSanitationChange(this)"></td>
-                            <td><input type="checkbox" class="sanitation-checkbox granular-checkbox" data-pool="Forest Lake Lap Pool" data-method="granular" onchange="handleSanitationChange(this)"></td>
-                        </tr>
-                        <tr>
-                            <td>Forest Lake Main Pool</td>
-                            <td><input type="checkbox" class="sanitation-checkbox bleach-checkbox" data-pool="Forest Lake" data-method="bleach" onchange="handleSanitationChange(this)"></td>
-                            <td><input type="checkbox" class="sanitation-checkbox granular-checkbox" data-pool="Forest Lake" data-method="granular" onchange="handleSanitationChange(this)"></td>
-                        </tr>
-                        <tr>
-                            <td>Quail Hollow</td>
-                            <td><input type="checkbox" class="sanitation-checkbox bleach-checkbox" data-pool="Quail Hollow" data-method="bleach" onchange="handleSanitationChange(this)"></td>
-                            <td><input type="checkbox" class="sanitation-checkbox granular-checkbox" data-pool="Quail Hollow" data-method="granular" onchange="handleSanitationChange(this)"></td>
-                        </tr>
-                        <tr>
-                            <td>Rockbridge</td>
-                            <td><input type="checkbox" class="sanitation-checkbox bleach-checkbox" data-pool="Rockbridge" data-method="bleach" onchange="handleSanitationChange(this)"></td>
-                            <td><input type="checkbox" class="sanitation-checkbox granular-checkbox" data-pool="Rockbridge" data-method="granular" onchange="handleSanitationChange(this)"></td>
-                        </tr>
-                        <tr>
-                            <td>Wildewood</td>
-                            <td><input type="checkbox" class="sanitation-checkbox bleach-checkbox" data-pool="Wildewood" data-method="bleach" onchange="handleSanitationChange(this)"></td>
-                            <td><input type="checkbox" class="sanitation-checkbox granular-checkbox" data-pool="Wildewood" data-method="granular" onchange="handleSanitationChange(this)"></td>
-                        </tr>
-                        <tr>
-                            <td>Winchester</td>
-                            <td><input type="checkbox" class="sanitation-checkbox bleach-checkbox" data-pool="Winchester" data-method="bleach" onchange="handleSanitationChange(this)"></td>
-                            <td><input type="checkbox" class="sanitation-checkbox granular-checkbox" data-pool="Winchester" data-method="granular" onchange="handleSanitationChange(this)"></td>
-                        </tr>
+                    <tbody id="sanitationTableBody">
+                        <!-- filled by script.js -->
                     </tbody>
                 </table>
                 <div id="sanitationControls" style="margin-top: 10px;">
