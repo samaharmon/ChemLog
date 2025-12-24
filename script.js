@@ -53,6 +53,101 @@ const CHEM_POOL_SECTIONS = [
   { sectionId: 'pool5Section',         phId: 'pool5PH',         clId: 'pool5Cl' },         // 5
 ];
 
+// ===== Global pool data helpers =====
+window.availablePools = window.availablePools || [];
+window.poolMetadataByName = window.poolMetadataByName || {};
+
+const MARKET_ORDER = ['Columbia', 'Greenville', 'Charlotte', 'Charleston'];
+
+// Static base list so legacy pools still appear even if no Firestore doc yet
+const STATIC_POOLS = [
+  { name: 'Camden CC',       markets: ['Columbia'], numPools: 1 },
+  { name: 'Columbia CC',     markets: ['Columbia'], numPools: 2 },
+  { name: 'Forest Lake',     markets: ['Columbia'], numPools: 2 },
+  { name: 'CC of Lexington', markets: ['Columbia'], numPools: 2 },
+  { name: 'Quail Hollow',    markets: ['Columbia'], numPools: 2 },
+  { name: 'Rockbridge',      markets: ['Columbia'], numPools: 2 },
+  { name: 'Wildewood',       markets: ['Columbia'], numPools: 2 },
+  { name: 'Winchester',      markets: ['Columbia'], numPools: 2 },
+];
+
+// Safely pull a name from whatever shape the pool object is in
+function getPoolNameFromDoc(pool) {
+  if (!pool || typeof pool !== 'object') return '';
+  return (
+    pool.name ||
+    pool.poolName ||
+    (pool.metadata && (pool.metadata.name || pool.metadata.poolName)) ||
+    ''
+  );
+}
+
+// Markets as a string array
+function getPoolMarketsFromDoc(pool) {
+  if (!pool || typeof pool !== 'object') return [];
+  let m = pool.markets || (pool.metadata && pool.metadata.markets) || [];
+  if (!Array.isArray(m)) {
+    if (typeof m === 'string' && m.trim()) return [m.trim()];
+    return [];
+  }
+  return m.filter(Boolean);
+}
+
+function toInt(value, fallback) {
+  if (typeof value === 'number') return value;
+  if (typeof value === 'string' && value.trim()) {
+    const parsed = parseInt(value, 10);
+    if (!Number.isNaN(parsed)) return parsed;
+  }
+  return fallback;
+}
+
+// Build the master metadata map (static pools + Firestore pools)
+function rebuildPoolMetadataMap(poolsFromFirestore) {
+  const map = {};
+
+  // Start with static pools so they always exist
+  for (const p of STATIC_POOLS) {
+    map[p.name] = {
+      numPools: typeof p.numPools === 'number' ? p.numPools : 2,
+      markets: Array.isArray(p.markets) && p.markets.length ? p.markets : ['Columbia'],
+    };
+  }
+
+  // Overlay Firestore data (rule editor)
+  const list = Array.isArray(poolsFromFirestore) ? poolsFromFirestore : [];
+  for (const pool of list) {
+    const name = getPoolNameFromDoc(pool);
+    if (!name) continue;
+
+    const existing = map[name] || {};
+    const markets = getPoolMarketsFromDoc(pool);
+    const numPools = toInt(pool.numPools, existing.numPools || 2);
+
+    map[name] = {
+      numPools,
+      markets: markets.length ? markets : (existing.markets || ['Columbia']),
+    };
+  }
+
+  window.poolMetadataByName = map;
+  return map;
+}
+
+// How many chemistry sections should this pool have?
+function getNumPoolsForChemForm(poolName) {
+  if (!poolName) return 1;
+
+  const meta = window.poolMetadataByName && window.poolMetadataByName[poolName];
+  if (meta && typeof meta.numPools === 'number') {
+    return meta.numPools;
+  }
+
+  // Fallbacks if metadata is missing
+  if (poolName === 'Camden CC') return 1;
+  return 2;
+}
+
 // Populated when you load pools from Firestore
 window.poolMetadataByName = window.poolMetadataByName || {};
 
@@ -549,11 +644,6 @@ function closeSettings() {
     document.getElementById('settingsModal').style.display = 'none';
         removeOverlay();
 }
-
-// ===== Sanitation settings table (Settings modal) =====
-
-// market display order
-const MARKET_ORDER = ['Columbia', 'Greenville', 'Charlotte', 'Charleston'];
 
 // poolName -> { bleach: boolean, granular: boolean }
 window.sanitationState = window.sanitationState || {};
@@ -2818,6 +2908,8 @@ function updatePoolLocationDropdown() {
   if (!select) return;
 
   const previous = select.value;
+
+  // Clear any hard‑coded options
   select.innerHTML = '';
 
   // Default "Select" option
@@ -2826,92 +2918,62 @@ function updatePoolLocationDropdown() {
   defaultOpt.textContent = 'Select';
   select.appendChild(defaultOpt);
 
-  // Pools are filtered by enabled Markets (Settings → Market)
-  const enabledMarkets = typeof getEnabledMarkets === 'function'
-    ? getEnabledMarkets()
-    : [];
+  // Use the combined metadata map (static + Firestore)
+  const meta = window.poolMetadataByName || {};
+  const poolsByMarket = new Map();
 
-  const byMarket = new Map();
-  const list = Array.isArray(window.availablePools) ? window.availablePools : [];
+  // Group pool names by their primary market
+  Object.entries(meta).forEach(([name, info]) => {
+    if (!name) return;
 
-  for (const pool of list) {
-    const name = typeof getPoolNameFromDoc === 'function'
-      ? getPoolNameFromDoc(pool)
-      : pool?.name || pool?.poolName;
+    const markets = Array.isArray(info.markets) && info.markets.length
+      ? info.markets
+      : ['Unassigned'];
 
-    if (!name) continue;
-
-    const markets = typeof getPoolMarketsFromDoc === 'function'
-      ? getPoolMarketsFromDoc(pool)
-      : (pool.markets || []);
-
-    const groupMarkets = markets.length ? markets : ['Unassigned'];
-
-    for (const market of groupMarkets) {
-      // If some markets are enabled, hide pools in markets that are OFF
-      if (enabledMarkets.length && !enabledMarkets.includes(market)) continue;
-
-      if (!byMarket.has(market)) {
-        byMarket.set(market, []);
-      }
-      byMarket.get(market).push(name);
+    const primaryMarket = markets[0];
+    if (!poolsByMarket.has(primaryMarket)) {
+      poolsByMarket.set(primaryMarket, []);
     }
-  }
+    poolsByMarket.get(primaryMarket).push(name);
+  });
 
-  // We want Columbia / Greenville / Charlotte / Charleston first
-  const marketOrder = ['Columbia', 'Greenville', 'Charlotte', 'Charleston'];
-  const usedMarkets = new Set();
+  // Helper to add a market section
+  function appendMarketSection(marketLabel) {
+    const names = (poolsByMarket.get(marketLabel) || []).slice().sort((a, b) =>
+      a.localeCompare(b),
+    );
+    if (!names.length) return;
 
-  // Add markets in preferred order
-  for (const market of marketOrder) {
-    const names = byMarket.get(market);
-    if (!names || !names.length) continue;
+    const header = document.createElement('option');
+    header.value = '';
+    header.textContent = `— ${marketLabel} —`;
+    header.disabled = true;
+    header.classList.add('market-header-option');
+    select.appendChild(header);
 
-    usedMarkets.add(market);
-
-    const headerOpt = document.createElement('option');
-    headerOpt.value = '';
-    headerOpt.textContent = `— ${market} —`;
-    headerOpt.disabled = true;
-    headerOpt.className = 'dropdown-market-header';
-    select.appendChild(headerOpt);
-
-    names.sort((a, b) => a.localeCompare(b));
-    for (const name of names) {
+    names.forEach((name) => {
       const opt = document.createElement('option');
       opt.value = name;
       opt.textContent = name;
       select.appendChild(opt);
-    }
+    });
   }
 
-  // Any remaining markets not in the default order
-  for (const [market, names] of byMarket.entries()) {
-    if (usedMarkets.has(market)) continue;
+  // Known market order first
+  MARKET_ORDER.forEach((market) => appendMarketSection(market));
 
-    const headerOpt = document.createElement('option');
-    headerOpt.value = '';
-    headerOpt.textContent = `— ${market} —`;
-    headerOpt.disabled = true;
-    headerOpt.className = 'dropdown-market-header';
-    select.appendChild(headerOpt);
-
-    names.sort((a, b) => a.localeCompare(b));
-    for (const name of names) {
-      const opt = document.createElement('option');
-      opt.value = name;
-      opt.textContent = name;
-      select.appendChild(opt);
-    }
+  // Any other markets (including "Unassigned")
+  for (const [market] of poolsByMarket.entries()) {
+    if (MARKET_ORDER.includes(market)) continue;
+    appendMarketSection(market);
   }
 
-  // Try to keep the previous selection if it still exists
+  // Try to preserve previous selection
   if (previous && select.querySelector(`option[value="${previous}"]`)) {
     select.value = previous;
-  } else {
-    select.value = '';
   }
 }
+
 
 // ===================================================
 // DATA MANAGEMENT & DASHBOARD
@@ -3213,22 +3275,39 @@ function updatePoolFilterDropdown() {
 }
 
 function initializePoolsForUI() {
-  // Initial fill using whatever we have (may be empty at first)
+  // Seed metadata from static pools so things work even before Firestore responds
+  rebuildPoolMetadataMap(window.availablePools || []);
   updatePoolLocationDropdown();
-  updatePoolFilterDropdown();
 
+  // Dashboard filter still uses its own dropdown function
+  if (typeof updatePoolFilterDropdown === 'function') {
+    updatePoolFilterDropdown();
+  }
+
+  // If we don't have the Firestore listener helper, we at least keep static pools
   if (typeof listenPools !== 'function') {
     console.warn('listenPools() helper is not available; pool list will not be dynamic');
     return;
   }
 
   try {
-    listenPools((pools) => {
-      availablePools = Array.isArray(pools) ? pools : [];
+    listenPools((poolsFromFirestore) => {
+      // Pools are coming from the rule editor / Firestore
+      window.availablePools = Array.isArray(poolsFromFirestore) ? poolsFromFirestore : [];
+
+      // Rebuild metadata using both static + Firestore pools
+      rebuildPoolMetadataMap(window.availablePools);
+
+      // Refresh the chemistry form dropdown + dashboard pool filter
       updatePoolLocationDropdown();
-      updatePoolFilterDropdown();
-      // Refresh dashboard display with the new pools
-      filterAndDisplayData?.();
+      if (typeof updatePoolFilterDropdown === 'function') {
+        updatePoolFilterDropdown();
+      }
+
+      // Refresh supervisor dashboard table if that helper exists
+      if (typeof filterAndDisplayData === 'function') {
+        filterAndDisplayData();
+      }
     });
   } catch (err) {
     console.error('Failed to attach pool listener', err);
