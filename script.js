@@ -181,28 +181,6 @@ function setChemistrySectionCount(numPools) {
   });
 }
 
-/**
- * Camden always has 2 sections.
- * Everyone else: from metadata if available, otherwise fall back.
- */
-function getNumPoolsForChemForm(poolName) {
-  if (!poolName) return 1;
-
-  if (poolName === 'Camden CC') {
-    return 2;
-  }
-
-  const meta = window.poolMetadataByName[poolName];
-  if (meta && typeof meta.numPools === 'number') {
-    return meta.numPools;
-  }
-
-  // Legacy fallback for older pools with no metadata
-  const legacySecondary = ['Rockbridge', 'Forest Lake'];
-  return legacySecondary.includes(poolName) ? 2 : 1;
-}
-
-
 //===================================================
 //Hoisted Functions
 //===================================================
