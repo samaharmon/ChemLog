@@ -56,10 +56,10 @@
             <div class="section" id="poolRuleEditorSection">
                 <h2>Pool Editor</h2>
                 <div class="form-row" id="editorModeRow" style="gap: 10px;">
-                    <button type="button" id="editorModeAdd" class="sanitation-tabs mode-toggle">
+                    <button type="button" id="editorModeAdd" class="editAndSave mode-toggle">
                         Add new pool
                     </button>
-                    <button type="button" id="editorModeEdit" class="sanitation-tabs mode-toggle">
+                    <button type="button" id="editorModeEdit" class="editAndSave mode-toggle">
                         Edit existing pool
                     </button>
                 </div>
@@ -143,8 +143,8 @@
                     </div> <!-- .metadata-content -->
 
                     <div class="form-row" style="gap: 10px; margin-top: 10px; justify-content: flex-start;">
-                        <button type="button" class="sanitation-tabs" id="editMetadataBtn">Edit</button>
-                        <button type="button" class="sanitation-tabs" id="saveMetadataBtn" disabled>Save</button>
+                        <button type="button" class="editAndSave" id="editMetadataBtn">Edit</button>
+                        <button type="button" class="editAndSave" id="saveMetadataBtn" disabled>Save</button>
                         <button type="button" id="deletePoolBtn" class="editAndSave danger-button">Delete Pool</button>
                     </div>
                 </div>
@@ -174,8 +174,8 @@
                                 </div>
                                 <!-- Edit / Save moved up into the header -->
                                 <div class="rule-buttons">
-                                    <button type="button" class="sanitation-tabs">Edit</button>
-                                    <button type="button" class="sanitation-tabs" disabled>Save</button>
+                                    <button type="button" class="editAndSave">Edit</button>
+                                    <button type="button" class="editAndSave" disabled>Save</button>
                                 </div>
                             </div>
                                 <div class="table-wrapper" style="flex: 1 1 300px;">
@@ -397,8 +397,8 @@
                                 </div>
                                 <!-- Edit / Save moved up into the header -->
                                 <div class="rule-buttons">
-                                    <button type="button" class="sanitation-tabs">Edit</button>
-                                    <button type="button" class="sanitation-tabs" disabled>Save</button>
+                                    <button type="button" class="editAndSave">Edit</button>
+                                    <button type="button" class="editAndSave" disabled>Save</button>
                                 </div>
                             </div>
                                 <div class="table-wrapper" style="flex: 1 1 300px;">
@@ -619,8 +619,8 @@
                                     </button>
                                 </div>
                                 <div class="rule-buttons">
-                                    <button type="button" class="sanitation-tabs">Edit</button>
-                                    <button type="button" class="sanitation-tabs" disabled>Save</button>
+                                    <button type="button" class="editAndSave">Edit</button>
+                                    <button type="button" class="editAndSave" disabled>Save</button>
                                 </div>
                             </div>
                                 <div class="table-wrapper" style="flex: 1 1 300px;">
@@ -842,8 +842,8 @@
                                     </div>
                                     <!-- Edit / Save moved up into the header -->
                                     <div class="rule-buttons">
-                                        <button type="button" class="sanitation-tabs">Edit</button>
-                                        <button type="button" class="sanitation-tabs" disabled>Save</button>
+                                        <button type="button" class="editAndSave">Edit</button>
+                                        <button type="button" class="editAndSave" disabled>Save</button>
                                     </div>
                                 </div>
                                 <div class="table-wrapper" style="flex: 1 1 300px;">
@@ -1065,8 +1065,8 @@
                                     </div>
                                     <!-- Edit / Save moved up into the header -->
                                     <div class="rule-buttons">
-                                        <button type="button" class="sanitation-tabs">Edit</button>
-                                        <button type="button" class="sanitation-tabs" disabled>Save</button>
+                                        <button type="button" class="editAndSave">Edit</button>
+                                        <button type="button" class="editAndSave" disabled>Save</button>
                                     </div>
                                 </div>
                                 <div class="table-wrapper" style="flex: 1 1 300px;">
@@ -1348,8 +1348,8 @@
                     </tbody>
                 </table>
                 <div id="sanitationControls" style="margin-top: 10px;">
-                    <button id="editSanitationBtn" class="sanitation-tabs">Edit</button>
-                    <button id="saveSanitationBtn" class="sanitation-tabs" disabled>Save</button>
+                    <button id="editSanitationBtn" class="editAndSave">Edit</button>
+                    <button id="saveSanitationBtn" class="editAndSave" disabled>Save</button>
                 </div>
                 <div class="settings-section">
                     <h3>Markets</h3>
