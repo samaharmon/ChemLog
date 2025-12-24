@@ -1127,24 +1127,6 @@ body.dark-mode .highlight-yellow {
     border-bottom: 2px solid #777;
 }
 
-/* Market filter section inside Settings modal */
-.market-options {
-    display: flex;
-    flex-direction: column;
-    gap: 6px;
-    margin-top: 4px;
-}
-
-.market-option {
-    display: flex;
-    align-items: center;
-    gap: 8px;
-    font-size: 14px;
-}
-
-.market-option input[type="checkbox"] {
-    margin: 0;
-}
 
 
 
