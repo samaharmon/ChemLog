@@ -2068,7 +2068,7 @@ function setupEventHandlers() {
     // Export to CSV button
     const exportCsvBtn = document.getElementById('exportCsvBtn');
     if (exportCsvBtn) {
-        exportCsvBtn.addEventListener('click', exportToCSV);
+        exportCsvBtn.addEventListener('click', exportToCsv);
         console.log('✅ Export to CSV button handler attached');
     } else {
         console.warn('⚠️ exportCsvBtn not found');
@@ -2304,227 +2304,206 @@ console.log('✅ All 62 unique functions exposed globally');
 // 6+3+6+6+5+4+5+5+4+7+3+1+3+2+2 = 62 functions total
 // ===================================================
 
-document.addEventListener("DOMContentLoaded", () => {
-    console.log('🧪 UNIFIED APP.JS LOADED - Firebase v9');
+document.addEventListener('DOMContentLoaded', () => {
+  console.log('🧪 UNIFIED APP.JS LOADED - Firebase v9');
 
-    // === Dark Mode Toggle Setup ===
-    const darkModeToggle = document.getElementById('darkModeToggle');
-    const savedTheme = localStorage.getItem('theme');
-    if (savedTheme === 'dark') {
-        document.body.classList.add('dark-mode');
-        if (darkModeToggle) darkModeToggle.checked = true;
+  // === Dark Mode Toggle Setup ===
+  const darkModeToggle = document.getElementById('darkModeToggle');
+  const savedTheme = localStorage.getItem('theme');
+
+  if (savedTheme === 'dark') {
+    document.body.classList.add('dark-mode');
+    if (darkModeToggle) darkModeToggle.checked = true;
+  }
+
+  if (darkModeToggle) {
+    darkModeToggle.addEventListener('change', () => {
+      document.body.classList.toggle('dark-mode');
+      const newTheme = document.body.classList.contains('dark-mode') ? 'dark' : 'light';
+      localStorage.setItem('theme', newTheme);
+    });
+  }
+
+  // === App Init Functions (defensive so one failure doesn't break everything) ===
+  const dashboard = document.getElementById('supervisorDashboard');
+  if (dashboard) {
+    dashboard.classList.remove('show');
+    console.log('Dashboard force hidden on load');
+  }
+
+  const safeCall = (name, fn) => {
+    if (typeof fn === 'function') {
+      try {
+        fn();
+      } catch (err) {
+        console.error(`❌ Error in ${name}:`, err);
+      }
+    } else {
+      console.warn(`ℹ️ ${name} is not defined on this page.`);
     }
+  };
 
-    if (darkModeToggle) {
-        darkModeToggle.addEventListener('change', () => {
-            document.body.classList.toggle('dark-mode');
-            const newTheme = document.body.classList.contains('dark-mode') ? 'dark' : 'light';
-            localStorage.setItem('theme', newTheme);
-        });
+  // Firebase‑driven init pieces
+  safeCall('initializeSanitationSettings', initializeSanitationSettings);
+  safeCall('startSanitationSettingsListener', startSanitationSettingsListener);
+  safeCall('initializeMarketSettings', initializeMarketSettings);
+  safeCall('initializePoolsForUI', initializePoolsForUI);
+  safeCall('cleanupTestSubmissions', cleanupTestSubmissions);
+  safeCall('checkLogin', checkLogin);
+  safeCall('initializeFormSubmissions', initializeFormSubmissions);
+
+  // === Login form ===
+  const loginForm = document.getElementById('loginForm');
+  if (loginForm && typeof handleLoginSubmit === 'function') {
+    loginForm.addEventListener('submit', handleLoginSubmit);
+    console.log('✅ Login form handler attached');
+  }
+
+  // === Pool dropdown change ===
+  const poolLocation = document.getElementById('poolLocation');
+  if (poolLocation && typeof handlePoolLocationChange === 'function') {
+    poolLocation.addEventListener('change', handlePoolLocationChange);
+    console.log('✅ Pool location handler attached');
+  }
+
+  // === Supervisor Login button ===
+  const loginButton = document.querySelector('.supervisor-login-btn');
+  if (loginButton && typeof openLoginModal === 'function') {
+    loginButton.removeAttribute('onclick');
+    loginButton.addEventListener('click', openLoginModal);
+  }
+
+  // === Main sanitizer dropdown (if present) ===
+  const mainSanitizerDropdown = document.getElementById('mainSanitizerMethod');
+  if (mainSanitizerDropdown) {
+    mainSanitizerDropdown.addEventListener('change', function () {
+      const poolLocationValue = document.getElementById('poolLocation')?.value;
+      if (poolLocationValue) {
+        window.sanitationSettings = window.sanitationSettings || {};
+        window.sanitationSettings[poolLocationValue] = this.value;
+        localStorage.setItem('sanitationSettings', JSON.stringify(window.sanitationSettings));
+        console.log(`Updated sanitationSettings[${poolLocationValue}] to:`, this.value);
+      }
+    });
+  }
+
+  // === MAIN FORM SUBMIT BUTTON ===
+  const submitButton = document.getElementById('submitBtn'); // <-- specific button
+  if (submitButton) {
+    submitButton.removeAttribute('onclick');
+    submitButton.addEventListener('click', (e) => {
+      e.preventDefault(); // prevent default page reload
+      if (typeof submitForm === 'function') {
+        submitForm(e);
+      } else {
+        console.warn('submitForm() is not defined.');
+      }
+    });
+  }
+
+  // === Clear Data & Export CSV ===
+  const clearDataBtn = document.getElementById('clearAllData');
+  const exportCsvBtn = document.getElementById('exportCsvBtn');
+
+  if (clearDataBtn && typeof confirmClearData === 'function') {
+    clearDataBtn.addEventListener('click', confirmClearData);
+  }
+
+  if (exportCsvBtn) {
+    if (typeof exportToCsv === 'function') {
+      exportCsvBtn.addEventListener('click', exportToCsv);
+    } else if (typeof exportToCSV === 'function') {
+      // fallback to your original name
+      exportCsvBtn.addEventListener('click', exportToCSV);
+    } else {
+      console.warn('No exportToCsv / exportToCSV function defined.');
     }
+  }
 
-    // === Supervisor Dashboard: hide on load ===
-    const dashboard = document.getElementById('supervisorDashboard');
-    if (dashboard) {
-        dashboard.classList.remove('show');
-        console.log('Dashboard force hidden on load');
-    }
+  // === Misc app‑level handlers ===
+  if (typeof setupEventHandlers === 'function') {
+    safeCall('setupEventHandlers', setupEventHandlers);
+  }
+  if (typeof updateHeaderButtons === 'function') {
+    safeCall('updateHeaderButtons', updateHeaderButtons);
+  }
 
-    // === Async app init that depends on Firestore ===
-    (async () => {
-        try {
-            if (typeof loadPoolsMetadata === 'function') {
-                await loadPoolsMetadata();
-                console.log('✅ Pool metadata loaded');
-            }
-        } catch (err) {
-            console.error('❌ Error in loadPoolsMetadata():', err);
+  // === Supervisor Dashboard Pagination Buttons ===
+  const prevBtn = document.getElementById('prevBtn');
+  const nextBtn = document.getElementById('nextBtn');
+
+  if (prevBtn && typeof displayData === 'function') {
+    prevBtn.addEventListener('click', () => {
+      if (window.currentPage > 0) {
+        window.currentPage--;
+        displayData();
+        if (typeof updatePagination === 'function') {
+          updatePagination();
+        } else if (typeof updatePaginationControls === 'function') {
+          updatePaginationControls();
         }
+      }
+    });
+  }
 
-        try {
-            if (typeof loadSanitationSettings === 'function') {
-                await loadSanitationSettings();
-                console.log('✅ Sanitation settings loaded');
-            }
-        } catch (err) {
-            console.error('❌ Error in loadSanitationSettings():', err);
+  if (nextBtn && typeof displayData === 'function') {
+    nextBtn.addEventListener('click', () => {
+      const totalPages = Math.ceil((window.filteredSubmissions || []).length / (window.itemsPerPage || 25));
+      if (window.currentPage < totalPages - 1) {
+        window.currentPage++;
+        displayData();
+        if (typeof updatePagination === 'function') {
+          updatePagination();
+        } else if (typeof updatePaginationControls === 'function') {
+          updatePaginationControls();
         }
+      }
+    });
+  }
 
-        // These use the data above (sanitation, markets, pools)
-        if (typeof initializeSanitationSettings === 'function') {
-            initializeSanitationSettings();
+  // === Sanitation table Edit / Save ===
+  const editBtn = document.getElementById('editSanitationBtn');
+  const saveBtn = document.getElementById('saveSanitationBtn');
+
+  if (editBtn && saveBtn) {
+    const sanitationCheckboxes = document.querySelectorAll('.sanitation-checkbox');
+    sanitationCheckboxes.forEach(cb => cb.disabled = true);
+
+    editBtn.addEventListener('click', () => {
+      sanitationCheckboxes.forEach(cb => cb.disabled = false);
+      editBtn.disabled = true;
+      saveBtn.disabled = false;
+    });
+
+    saveBtn.addEventListener('click', () => {
+      window.sanitationSettings = window.sanitationSettings || {};
+
+      sanitationCheckboxes.forEach(cb => {
+        const pool = cb.dataset.pool;
+        const method = cb.dataset.method;
+        if (!pool || !method) return;
+        if (cb.checked) {
+          // enforce one method per pool: overwrite
+          window.sanitationSettings[pool] = method;
+        } else if (window.sanitationSettings[pool] === method) {
+          // if unchecked and currently selected, clear it
+          delete window.sanitationSettings[pool];
         }
-        if (typeof startSanitationSettingsListener === 'function') {
-            startSanitationSettingsListener();
-        }
-        if (typeof initializeMarketSettings === 'function') {
-            initializeMarketSettings();
-        }
-        if (typeof initializePoolsForUI === 'function') {
-            initializePoolsForUI();
-        }
-        if (typeof cleanupTestSubmissions === 'function') {
-            cleanupTestSubmissions();
-        }
-        if (typeof checkLogin === 'function') {
-            checkLogin();
-        }
-        if (typeof initializeFormSubmissions === 'function') {
-            initializeFormSubmissions();
-        }
+      });
 
-        console.log('🚀 Async app initialization complete');
-    })();
+      if (typeof saveSanitationSettings === 'function') {
+        saveSanitationSettings();
+      }
+      sanitationCheckboxes.forEach(cb => cb.disabled = true);
+      editBtn.disabled = false;
+      saveBtn.disabled = true;
 
-    // === Login form ===
-    const loginForm = document.getElementById('loginForm');
-    if (loginForm) {
-        loginForm.addEventListener('submit', handleLoginSubmit);
-        console.log('✅ Login form handler attached');
-    }
+      console.log('✅ Sanitation settings saved and checkboxes disabled again');
+    });
+  }
 
-    // === Pool selection change (chemistry form) ===
-    const poolLocation = document.getElementById('poolLocation');
-    if (poolLocation) {
-        poolLocation.addEventListener('change', handlePoolLocationChange);
-        console.log('✅ Pool location handler attached');
-    }
-
-    // === Supervisor login button (header) ===
-    const loginButton = document.querySelector('.supervisor-login-btn');
-    if (loginButton) {
-        loginButton.removeAttribute('onclick');
-        loginButton.addEventListener('click', openLoginModal);
-    }
-
-    // === Main sanitizer dropdown (if present) ===
-    const mainSanitizerDropdown = document.getElementById('mainSanitizerMethod');
-    if (mainSanitizerDropdown) {
-        mainSanitizerDropdown.addEventListener('change', function () {
-            const poolLocation = document.getElementById('poolLocation')?.value;
-            if (poolLocation) {
-                sanitationSettings[poolLocation] = this.value;
-                localStorage.setItem('sanitationSettings', JSON.stringify(sanitationSettings));
-                console.log(`Updated sanitationSettings[${poolLocation}] to:`, this.value);
-            }
-        });
-    }
-
-    // === Main form submit ===
-    const submitButton = document.querySelector('.submit-btn');
-    if (submitButton) {
-        submitButton.removeAttribute('onclick');
-        submitButton.addEventListener('click', (e) => submitForm(e));
-    }
-
-    // === Clear data / Export CSV buttons ===
-    const clearDataBtn = document.getElementById("clearAllData");
-    const exportCsvBtn = document.getElementById("exportCsvBtn");
-
-    if (clearDataBtn) {
-        if (typeof clearAllData === 'function') {
-            clearDataBtn.addEventListener("click", clearAllData);
-        } else if (typeof confirmClearData === 'function') {
-            clearDataBtn.addEventListener("click", confirmClearData);
-        }
-    }
-
-    if (exportCsvBtn) {
-        if (typeof exportToCsv === 'function') {
-            exportCsvBtn.addEventListener("click", exportToCsv);
-        } else if (typeof exportToCSV === 'function') {
-            exportCsvBtn.addEventListener("click", exportToCSV);
-        }
-    }
-
-    // === Misc setup ===
-    if (typeof setupEventHandlers === 'function') {
-        setupEventHandlers();
-    }
-    if (typeof updateHeaderButtons === 'function') {
-        updateHeaderButtons();
-    }
-
-    // === Supervisor Dashboard Pagination Buttons ===
-    const prevBtn = document.getElementById('prevBtn');
-    const nextBtn = document.getElementById('nextBtn');
-
-    if (prevBtn) {
-        prevBtn.addEventListener('click', () => {
-            if (currentPage > 0) {
-                currentPage--;
-                displayData();
-                if (typeof updatePagination === 'function') {
-                    updatePagination();
-                } else if (typeof updatePaginationControls === 'function') {
-                    updatePaginationControls();
-                }
-            }
-        });
-    }
-
-    if (nextBtn) {
-        nextBtn.addEventListener('click', () => {
-            const totalPages = Math.ceil(filteredSubmissions.length / itemsPerPage);
-            if (currentPage < totalPages - 1) {
-                currentPage++;
-                displayData();
-                if (typeof updatePagination === 'function') {
-                    updatePagination();
-                } else if (typeof updatePaginationControls === 'function') {
-                    updatePaginationControls();
-                }
-            }
-        });
-    }
-
-    // === Sanitation Settings: Edit / Save buttons ===
-    const editBtn = document.getElementById('editSanitationBtn');
-    const saveBtn = document.getElementById('saveSanitationBtn');
-
-    if (editBtn && saveBtn) {
-        // Initially, keep them read‑only (if any exist yet).
-        let initialCheckboxes = document.querySelectorAll('.sanitation-checkbox');
-        initialCheckboxes.forEach(cb => cb.disabled = true);
-
-        editBtn.addEventListener('click', () => {
-            const sanitationCheckboxes = document.querySelectorAll('.sanitation-checkbox');
-            sanitationCheckboxes.forEach(cb => cb.disabled = false);
-            editBtn.disabled = true;
-            saveBtn.disabled = false;
-        });
-
-        saveBtn.addEventListener('click', () => {
-            const sanitationCheckboxes = document.querySelectorAll('.sanitation-checkbox');
-
-            // Old behavior: if you still rely on sanitationSettings + saveSanitationSettings()
-            sanitationCheckboxes.forEach(cb => {
-                const pool = cb.dataset.pool;
-                const method = cb.dataset.method;
-                if (!pool || !method) return;
-
-                if (cb.checked) {
-                    // If you're using the newer per-method model, you can
-                    // adapt this to sanitationState[pool][method] = true;
-                    sanitationSettings[pool] = method;
-                }
-            });
-
-            if (typeof saveSanitationSettings === 'function') {
-                saveSanitationSettings();
-            }
-
-            sanitationCheckboxes.forEach(cb => cb.disabled = true);
-            editBtn.disabled = false;
-            saveBtn.disabled = true;
-
-            console.log('✅ Sanitation settings saved and checkboxes disabled again');
-        });
-    }
-
-    console.log('✅ DOMContentLoaded handlers attached');
+  console.log('🚀 App initialization complete');
 });
-
 
 function updateSanitationCheckboxesFromSettings() {
     for (const pool in sanitationSettings) {
@@ -2845,6 +2824,93 @@ function onMarketCheckboxChanged(event) {
   updatePoolFilterDropdown();
   filterAndDisplayData?.();
   saveMarketSettings();
+}
+
+function updatePoolLocationDropdown() {
+  const select = document.getElementById('poolLocation');
+  if (!select) return;
+
+  const previousValue = select.value;
+  select.innerHTML = '';
+
+  // Default placeholder
+  const placeholder = document.createElement('option');
+  placeholder.value = '';
+  placeholder.textContent = 'Select';
+  select.appendChild(placeholder);
+
+  const enabledMarkets =
+    typeof getEnabledMarkets === 'function' ? getEnabledMarkets() : MARKET_ORDER;
+
+  const list = Array.isArray(window.availablePools) ? window.availablePools : [];
+  const marketMap = new Map();
+
+  // Collect pool names by market
+  for (const pool of list) {
+    const name = typeof getPoolNameFromDoc === 'function'
+      ? getPoolNameFromDoc(pool)
+      : pool?.name || pool?.poolName;
+
+    if (!name) continue;
+
+    const markets = typeof getPoolMarketsFromDoc === 'function'
+      ? getPoolMarketsFromDoc(pool)
+      : (Array.isArray(pool?.markets) ? pool.markets : (pool?.markets ? [pool.markets] : []));
+
+    // Skip pools hidden by market settings
+    if (markets.length && !markets.some(m => enabledMarkets.includes(m))) continue;
+
+    const marketKey = markets[0] || 'Unassigned';
+    if (!marketMap.has(marketKey)) {
+      marketMap.set(marketKey, []);
+    }
+    marketMap.get(marketKey).push(name);
+  }
+
+  // Sort names inside each market
+  for (const [market, pools] of marketMap.entries()) {
+    pools.sort((a, b) => a.localeCompare(b));
+  }
+
+  // Render in fixed market order
+  const usedMarkets = new Set();
+  const addMarketBlock = (market) => {
+    const pools = marketMap.get(market);
+    if (!pools || !pools.length) return;
+    usedMarkets.add(market);
+
+    // Non‑selectable header
+    const header = document.createElement('option');
+    header.value = '';
+    header.textContent = `— ${market} —`;
+    header.disabled = true;
+    header.classList.add('dropdown-header');
+    select.appendChild(header);
+
+    // Pools
+    pools.forEach((name) => {
+      const opt = document.createElement('option');
+      opt.value = name;
+      opt.textContent = name;
+      select.appendChild(opt);
+    });
+  };
+
+  // 1) Known markets in fixed order
+  MARKET_ORDER.forEach(addMarketBlock);
+
+  // 2) Any extra/unassigned markets
+  for (const market of marketMap.keys()) {
+    if (!usedMarkets.has(market)) {
+      addMarketBlock(market);
+    }
+  }
+
+  // Restore previous selection if still present
+  if (previousValue &&
+      select.querySelector(`option[value="${CSS.escape(previousValue)}"]`)) {
+    select.value = previousValue;
+  }
 }
 
 // ===================================================
