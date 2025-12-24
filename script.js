@@ -2017,19 +2017,6 @@ function updateSanitationUI() {
     });
 }
 
-// Load sanitation settings into the checkboxes
-function loadSanitationSettings() {
-    console.log('Loading sanitation settings into checkboxes:', sanitationSettings);
-    const checkboxes = document.querySelectorAll('.sanitation-checkbox');
-    checkboxes.forEach(checkbox => {
-        const pool = checkbox.dataset.pool;
-        const method = checkbox.dataset.method;
-        const shouldBeChecked = sanitationSettings[pool] === method;
-        checkbox.checked = shouldBeChecked;
-        console.log(`${pool} - ${method}: ${shouldBeChecked ? 'checked' : 'unchecked'}`);
-    });
-}
-
 // ===================================================
 // FORM SUBMISSION
 // ===================================================
@@ -2830,22 +2817,23 @@ function updatePoolLocationDropdown() {
   const select = document.getElementById('poolLocation');
   if (!select) return;
 
-  const previousValue = select.value;
+  const previous = select.value;
   select.innerHTML = '';
 
-  // Default placeholder
-  const placeholder = document.createElement('option');
-  placeholder.value = '';
-  placeholder.textContent = 'Select';
-  select.appendChild(placeholder);
+  // Default "Select" option
+  const defaultOpt = document.createElement('option');
+  defaultOpt.value = '';
+  defaultOpt.textContent = 'Select';
+  select.appendChild(defaultOpt);
 
-  const enabledMarkets =
-    typeof getEnabledMarkets === 'function' ? getEnabledMarkets() : MARKET_ORDER;
+  // Pools are filtered by enabled Markets (Settings → Market)
+  const enabledMarkets = typeof getEnabledMarkets === 'function'
+    ? getEnabledMarkets()
+    : [];
 
+  const byMarket = new Map();
   const list = Array.isArray(window.availablePools) ? window.availablePools : [];
-  const marketMap = new Map();
 
-  // Collect pool names by market
   for (const pool of list) {
     const name = typeof getPoolNameFromDoc === 'function'
       ? getPoolNameFromDoc(pool)
@@ -2855,61 +2843,73 @@ function updatePoolLocationDropdown() {
 
     const markets = typeof getPoolMarketsFromDoc === 'function'
       ? getPoolMarketsFromDoc(pool)
-      : (Array.isArray(pool?.markets) ? pool.markets : (pool?.markets ? [pool.markets] : []));
+      : (pool.markets || []);
 
-    // Skip pools hidden by market settings
-    if (markets.length && !markets.some(m => enabledMarkets.includes(m))) continue;
+    const groupMarkets = markets.length ? markets : ['Unassigned'];
 
-    const marketKey = markets[0] || 'Unassigned';
-    if (!marketMap.has(marketKey)) {
-      marketMap.set(marketKey, []);
+    for (const market of groupMarkets) {
+      // If some markets are enabled, hide pools in markets that are OFF
+      if (enabledMarkets.length && !enabledMarkets.includes(market)) continue;
+
+      if (!byMarket.has(market)) {
+        byMarket.set(market, []);
+      }
+      byMarket.get(market).push(name);
     }
-    marketMap.get(marketKey).push(name);
   }
 
-  // Sort names inside each market
-  for (const [market, pools] of marketMap.entries()) {
-    pools.sort((a, b) => a.localeCompare(b));
-  }
-
-  // Render in fixed market order
+  // We want Columbia / Greenville / Charlotte / Charleston first
+  const marketOrder = ['Columbia', 'Greenville', 'Charlotte', 'Charleston'];
   const usedMarkets = new Set();
-  const addMarketBlock = (market) => {
-    const pools = marketMap.get(market);
-    if (!pools || !pools.length) return;
+
+  // Add markets in preferred order
+  for (const market of marketOrder) {
+    const names = byMarket.get(market);
+    if (!names || !names.length) continue;
+
     usedMarkets.add(market);
 
-    // Non‑selectable header
-    const header = document.createElement('option');
-    header.value = '';
-    header.textContent = `— ${market} —`;
-    header.disabled = true;
-    header.classList.add('dropdown-header');
-    select.appendChild(header);
+    const headerOpt = document.createElement('option');
+    headerOpt.value = '';
+    headerOpt.textContent = `— ${market} —`;
+    headerOpt.disabled = true;
+    headerOpt.className = 'dropdown-market-header';
+    select.appendChild(headerOpt);
 
-    // Pools
-    pools.forEach((name) => {
+    names.sort((a, b) => a.localeCompare(b));
+    for (const name of names) {
       const opt = document.createElement('option');
       opt.value = name;
       opt.textContent = name;
       select.appendChild(opt);
-    });
-  };
-
-  // 1) Known markets in fixed order
-  MARKET_ORDER.forEach(addMarketBlock);
-
-  // 2) Any extra/unassigned markets
-  for (const market of marketMap.keys()) {
-    if (!usedMarkets.has(market)) {
-      addMarketBlock(market);
     }
   }
 
-  // Restore previous selection if still present
-  if (previousValue &&
-      select.querySelector(`option[value="${CSS.escape(previousValue)}"]`)) {
-    select.value = previousValue;
+  // Any remaining markets not in the default order
+  for (const [market, names] of byMarket.entries()) {
+    if (usedMarkets.has(market)) continue;
+
+    const headerOpt = document.createElement('option');
+    headerOpt.value = '';
+    headerOpt.textContent = `— ${market} —`;
+    headerOpt.disabled = true;
+    headerOpt.className = 'dropdown-market-header';
+    select.appendChild(headerOpt);
+
+    names.sort((a, b) => a.localeCompare(b));
+    for (const name of names) {
+      const opt = document.createElement('option');
+      opt.value = name;
+      opt.textContent = name;
+      select.appendChild(opt);
+    }
+  }
+
+  // Try to keep the previous selection if it still exists
+  if (previous && select.querySelector(`option[value="${previous}"]`)) {
+    select.value = previous;
+  } else {
+    select.value = '';
   }
 }
 
