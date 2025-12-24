@@ -879,6 +879,24 @@ input[type="text"], select, input[type="password"] {
     flex-shrink: 0; /* Prevent shrinking */
 }
 
+.market-filter-checkbox:checked {
+    background-color: #69140e; /* Header red color when checked */
+    border-color: black; /* Header red border when checked */
+}
+
+/* White checkmark for checked state */
+.market-filter-checkbox:checked::after {
+    content: '✓'; /* Checkmark symbol */
+    color: white; /* White checkmark */
+    font-size: 14px; /* Size of checkmark */
+    font-weight: bold; /* Bold checkmark */
+    position: absolute; /* Position relative to checkbox */
+    top: 50%; /* Center vertically */
+    left: 50%; /* Center horizontally */
+    transform: translate(-50%, -50%); /* Perfect centering */
+    line-height: 1; /* Remove extra line spacing */
+}
+
 .sanitation-table tr:nth-child(even) {
     background-color: #f9f9f9;
 }
