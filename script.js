@@ -71,13 +71,15 @@ const STATIC_POOLS = [
   { name: 'Winchester',      markets: ['Columbia'], numPools: 2 },
 ];
 
-// Safely pull a name from whatever shape the pool object is in
 function getPoolNameFromDoc(pool) {
   if (!pool || typeof pool !== 'object') return '';
+
   return (
-    pool.name ||
-    pool.poolName ||
-    (pool.metadata && (pool.metadata.name || pool.metadata.poolName)) ||
+    pool.name ||                      // preferred field
+    pool.poolName ||                  // legacy field
+    pool.id ||                        // Firestore doc.id if you ever pass it through
+    (pool.metadata &&
+      (pool.metadata.name || pool.metadata.poolName)) || // future/alt shape
     ''
   );
 }
@@ -2768,11 +2770,6 @@ function debugLoginState() {
 window.debugLoginState = debugLoginState;
 
 console.log('🔧 Login functionality fixes applied');
-
-function getPoolNameFromDoc(poolDoc) {
-  if (!poolDoc) return '';
-  return poolDoc.name || poolDoc.poolName || poolDoc.id || '';
-}
 
 function getPoolMarketsFromDoc(poolDoc) {
   if (!poolDoc) return [];
