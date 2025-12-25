@@ -731,35 +731,6 @@ function renderSanitationSettingsTable() {
   syncSanitationCheckboxDisabledState();
 }
 
-function handleSanitationCheckboxChange(event) {
-  const cb = event.target;
-  if (!cb) return;
-
-  const pool = cb.dataset.pool;
-  const method = cb.dataset.method;
-  if (!pool || !method) return;
-
-  if (!window.sanitationSettings || typeof window.sanitationSettings !== "object") {
-    window.sanitationSettings = {};
-  }
-
-  // Only one method per pool: if we just checked bleach, uncheck granular (and vice versa)
-  if (cb.checked) {
-    const selector = `.sanitation-checkbox[data-pool="${pool}"]`;
-    document.querySelectorAll(selector).forEach((other) => {
-      if (other === cb) return;
-      other.checked = false;
-    });
-
-    window.sanitationSettings[pool] = method;
-  } else {
-    // If you uncheck the only checked box, clear the setting for that pool
-    if (window.sanitationSettings[pool] === method) {
-      delete window.sanitationSettings[pool];
-    }
-  }
-}
-
 async function handleSanitationCheckboxChange(event) {
   const cb = event?.target;
   if (!cb) return;
