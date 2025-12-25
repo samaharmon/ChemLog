@@ -2343,6 +2343,15 @@ document.addEventListener('DOMContentLoaded', () => {
   safeCall('checkLogin', checkLogin);
   safeCall('initializeFormSubmissions', initializeFormSubmissions);
 
+  // 🔹 Run dashboard filter once after initial data load
+  if (typeof filterAndDisplayData === 'function') {
+    try {
+      filterAndDisplayData();
+    } catch (err) {
+      console.error('❌ Error in filterAndDisplayData on init:', err);
+    }
+  }
+
   // === Login form ===
   const loginForm = document.getElementById('loginForm');
   if (loginForm && typeof handleLoginSubmit === 'function') {
@@ -2411,6 +2420,18 @@ document.addEventListener('DOMContentLoaded', () => {
     }
   }
 
+  // 🔹 Market filter checkboxes trigger dashboard refresh
+  const marketCheckboxes = document.querySelectorAll('.market-filter-checkbox');
+  marketCheckboxes.forEach((cb) => {
+    cb.addEventListener('change', () => {
+      if (typeof filterData === 'function') {
+        filterData(); // wrapper around filterAndDisplayData
+      } else if (typeof filterAndDisplayData === 'function') {
+        filterAndDisplayData();
+      }
+    });
+  });
+
   // === Misc app‑level handlers ===
   if (typeof setupEventHandlers === 'function') {
     safeCall('setupEventHandlers', setupEventHandlers);
@@ -2423,77 +2444,86 @@ document.addEventListener('DOMContentLoaded', () => {
   const prevBtn = document.getElementById('prevBtn');
   const nextBtn = document.getElementById('nextBtn');
 
-  if (prevBtn && typeof displayData === 'function') {
+  if (prevBtn) {
     prevBtn.addEventListener('click', () => {
-      if (window.currentPage > 0) {
-        window.currentPage--;
-        displayData();
-        if (typeof updatePagination === 'function') {
-          updatePagination();
-        } else if (typeof updatePaginationControls === 'function') {
-          updatePaginationControls();
-        }
+      if (typeof goToPreviousPage === 'function') {
+        goToPreviousPage();
+      } else if (typeof renderDashboardPage === 'function') {
+        // Fallback: simple previous-page behavior
+        window.currentPage = Math.max(0, (window.currentPage || 0) - 1);
+        renderDashboardPage();
       }
     });
   }
 
-  if (nextBtn && typeof displayData === 'function') {
+  if (nextBtn) {
     nextBtn.addEventListener('click', () => {
-      const totalPages = Math.ceil((window.filteredSubmissions || []).length / (window.itemsPerPage || 25));
-      if (window.currentPage < totalPages - 1) {
-        window.currentPage++;
-        displayData();
-        if (typeof updatePagination === 'function') {
-          updatePagination();
-        } else if (typeof updatePaginationControls === 'function') {
-          updatePaginationControls();
+      if (typeof goToNextPage === 'function') {
+        goToNextPage();
+      } else if (typeof renderDashboardPage === 'function') {
+        const rows = Array.isArray(window.dashboardRows) ? window.dashboardRows : [];
+        const perPage = window.itemsPerPage || 25;
+        const totalPages = Math.max(1, Math.ceil(rows.length / perPage));
+        const current = window.currentPage || 0;
+        if (current < totalPages - 1) {
+          window.currentPage = current + 1;
+          renderDashboardPage();
         }
       }
     });
   }
 
   // === Sanitation table Edit / Save ===
-    const editBtn = document.getElementById("editSanitationBtn");
-    const saveBtn = document.getElementById("saveSanitationBtn");
+  const editBtn = document.getElementById("editSanitationBtn");
+  const saveBtn = document.getElementById("saveSanitationBtn");
 
-    if (editBtn && saveBtn) {
-        // Start in view‑only mode
-        sanitationEditing = false;
-        syncSanitationCheckboxDisabledState();
-
-        editBtn.addEventListener("click", () => {
-            sanitationEditing = true;
-            syncSanitationCheckboxDisabledState();
-            editBtn.disabled = true;
-            saveBtn.disabled = false;
-        });
-
-        saveBtn.addEventListener("click", async () => {
-            // Rebuild sanitationSettings from the currently checked boxes
-            const newSettings = {};
-            document.querySelectorAll(".sanitation-checkbox").forEach((cb) => {
-                const pool = cb.dataset.pool;
-                const method = cb.dataset.method;
-                if (!pool || !method) return;
-                if (cb.checked) {
-                    newSettings[pool] = method;
-                }
-            });
-
-            window.sanitationSettings = newSettings;
-            await saveSanitationSettings?.();
-
-            sanitationEditing = false;
-            syncSanitationCheckboxDisabledState();
-            editBtn.disabled = false;
-            saveBtn.disabled = true;
-
-            console.log("✅ Sanitation settings saved and checkboxes disabled again");
-        });
+  if (editBtn && saveBtn) {
+    // Start in view‑only mode
+    window.sanitationEditing = false;
+    if (typeof syncSanitationCheckboxDisabledState === 'function') {
+      syncSanitationCheckboxDisabledState();
     }
+
+    editBtn.addEventListener("click", () => {
+      window.sanitationEditing = true;
+      if (typeof syncSanitationCheckboxDisabledState === 'function') {
+        syncSanitationCheckboxDisabledState();
+      }
+      editBtn.disabled = true;
+      saveBtn.disabled = false;
+    });
+
+    saveBtn.addEventListener("click", async () => {
+      // Rebuild sanitationSettings from the currently checked boxes
+      const newSettings = {};
+      document.querySelectorAll(".sanitation-checkbox").forEach((cb) => {
+        const pool = cb.dataset.pool;
+        const method = cb.dataset.method;
+        if (!pool || !method) return;
+        if (cb.checked) {
+          newSettings[pool] = method;
+        }
+      });
+
+      window.sanitationSettings = newSettings;
+      if (typeof saveSanitationSettings === 'function') {
+        await saveSanitationSettings();
+      }
+
+      window.sanitationEditing = false;
+      if (typeof syncSanitationCheckboxDisabledState === 'function') {
+        syncSanitationCheckboxDisabledState();
+      }
+      editBtn.disabled = false;
+      saveBtn.disabled = true;
+
+      console.log("✅ Sanitation settings saved and checkboxes disabled again");
+    });
+  }
 
   console.log('🚀 App initialization complete');
 });
+
 
 function updateSanitationCheckboxesFromSettings() {
   if (!window.sanitationSettings || typeof window.sanitationSettings !== "object") {
