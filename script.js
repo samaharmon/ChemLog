@@ -761,6 +761,12 @@ async function handleSanitationCheckboxChange(event) {
   }
 }
 
+// Backwards‑compat for inline onchange="handleSanitationChange(this)"
+function handleSanitationChange(checkboxEl) {
+  if (!checkboxEl) return;
+  handleSanitationCheckboxChange({ target: checkboxEl });
+}
+
 async function loadSanitationSettings() {
   window.sanitationState = {};
 
@@ -2479,13 +2485,13 @@ document.addEventListener('DOMContentLoaded', () => {
 
   if (editBtn && saveBtn) {
     // Start in view‑only mode
-    window.sanitationEditing = false;
+    sanitationEditing = false;
     if (typeof syncSanitationCheckboxDisabledState === 'function') {
       syncSanitationCheckboxDisabledState();
     }
 
     editBtn.addEventListener("click", () => {
-      window.sanitationEditing = true;
+      sanitationEditing = true;
       if (typeof syncSanitationCheckboxDisabledState === 'function') {
         syncSanitationCheckboxDisabledState();
       }
@@ -2510,7 +2516,7 @@ document.addEventListener('DOMContentLoaded', () => {
         await saveSanitationSettings();
       }
 
-      window.sanitationEditing = false;
+      sanitationEditing = false;
       if (typeof syncSanitationCheckboxDisabledState === 'function') {
         syncSanitationCheckboxDisabledState();
       }
@@ -3069,6 +3075,171 @@ function buildDashboardRows(submissions) {
   return rows;
 }
 
+function renderDashboardPage() {
+  const totalPages = Math.max(1, Math.ceil(dashboardRows.length / itemsPerPage));
+  if (currentPage >= totalPages) currentPage = totalPages - 1;
+  if (currentPage < 0) currentPage = 0;
+
+  const start = currentPage * itemsPerPage;
+  const pageRows = dashboardRows.slice(start, start + itemsPerPage);
+
+  renderDashboardRowsByMarket(pageRows);
+  updateDashboardPagination(totalPages);
+}
+
+function renderDashboardRowsByMarket(rows) {
+  // Hide the old “Main / Secondary” tables
+  const oldMainTable = document.getElementById('dataTable1');
+  const oldSecondaryTable = document.getElementById('dataTable2');
+  const oldPagination = document.getElementById('pagination');
+
+  if (oldMainTable) oldMainTable.style.display = 'none';
+  if (oldSecondaryTable) oldSecondaryTable.style.display = 'none';
+  if (oldPagination) oldPagination.style.display = '';
+
+  const dashContainer =
+    document.querySelector('#supervisorDashboard .container') ||
+    document.getElementById('supervisorDashboard');
+
+  if (!dashContainer) return;
+
+  let host = document.getElementById('marketDashboards');
+  if (!host) {
+    host = document.createElement('div');
+    host.id = 'marketDashboards';
+    dashContainer.appendChild(host);
+  }
+
+  host.innerHTML = '';
+
+  if (!rows.length) {
+    const p = document.createElement('p');
+    p.textContent = 'No data matches the current filters.';
+    host.appendChild(p);
+    return;
+  }
+
+  // Group by market
+  const byMarket = new Map();
+  rows.forEach((row) => {
+    const market = row.market || 'Unassigned';
+    if (!byMarket.has(market)) byMarket.set(market, []);
+    byMarket.get(market).push(row);
+  });
+
+  const marketsInOrder = [
+    ...MARKET_ORDER,
+    ...Array.from(byMarket.keys()).filter((m) => !MARKET_ORDER.includes(m)),
+  ];
+
+  const formatTimestamp = (d) => {
+    if (!(d instanceof Date) || Number.isNaN(d.getTime())) return '';
+    return d.toLocaleString([], {
+      month: '2-digit',
+      day: '2-digit',
+      hour: '2-digit',
+      minute: '2-digit',
+    });
+  };
+
+  marketsInOrder.forEach((market) => {
+    const marketRows = byMarket.get(market);
+    if (!marketRows || !marketRows.length) return;
+
+    const section = document.createElement('section');
+    section.className = 'market-dashboard-section';
+
+    const title = document.createElement('h3');
+    title.textContent = market;
+    section.appendChild(title);
+
+    // Tabs for Pool 1–5
+    const tabs = document.createElement('div');
+    tabs.className = 'pool-tabs';
+    section.appendChild(tabs);
+
+    const tablesByIndex = new Map();
+
+    for (let i = 1; i <= 5; i++) {
+      // Tab button
+      const tabBtn = document.createElement('button');
+      tabBtn.type = 'button';
+      tabBtn.className = 'pool-tab';
+      tabBtn.dataset.poolIndex = String(i);
+      tabBtn.textContent = `Pool ${i}`;
+      tabs.appendChild(tabBtn);
+
+      // Table for this pool index
+      const table = document.createElement('table');
+      table.className = 'data-table pool-table';
+      table.dataset.poolIndex = String(i);
+
+      const thead = document.createElement('thead');
+      const headerRow = document.createElement('tr');
+      ['Timestamp', 'Pool Location', 'pH', 'Cl'].forEach((label) => {
+        const th = document.createElement('th');
+        th.textContent = label;
+        headerRow.appendChild(th);
+      });
+      thead.appendChild(headerRow);
+      table.appendChild(thead);
+
+      const tbody = document.createElement('tbody');
+      table.appendChild(tbody);
+
+      tablesByIndex.set(i, table);
+      section.appendChild(table);
+
+      // Tab click handler
+      tabBtn.addEventListener('click', () => {
+        tabs.querySelectorAll('.pool-tab').forEach((btn) =>
+          btn.classList.remove('active'),
+        );
+        tabBtn.classList.add('active');
+
+        tablesByIndex.forEach((tbl, idx) => {
+          tbl.style.display = idx === i ? '' : 'none';
+        });
+      });
+    }
+
+    // Default active tab: Pool 1
+    const firstTab = tabs.querySelector('.pool-tab[data-pool-index="1"]');
+    if (firstTab) firstTab.click();
+
+    // Fill rows
+    marketRows.forEach((row) => {
+      const idx = row.poolIndex;
+      const table = tablesByIndex.get(idx);
+      if (!table) return;
+
+      const tbody = table.querySelector('tbody');
+      const tr = document.createElement('tr');
+
+      const tsCell = document.createElement('td');
+      tsCell.textContent = formatTimestamp(row.timestamp);
+      tr.appendChild(tsCell);
+
+      const poolCell = document.createElement('td');
+      poolCell.textContent = row.poolName || '';
+      tr.appendChild(poolCell);
+
+      const phCell = document.createElement('td');
+      phCell.textContent = row.ph ?? '';
+      tr.appendChild(phCell);
+
+      const clCell = document.createElement('td');
+      clCell.textContent = row.cl ?? '';
+      tr.appendChild(clCell);
+
+      tbody.appendChild(tr);
+    });
+
+    host.appendChild(section);
+  });
+}
+
+
 // ===================================================
 // PAGINATION
 // ===================================================
@@ -3105,6 +3276,20 @@ function goToNextPage() {
   renderDashboardPage();
 }
 
+// Simple alias so older code that calls displayData() still works
+function displayData() {
+  // Use the new multi‑market dashboard renderer
+  if (typeof renderDashboardPage === 'function') {
+    renderDashboardPage();
+  }
+}
+
+// Backward‑compat wrapper: old code expects updatePagination(totalPages)
+function updatePagination(totalPages) {
+  if (typeof updateDashboardPagination === 'function') {
+    updateDashboardPagination(totalPages);
+  }
+}
 
 // ===================================================
 // LOGIN & AUTHENTICATION
