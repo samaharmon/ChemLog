@@ -84,15 +84,30 @@ function getPoolNameFromDoc(pool) {
   );
 }
 
-// Markets as a string array
 function getPoolMarketsFromDoc(pool) {
   if (!pool || typeof pool !== 'object') return [];
-  let m = pool.markets || (pool.metadata && pool.metadata.markets) || [];
-  if (!Array.isArray(m)) {
-    if (typeof m === 'string' && m.trim()) return [m.trim()];
-    return [];
+
+  // Prefer top-level fields, then metadata, then legacy `market`
+  let raw =
+    pool.markets ??
+    (pool.metadata && pool.metadata.markets) ??
+    pool.market ??
+    (pool.metadata && pool.metadata.market) ??
+    [];
+
+  // Normalize to array<string>
+  if (!Array.isArray(raw)) {
+    if (typeof raw === 'string' && raw.trim()) {
+      raw = [raw.trim()];
+    } else {
+      return [];
+    }
   }
-  return m.filter(Boolean);
+
+  // Remove falsy values and trim strings
+  return raw
+    .map((m) => (typeof m === 'string' ? m.trim() : m))
+    .filter(Boolean);
 }
 
 function toInt(value, fallback) {
@@ -2770,18 +2785,6 @@ function debugLoginState() {
 window.debugLoginState = debugLoginState;
 
 console.log('🔧 Login functionality fixes applied');
-
-function getPoolMarketsFromDoc(poolDoc) {
-  if (!poolDoc) return [];
-  const raw = poolDoc.markets ?? poolDoc.market ?? [];
-  if (Array.isArray(raw)) {
-    return raw.filter(Boolean);
-  }
-  if (typeof raw === 'string' && raw.trim()) {
-    return [raw.trim()];
-  }
-  return [];
-}
 
 function getPoolMarketsForName(poolName) {
   if (!poolName || !Array.isArray(availablePools)) return [];
