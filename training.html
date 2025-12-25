@@ -1,0 +1,169 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>ChemLog – Lifeguard Trainings</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <!-- Reuse your main styles if you want -->
+  <link rel="stylesheet" href="styles.css" />
+  <!-- Training-specific styles -->
+  <link rel="stylesheet" href="training.css" />
+</head>
+<body>
+  <header class="app-header">
+    <div class="header-left">
+      <h1 class="app-title">ChemLog Trainings</h1>
+    </div>
+    <div class="header-right">
+      <button class="supervisor-login-btn" id="openTrainingLoginBtn">Supervisor Login</button>
+    </div>
+  </header>
+
+  <main class="training-main">
+    <!-- Lifeguard signup form -->
+    <section class="card training-card">
+      <h2>Lifeguard Training Signup</h2>
+      <p class="card-subtitle">
+        Choose a monthly in‑service training that works for your schedule.
+      </p>
+
+      <form id="trainingSignupForm">
+        <div class="form-row">
+          <div class="form-group">
+            <label for="guardName">Name</label>
+            <input type="text" id="guardName" name="guardName" required />
+          </div>
+          <div class="form-group">
+            <label for="guardEmail">Email</label>
+            <input type="email" id="guardEmail" name="guardEmail" required />
+          </div>
+        </div>
+
+        <div class="form-row">
+          <div class="form-group">
+            <label for="guardPool">Home Pool / Location</label>
+            <input type="text" id="guardPool" name="guardPool" placeholder="e.g., Rockbridge" required />
+          </div>
+          <div class="form-group">
+            <label for="trainingMonth">Training Month</label>
+            <select id="trainingMonth" name="trainingMonth" required>
+              <option value="">Select month</option>
+              <option value="may">May Training</option>
+              <option value="june">June Training</option>
+              <option value="july">July Training</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="form-row">
+          <div class="form-group full-width">
+            <label for="trainingSession">Training Date &amp; Location</label>
+            <select id="trainingSession" name="trainingSession" required>
+              <option value="">Select a session</option>
+              <!-- Options populated by training.js based on supervisor config -->
+            </select>
+            <small class="help-text">
+              Sessions are set by your supervisor. Make sure you pick the correct pool/area.
+            </small>
+          </div>
+        </div>
+
+        <button type="submit" class="submit-btn">Submit Signup</button>
+        <p class="form-message" id="signupMessage"></p>
+      </form>
+    </section>
+
+    <!-- Supervisor configuration panel -->
+    <section class="card training-card" id="trainingAdminPanel">
+      <h2>Supervisor Training Setup</h2>
+      <p class="card-subtitle">
+        Configure dates, times, and locations for monthly in‑service trainings.
+      </p>
+
+      <div class="training-admin-grid">
+        <!-- May -->
+        <div class="training-admin-column">
+          <h3>May Training</h3>
+          <div class="training-session-list" id="maySessionList"></div>
+
+          <form class="training-session-form" id="maySessionForm">
+            <label>Date</label>
+            <input type="date" id="mayDate" required />
+
+            <label>Time</label>
+            <input type="time" id="mayTime" required />
+
+            <label>Location</label>
+            <input type="text" id="mayLocation" placeholder="e.g., Rockbridge Pool Deck" required />
+
+            <button type="submit" class="submit-btn small">Add May Session</button>
+          </form>
+        </div>
+
+        <!-- June -->
+        <div class="training-admin-column">
+          <h3>June Training</h3>
+          <div class="training-session-list" id="juneSessionList"></div>
+
+          <form class="training-session-form" id="juneSessionForm">
+            <label>Date</label>
+            <input type="date" id="juneDate" required />
+
+            <label>Time</label>
+            <input type="time" id="juneTime" required />
+
+            <label>Location</label>
+            <input type="text" id="juneLocation" placeholder="e.g., Forest Lake Clubhouse" required />
+
+            <button type="submit" class="submit-btn small">Add June Session</button>
+          </form>
+        </div>
+
+        <!-- July -->
+        <div class="training-admin-column">
+          <h3>July Training</h3>
+          <div class="training-session-list" id="julySessionList"></div>
+
+          <form class="training-session-form" id="julySessionForm">
+            <label>Date</label>
+            <input type="date" id="julyDate" required />
+
+            <label>Time</label>
+            <input type="time" id="julyTime" required />
+
+            <label>Location</label>
+            <input type="text" id="julyLocation" placeholder="e.g., Columbia CC Pool" required />
+
+            <button type="submit" class="submit-btn small">Add July Session</button>
+          </form>
+        </div>
+      </div>
+
+      <button id="saveTrainingConfigBtn" class="submit-btn secondary">Save Training Schedule</button>
+      <p class="form-message" id="adminMessage"></p>
+    </section>
+  </main>
+
+  <!-- Supervisor login modal (training-specific) -->
+  <div class="modal" id="trainingLoginModal">
+    <div class="modal-content training-modal-content">
+      <span class="close" id="closeTrainingLoginModal">&times;</span>
+      <h2>Supervisor Login</h2>
+      <form id="trainingLoginForm">
+        <div class="form-group">
+          <label for="trainingUsername">Username</label>
+          <input type="text" id="trainingUsername" required />
+        </div>
+        <div class="form-group">
+          <label for="trainingPassword">Passcode</label>
+          <input type="password" id="trainingPassword" required />
+        </div>
+        <button type="submit" class="submit-btn">Login</button>
+        <p class="form-message" id="trainingLoginMessage"></p>
+      </form>
+    </div>
+  </div>
+
+  <script src="training.js" type="module"></script>
+</body>
+</html>
