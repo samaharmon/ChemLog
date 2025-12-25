@@ -32,6 +32,7 @@ const itemsPerPage = 20;
 let isLoggedIn = false;
 let sanitationSettings = {};        // ✅ fixes ReferenceError at line 695
 let currentView = 'form';
+let dashboardRows = [];
 
 // Pools from the Rule Editor (Firestore "pools" collection)
 let availablePools = [];
@@ -617,24 +618,6 @@ function filterData() {
     filterAndDisplayData();
 }
 
-
-function goToPreviousPage() {
-    if (currentPage > 0) {
-        currentPage--;
-        displayData();
-        updatePaginationControls();
-    }
-}
-
-function goToNextPage() {
-    const totalPages = paginatedData.length;
-    if (currentPage < totalPages - 1) {
-        currentPage++;
-        displayData();
-        updatePaginationControls();
-    }
-}
-
 function closeSettings() {
     document.getElementById('settingsModal').style.display = 'none';
         removeOverlay();
@@ -647,95 +630,163 @@ window.sanitationState = window.sanitationState || {};
  * Build the sanitation table from metadata and current state.
  */
 function renderSanitationSettingsTable() {
-  const tbody = document.getElementById('sanitationTableBody');
+  const tbody = document.getElementById("sanitationTableBody");
   if (!tbody) return;
 
-  tbody.innerHTML = '';
+  tbody.innerHTML = "";
 
-  // Group pools by market
+  // We use whatever pools the UI knows about (loaded from Firestore)
+  const pools = Array.isArray(window.availablePools) ? window.availablePools : [];
+  if (!pools.length) {
+    const tr = document.createElement("tr");
+    const td = document.createElement("td");
+    td.colSpan = 3;
+    td.textContent = "No pools found. Add or sync pools in the Site Editor.";
+    tr.appendChild(td);
+    tbody.appendChild(tr);
+    return;
+  }
+
+  // Group pools by their first Market
   const byMarket = new Map();
 
-  Object.entries(window.poolMetadataByName || {}).forEach(([poolName, meta]) => {
-    const markets = meta.markets && meta.markets.length ? meta.markets : ['Unassigned'];
+  for (const pool of pools) {
+    const name = getPoolNameFromDoc(pool);
+    if (!name) continue;
 
-    markets.forEach((mkt) => {
-      if (!byMarket.has(mkt)) byMarket.set(mkt, []);
-      byMarket.get(mkt).push(poolName);
-    });
-  });
+    const markets = getPoolMarketsFromDoc(pool);
+    const marketKey = markets && markets.length ? markets[0] : "Unassigned";
 
-  const allMarkets = Array.from(byMarket.keys()).sort((a, b) => {
-    const ai = MARKET_ORDER.indexOf(a);
-    const bi = MARKET_ORDER.indexOf(b);
-    if (ai === -1 && bi === -1) return a.localeCompare(b);
-    if (ai === -1) return 1;
-    if (bi === -1) return -1;
-    return ai - bi;
-  });
+    if (!byMarket.has(marketKey)) byMarket.set(marketKey, []);
+    byMarket.get(marketKey).push(name);
+  }
 
-  allMarkets.forEach((market) => {
-    const pools = (byMarket.get(market) || []).sort();
+  // Ensure we have a settings object
+  if (!window.sanitationSettings || typeof window.sanitationSettings !== "object") {
+    window.sanitationSettings = {};
+  }
 
-    // Market heading row
-    const marketRow = document.createElement('tr');
-    marketRow.classList.add('market-row');
-    const marketCell = document.createElement('td');
-    marketCell.colSpan = 3;
-    marketCell.textContent = market;
-    marketCell.style.textAlign = 'left';
-    marketCell.style.fontWeight = 'bold';
-    marketRow.appendChild(marketCell);
-    tbody.appendChild(marketRow);
+  const settings = window.sanitationSettings;
 
-    // One row per pool
-    pools.forEach((poolName) => {
-      const row = document.createElement('tr');
+  // Order: known markets first, then any others we discover
+  const marketOrder = [
+    ...MARKET_ORDER,
+    ...Array.from(byMarket.keys()).filter((m) => !MARKET_ORDER.includes(m)),
+  ];
 
-      const nameTd = document.createElement('td');
-      nameTd.textContent = poolName;
-      row.appendChild(nameTd);
+  // Helper so we don’t duplicate event logic
+  function createMethodCheckbox(poolName, method) {
+    const input = document.createElement("input");
+    input.type = "checkbox";
+    input.className = `sanitation-checkbox ${method}-checkbox`;
+    input.dataset.pool = poolName;
+    input.dataset.method = method;
 
-      ['bleach', 'granular'].forEach((method) => {
-        const td = document.createElement('td');
-        const cb = document.createElement('input');
-        cb.type = 'checkbox';
-        cb.className = 'sanitation-checkbox';
-        cb.dataset.pool = poolName;
-        cb.dataset.method = method;
-        cb.checked = !!(
-          window.sanitationState[poolName] &&
-          window.sanitationState[poolName][method]
-        );
-        cb.addEventListener('change', () => handleSanitationChange(cb));
-        td.appendChild(cb);
-        row.appendChild(td);
+    // One active method per pool; match what’s stored
+    input.checked = settings[poolName] === method;
+
+    input.addEventListener("change", handleSanitationCheckboxChange);
+    return input;
+  }
+
+  for (const market of marketOrder) {
+    const poolNames = byMarket.get(market);
+    if (!poolNames || !poolNames.length) continue;
+
+    // Market title row
+    const headerRow = document.createElement("tr");
+    headerRow.className = "sanitation-market-row";
+    const headerCell = document.createElement("td");
+    headerCell.colSpan = 3;
+    headerCell.textContent = market;
+    headerCell.style.fontWeight = "bold";
+    headerCell.style.textAlign = "left";
+    headerRow.appendChild(headerCell);
+    tbody.appendChild(headerRow);
+
+    // Pool rows for this market
+    poolNames
+      .slice()
+      .sort((a, b) => a.localeCompare(b))
+      .forEach((poolName) => {
+        const row = document.createElement("tr");
+
+        const nameCell = document.createElement("td");
+        nameCell.textContent = poolName;
+        row.appendChild(nameCell);
+
+        const bleachCell = document.createElement("td");
+        bleachCell.appendChild(createMethodCheckbox(poolName, "bleach"));
+        row.appendChild(bleachCell);
+
+        const granularCell = document.createElement("td");
+        granularCell.appendChild(createMethodCheckbox(poolName, "granular"));
+        row.appendChild(granularCell);
+
+        tbody.appendChild(row);
       });
+  }
 
-      tbody.appendChild(row);
-    });
-  });
+  // Honor current Edit/Save state (checkboxes should start disabled)
+  syncSanitationCheckboxDisabledState();
 }
 
-async function handleSanitationChange(checkboxEl) {
-  if (!checkboxEl) return;
+function handleSanitationCheckboxChange(event) {
+  const cb = event.target;
+  if (!cb) return;
 
-  const poolName = checkboxEl.dataset.pool;
-  const method = checkboxEl.dataset.method; // 'bleach' | 'granular'
-  const isChecked = checkboxEl.checked;
+  const pool = cb.dataset.pool;
+  const method = cb.dataset.method;
+  if (!pool || !method) return;
 
-  if (!poolName || !method) return;
-
-  if (!window.sanitationState[poolName]) {
-    window.sanitationState[poolName] = { bleach: false, granular: false };
+  if (!window.sanitationSettings || typeof window.sanitationSettings !== "object") {
+    window.sanitationSettings = {};
   }
-  window.sanitationState[poolName][method] = isChecked;
 
-  try {
-    // Adjust collection/doc IDs to whatever you’re using now:
-    const docRef = doc(db, 'sanitationSettings', poolName);
-    await setDoc(docRef, { [method]: isChecked }, { merge: true });
-  } catch (err) {
-    console.error('Error saving sanitation setting', err);
+  // Only one method per pool: if we just checked bleach, uncheck granular (and vice versa)
+  if (cb.checked) {
+    const selector = `.sanitation-checkbox[data-pool="${pool}"]`;
+    document.querySelectorAll(selector).forEach((other) => {
+      if (other === cb) return;
+      other.checked = false;
+    });
+
+    window.sanitationSettings[pool] = method;
+  } else {
+    // If you uncheck the only checked box, clear the setting for that pool
+    if (window.sanitationSettings[pool] === method) {
+      delete window.sanitationSettings[pool];
+    }
+  }
+}
+
+async function handleSanitationCheckboxChange(event) {
+  const cb = event?.target;
+  if (!cb) return;
+
+  const pool = cb.dataset.pool;
+  const method = cb.dataset.method;
+  if (!pool || !method) return;
+
+  if (!window.sanitationSettings || typeof window.sanitationSettings !== 'object') {
+    window.sanitationSettings = {};
+  }
+
+  // Only one method per pool: if this one is checked, uncheck the others
+  if (cb.checked) {
+    const selector = `.sanitation-checkbox[data-pool="${pool}"]`;
+    document.querySelectorAll(selector).forEach(other => {
+      if (other !== cb) {
+        other.checked = false;
+      }
+    });
+
+    window.sanitationSettings[pool] = method;
+  } else {
+    // If we unchecked the currently stored method, clear it
+    if (window.sanitationSettings[pool] === method) {
+      delete window.sanitationSettings[pool];
+    }
   }
 }
 
@@ -1277,19 +1328,35 @@ function organizePaginatedData(data) {
 
 // Initialize form submissions on app start
 function initializeFormSubmissions() {
-    loadFormSubmissions(); // Load from localStorage
+  // Load from localStorage into formSubmissions
+  loadFormSubmissions();
 
-    // Remove test entries first
-    cleanupTestSubmissions();
+  // Remove test entries first
+  cleanupTestSubmissions();
 
-    // Remove entries with missing or blank pool names
-    formSubmissions = formSubmissions.filter(sub => sub.poolLocation && sub.poolLocation.trim() !== '');
+  // Remove entries with missing or blank pool names
+  formSubmissions = formSubmissions.filter(
+    (sub) => sub.poolLocation && sub.poolLocation.trim() !== ""
+  );
 
-    // Save cleaned data back to localStorage
-    localStorage.setItem('formSubmissions', JSON.stringify(formSubmissions));
+  // Save cleaned data back to localStorage
+  localStorage.setItem("formSubmissions", JSON.stringify(formSubmissions));
 
-    console.log(`Initialized with ${formSubmissions.length} cleaned form submissions`);
+  // Also expose them to the dashboard as the initial dataset
+  window.allSubmissions = Array.isArray(formSubmissions)
+    ? formSubmissions.slice()
+    : [];
+
+  console.log(
+    `Initialized with ${formSubmissions.length} cleaned form submissions`
+  );
+
+  // Run the new dashboard filter/pager once at startup
+  if (typeof filterAndDisplayData === "function") {
+    filterAndDisplayData();
+  }
 }
+
 
 // Updated loadDashboardData to work with both Firebase and localStorage
 async function loadDashboardData() {
@@ -1461,98 +1528,78 @@ function useLocalDataOnly() {
 }
 
 function filterAndDisplayData() {
-    console.group('🔍 filterAndDisplayData');
+  if (!Array.isArray(window.allSubmissions)) {
+    window.allSubmissions = [];
+  }
 
-    const poolFilter = document.getElementById('poolFilter')?.value || '';
-    const dateFilter = document.getElementById('dateFilter')?.value || '';
+  const poolFilter = document.getElementById("poolFilter")?.value || "";
+  const dateFilter = document.getElementById("dateFilter")?.value || "";
+  const enabledMarkets = getEnabledMarkets ? getEnabledMarkets() : [];
 
-    function parseLocalDate(dateString) {
-        if (!dateString) return null;
-        const parts = dateString.split('-');
-        if (parts.length !== 3) return null;
-        const year  = Number(parts[0]);
-        const month = Number(parts[1]) - 1;
-        const day   = Number(parts[2]);
-        return new Date(year, month, day);
-    }
+  // Helper: parse YYYY-MM-DD as local date, ignore time
+  const parseLocalDate = (str) => {
+    if (!str) return null;
+    const [y, m, d] = str.split("-").map(Number);
+    return new Date(y, m - 1, d);
+  };
 
-    function getDateWithoutTime(date) {
-        return new Date(date.getFullYear(), date.getMonth(), date.getDate());
-    }
-
-    const filterDateObj = parseLocalDate(dateFilter);
-
-    // Market settings: which markets are enabled?
-    const enabledMarkets = getEnabledMarkets();
-    const hasMarketSettings = MARKET_NAMES.some(m =>
-        Object.prototype.hasOwnProperty.call(marketVisibility, m)
+  const sameDay = (a, b) => {
+    return (
+      a &&
+      b &&
+      a.getFullYear() === b.getFullYear() &&
+      a.getMonth() === b.getMonth() &&
+      a.getDate() === b.getDate()
     );
+  };
 
-    console.log('Pool filter:', poolFilter);
-    console.log('Date filter (raw):', dateFilter);
-    console.log('Date filter (parsed):', filterDateObj);
-    console.log('Enabled markets:', enabledMarkets);
-    console.log('Has market settings:', hasMarketSettings);
-    console.log('Total submissions before filter:', allSubmissions.length);
+  const filterDateObj = parseLocalDate(dateFilter);
 
-    filteredSubmissions = allSubmissions.filter(sub => {
-        // 1. Market filter from settings (union of selected markets)
-        if (hasMarketSettings) {
-            const poolMarkets = getPoolMarketsForName(sub.poolLocation);
-            if (enabledMarkets.length > 0) {
-                const matchesMarket = poolMarkets.some(m => enabledMarkets.includes(m));
-                if (!matchesMarket) {
-                    return false;
-                }
-            }
-        }
+  // 1) Basic filtering (pool + date)
+  let subset = window.allSubmissions.filter((submission) => {
+    if (!submission) return false;
 
-        // 2. Explicit pool filter from the dropdown
-        if (poolFilter && poolFilter !== '' && poolFilter !== 'All Pools') {
-            if (sub.poolLocation !== poolFilter) {
-                return false;
-            }
-        }
+    // Pool filter
+    if (poolFilter && submission.poolLocation !== poolFilter) return false;
 
-        // 3. Date filter (normalize both to yyyy-mm-dd)
-        if (filterDateObj) {
-            let submissionDate;
+    // Date filter
+    if (filterDateObj) {
+      const ts = submission.timestamp ? new Date(submission.timestamp) : null;
+      if (!ts || !sameDay(ts, filterDateObj)) return false;
+    }
 
-            if (sub.timestamp instanceof Date) {
-                submissionDate = sub.timestamp;
-            } else if (sub.timestamp && typeof sub.timestamp.toDate === 'function') {
-                submissionDate = sub.timestamp.toDate();   // Firestore Timestamp
-            } else if (sub.timestamp) {
-                submissionDate = new Date(sub.timestamp);
-            } else {
-                return false;
-            }
+    return true;
+  });
 
-            if (Number.isNaN(submissionDate.getTime())) {
-                return false;
-            }
+  // 2) Market-based filtering
+  if (enabledMarkets && enabledMarkets.length) {
+    subset = subset.filter((submission) => {
+      const poolName = submission.poolLocation || "";
+      if (!poolName) return false;
 
-            const normalizedFilterDate     = getDateWithoutTime(filterDateObj);
-            const normalizedSubmissionDate = getDateWithoutTime(submissionDate);
+      const meta =
+        (window.poolMetadataByName && window.poolMetadataByName[poolName]) || null;
+      const poolMarkets = Array.isArray(meta?.markets) ? meta.markets : [];
 
-            if (normalizedSubmissionDate.getTime() !== normalizedFilterDate.getTime()) {
-                return false;
-            }
-        }
+      if (!poolMarkets.length) return false;
 
-        // If we got here, the submission passes all active filters
-        return true;
+      // Keep if there is any overlap between pool's markets and enabledMarkets
+      return poolMarkets.some((m) => enabledMarkets.includes(m));
     });
+  }
 
-    console.log('Filtered submissions count:', filteredSubmissions.length);
+  // 3) Explode submissions into per-pool rows (Pool 1–5)
+  dashboardRows = buildDashboardRows(subset);
 
-    paginatedData = organizePaginatedData(filteredSubmissions || []);
-    currentPage = 0;
+  // Sort latest-first
+  dashboardRows.sort((a, b) => {
+    const at = a.timestamp ? a.timestamp.getTime() : 0;
+    const bt = b.timestamp ? b.timestamp.getTime() : 0;
+    return bt - at;
+  });
 
-    displayData();
-    updatePaginationControls();
-
-    console.groupEnd();
+  currentPage = 0;
+  renderDashboardPage();
 }
 
 function getHighlightColor(value, type) {
@@ -1664,107 +1711,6 @@ function updatePaginationControls() {
         pageInfo.textContent = '';
     }
 }
-
-
-function displayData() {
-    console.group('🖥 displayData');
-
-    const tbody1 = document.getElementById('dataTableBody1');
-    const tbody2 = document.getElementById('dataTableBody2');
-
-    if (!tbody1 || !tbody2) {
-        console.warn('⚠ Table body elements not found (dataTableBody1 / dataTableBody2).');
-        console.groupEnd();
-        return;
-    }
-
-    // Clear previous rows
-    tbody1.innerHTML = '';
-    tbody2.innerHTML = '';
-
-    if (!Array.isArray(paginatedData) || paginatedData.length === 0 || !paginatedData[currentPage]) {
-        // No data for current page
-        tbody1.innerHTML = '<tr><td colspan="4" style="text-align:center;padding:30px;color:#666;">No data found</td></tr>';
-        tbody2.innerHTML = '<tr><td colspan="4" style="text-align:center;padding:30px;color:#666;">No data found</td></tr>';
-        console.warn('⚠ No data to display.');
-        console.groupEnd();
-        return;
-    }
-
-    const data = paginatedData[currentPage];
-    console.log('Displaying', data.length, 'items for page', currentPage);
-
-    let hasSecondaryData = false;
-
-    const createCell = (value, color) => {
-        const className = color ? `highlight-${color}` : '';
-        return `<td class="${className}">${value || 'N/A'}</td>`;
-    };
-
-    data.forEach(submission => {
-        const mainPHColor = getHighlightColor(submission.mainPoolPH, 'pH');
-        const mainClColor = getHighlightColor(submission.mainPoolCl, 'cl');
-        const secondaryPHColor = getHighlightColor(submission.secondaryPoolPH, 'pH');
-        const secondaryClColor = getHighlightColor(submission.secondaryPoolCl, 'cl');
-        const warningLevel = getPoolWarningLevel(submission.mainPoolPH, submission.mainPoolCl, submission.secondaryPoolPH, submission.secondaryPoolCl);
-
-        // Format timestamp
-        let timestampDisplay = '';
-        try {
-            timestampDisplay = submission.timestamp instanceof Date
-                ? submission.timestamp.toLocaleString()
-                : new Date(submission.timestamp).toLocaleString();
-        } catch {
-            timestampDisplay = String(submission.timestamp || '');
-        }
-
-        // Pool name display + warning markers
-        const today = new Date().getDay(); // 1 = Monday
-        let poolNameDisplay = submission.poolLocation || '';
-
-        if (warningLevel === 'red') {
-            poolNameDisplay = `<u>${submission.poolLocation}</u><span style="color: red;">!!!</span>`;
-        } else if (warningLevel === 'yellow') {
-            poolNameDisplay = `<u>${submission.poolLocation}</u><span style="color: red;">!</span>`;
-        }
-
-        if (submission.poolLocation === 'Columbia CC' && today === 1) {
-            poolNameDisplay += `<br><span style="font-size:0.85em;color:#888;">Closed today</span>`;
-        }
-
-        // Build main row
-        const row1 = document.createElement('tr');
-        row1.innerHTML = `
-            <td>${timestampDisplay}</td>
-            <td>${poolNameDisplay}</td>
-            ${createCell(submission.mainPoolPH, mainPHColor)}
-            ${createCell(submission.mainPoolCl, mainClColor)}
-        `;
-        tbody1.appendChild(row1);
-
-        // Secondary row
-        if (submission.poolLocation !== 'Camden CC' && (submission.secondaryPoolPH || submission.secondaryPoolCl)) {
-            hasSecondaryData = true;
-            const row2 = document.createElement('tr');
-            row2.innerHTML = `
-                <td>${timestampDisplay}</td>
-                <td>${poolNameDisplay}</td>
-                ${createCell(submission.secondaryPoolPH, secondaryPHColor)}
-                ${createCell(submission.secondaryPoolCl, secondaryClColor)}
-            `;
-            tbody2.appendChild(row2);
-        }
-    });
-
-    if (!hasSecondaryData) {
-        tbody2.innerHTML = '<tr><td colspan="4" style="text-align:center;padding:30px;color:#666;">No secondary pool data for current selection</td></tr>';
-    }
-
-    updateTimestampNote(); // keep existing behavior
-    console.groupEnd();
-}
-
-
 
 async function evaluateFormFeedback() { // Remove formData parameter
     const poolLocation = document.getElementById('poolLocation').value;
@@ -2354,8 +2300,10 @@ window.sendSMSNotification = sendSMSNotification;
 window.chooseAndSendSMS = chooseAndSendSMS;
 window.checkForCriticalAlerts = checkForCriticalAlerts;
 
-// Menu and navigation (1)
+// Menu and navigation
 window.toggleMenu = toggleMenu;
+window.goToDashboard = goToDashboard;
+
 
 // Firebase functions (3)
 window.updateFirebaseStatus = updateFirebaseStatus;
@@ -2534,61 +2482,75 @@ document.addEventListener('DOMContentLoaded', () => {
   }
 
   // === Sanitation table Edit / Save ===
-  const editBtn = document.getElementById('editSanitationBtn');
-  const saveBtn = document.getElementById('saveSanitationBtn');
+    const editBtn = document.getElementById("editSanitationBtn");
+    const saveBtn = document.getElementById("saveSanitationBtn");
 
-  if (editBtn && saveBtn) {
-    const sanitationCheckboxes = document.querySelectorAll('.sanitation-checkbox');
-    sanitationCheckboxes.forEach(cb => cb.disabled = true);
+    if (editBtn && saveBtn) {
+        // Start in view‑only mode
+        sanitationEditing = false;
+        syncSanitationCheckboxDisabledState();
 
-    editBtn.addEventListener('click', () => {
-      sanitationCheckboxes.forEach(cb => cb.disabled = false);
-      editBtn.disabled = true;
-      saveBtn.disabled = false;
-    });
+        editBtn.addEventListener("click", () => {
+            sanitationEditing = true;
+            syncSanitationCheckboxDisabledState();
+            editBtn.disabled = true;
+            saveBtn.disabled = false;
+        });
 
-    saveBtn.addEventListener('click', () => {
-      window.sanitationSettings = window.sanitationSettings || {};
+        saveBtn.addEventListener("click", async () => {
+            // Rebuild sanitationSettings from the currently checked boxes
+            const newSettings = {};
+            document.querySelectorAll(".sanitation-checkbox").forEach((cb) => {
+                const pool = cb.dataset.pool;
+                const method = cb.dataset.method;
+                if (!pool || !method) return;
+                if (cb.checked) {
+                    newSettings[pool] = method;
+                }
+            });
 
-      sanitationCheckboxes.forEach(cb => {
-        const pool = cb.dataset.pool;
-        const method = cb.dataset.method;
-        if (!pool || !method) return;
-        if (cb.checked) {
-          // enforce one method per pool: overwrite
-          window.sanitationSettings[pool] = method;
-        } else if (window.sanitationSettings[pool] === method) {
-          // if unchecked and currently selected, clear it
-          delete window.sanitationSettings[pool];
-        }
-      });
+            window.sanitationSettings = newSettings;
+            await saveSanitationSettings?.();
 
-      if (typeof saveSanitationSettings === 'function') {
-        saveSanitationSettings();
-      }
-      sanitationCheckboxes.forEach(cb => cb.disabled = true);
-      editBtn.disabled = false;
-      saveBtn.disabled = true;
+            sanitationEditing = false;
+            syncSanitationCheckboxDisabledState();
+            editBtn.disabled = false;
+            saveBtn.disabled = true;
 
-      console.log('✅ Sanitation settings saved and checkboxes disabled again');
-    });
-  }
+            console.log("✅ Sanitation settings saved and checkboxes disabled again");
+        });
+    }
 
   console.log('🚀 App initialization complete');
 });
 
 function updateSanitationCheckboxesFromSettings() {
-    for (const pool in sanitationSettings) {
-        const method = sanitationSettings[pool];
-        const bleachCheckbox = document.querySelector(`[data-pool="${pool}"][data-method="bleach"]`);
-        const granularCheckbox = document.querySelector(`[data-pool="${pool}"][data-method="granular"]`);
+  if (!window.sanitationSettings || typeof window.sanitationSettings !== "object") {
+    window.sanitationSettings = {};
+  }
+  const settings = window.sanitationSettings;
 
-        if (bleachCheckbox && granularCheckbox) {
-            bleachCheckbox.checked = (method === 'bleach');
-            granularCheckbox.checked = (method === 'granular');
-        }
-    }
+  document.querySelectorAll(".sanitation-checkbox").forEach((cb) => {
+    const pool = cb.dataset.pool;
+    const method = cb.dataset.method;
+    if (!pool || !method) return;
+    cb.checked = settings[pool] === method;
+  });
+
+  // Make sure disabled/enabled matches Edit/Save state
+  syncSanitationCheckboxDisabledState();
 }
+
+let sanitationEditing = false;
+
+function syncSanitationCheckboxDisabledState() {
+  const checkboxes = document.querySelectorAll(".sanitation-checkbox");
+  checkboxes.forEach((cb) => {
+    cb.disabled = !sanitationEditing;
+  });
+}
+
+
 
 // Add all other functions you're calling in onclick attributes
 
@@ -3028,26 +2990,118 @@ function showDashboard() {
     console.log('🤖 Logo still exists after updateHeaderButtons:', !!document.getElementById('logo'));
 }
 
+function goToDashboard() {
+  console.log('goToDashboard called');
+
+  // Always close the dropdown menu if it exists
+  const dropdown = document.getElementById('dropdownMenu');
+  if (dropdown) dropdown.style.display = 'none';
+
+  const hasDashboard = !!document.getElementById('supervisorDashboard');
+
+  // Not logged in yet
+  if (!isLoggedIn) {
+    if (hasDashboard) {
+      // On index.html → show login modal so they can log in to reach the dashboard
+      if (typeof openLoginModal === 'function') {
+        openLoginModal();
+      }
+    } else {
+      // On editor / other page → send them back to the main app
+      window.location.href = '../index.html';
+    }
+    return;
+  }
+
+  // Logged in
+  if (hasDashboard) {
+    // On index.html → just show the dashboard view
+    showDashboard();
+  } else {
+    // On editor / other page → go to index and let checkLogin/showDashboard handle it
+    window.location.href = '../index.html#dashboard';
+  }
+}
+
+function buildDashboardRows(submissions) {
+  const rows = [];
+
+  submissions.forEach((sub) => {
+    if (!sub) return;
+
+    const poolName = sub.poolLocation || sub.pool || "";
+    if (!poolName) return;
+
+    const meta =
+      (window.poolMetadataByName && window.poolMetadataByName[poolName]) || null;
+    const markets = Array.isArray(meta?.markets) ? meta.markets : [];
+    const market = markets.length ? markets[0] : "Unassigned";
+
+    const ts = sub.timestamp ? new Date(sub.timestamp) : null;
+
+    const addRow = (poolIndex, label, phField, clField) => {
+      const ph = sub[phField];
+      const cl = sub[clField];
+      const hasData =
+        (ph !== undefined && ph !== null && ph !== "") ||
+        (cl !== undefined && cl !== null && cl !== "");
+      if (!hasData) return;
+
+      rows.push({
+        timestamp: ts,
+        poolName,
+        market,
+        poolIndex,
+        poolLabel: label,
+        ph,
+        cl,
+      });
+    };
+
+    addRow(1, "Pool 1", "mainPoolPH", "mainPoolCl");
+    addRow(2, "Pool 2", "secondaryPoolPH", "secondaryPoolCl");
+    addRow(3, "Pool 3", "pool3PH", "pool3Cl");
+    addRow(4, "Pool 4", "pool4PH", "pool4Cl");
+    addRow(5, "Pool 5", "pool5PH", "pool5Cl");
+  });
+
+  return rows;
+}
+
 // ===================================================
 // PAGINATION
 // ===================================================
 
-function updatePagination() {
-    const totalPages = Math.ceil(filteredSubmissions.length / itemsPerPage);
+function updateDashboardPagination(totalPages) {
+  const pageInfo = document.getElementById("pageInfo");
+  const prevBtn = document.getElementById("prevBtn");
+  const nextBtn = document.getElementById("nextBtn");
 
-    // Prevent going out of bounds
-    if (currentPage >= totalPages) {
-        currentPage = totalPages - 1;
-    }
-    if (currentPage < 0) {
-        currentPage = 0;
-    }
+  if (!pageInfo || !prevBtn || !nextBtn) return;
 
-    // Display the current page's data
-    displayData();
+  if (!dashboardRows.length) {
+    pageInfo.textContent = "No results";
+    prevBtn.disabled = true;
+    nextBtn.disabled = true;
+    return;
+  }
 
-    // Update the prev/next button states and page info
-    updatePaginationControls(totalPages);
+  pageInfo.textContent = `Page ${currentPage + 1} of ${totalPages}`;
+  prevBtn.disabled = currentPage <= 0;
+  nextBtn.disabled = currentPage >= totalPages - 1;
+}
+
+function goToPreviousPage() {
+  if (currentPage <= 0) return;
+  currentPage -= 1;
+  renderDashboardPage();
+}
+
+function goToNextPage() {
+  const totalPages = Math.max(1, Math.ceil(dashboardRows.length / itemsPerPage));
+  if (currentPage >= totalPages - 1) return;
+  currentPage += 1;
+  renderDashboardPage();
 }
 
 
