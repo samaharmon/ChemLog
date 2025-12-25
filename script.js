@@ -630,108 +630,111 @@ window.sanitationState = window.sanitationState || {};
  * Build the sanitation table from metadata and current state.
  */
 function renderSanitationSettingsTable() {
-  const tbody = document.getElementById("sanitationTableBody");
+  const tbody = document.getElementById('sanitationTableBody');
   if (!tbody) return;
 
-  tbody.innerHTML = "";
+  tbody.innerHTML = '';
 
-  // We use whatever pools the UI knows about (loaded from Firestore)
-  const pools = Array.isArray(window.availablePools) ? window.availablePools : [];
-  if (!pools.length) {
-    const tr = document.createElement("tr");
-    const td = document.createElement("td");
+  const meta = window.poolMetadataByName || {};
+  const poolNames = Object.keys(meta);
+
+  if (!poolNames.length) {
+    const tr = document.createElement('tr');
+    const td = document.createElement('td');
     td.colSpan = 3;
-    td.textContent = "No pools found. Add or sync pools in the Site Editor.";
+    td.textContent = 'No pools found. Add or sync pools in the Rule Editor.';
     tr.appendChild(td);
     tbody.appendChild(tr);
     return;
   }
 
-  // Group pools by their first Market
-  const byMarket = new Map();
-
-  for (const pool of pools) {
-    const name = getPoolNameFromDoc(pool);
-    if (!name) continue;
-
-    const markets = getPoolMarketsFromDoc(pool);
-    const marketKey = markets && markets.length ? markets[0] : "Unassigned";
-
-    if (!byMarket.has(marketKey)) byMarket.set(marketKey, []);
-    byMarket.get(marketKey).push(name);
-  }
-
-  // Ensure we have a settings object
-  if (!window.sanitationSettings || typeof window.sanitationSettings !== "object") {
+  if (!window.sanitationSettings || typeof window.sanitationSettings !== 'object') {
     window.sanitationSettings = {};
   }
-
   const settings = window.sanitationSettings;
 
-  // Order: known markets first, then any others we discover
-  const marketOrder = [
-    ...MARKET_ORDER,
+  // Group pools by their primary market
+  const byMarket = new Map();
+
+  poolNames.forEach((name) => {
+    const info = meta[name] || {};
+    const markets = Array.isArray(info.markets) && info.markets.length
+      ? info.markets
+      : ['Unassigned'];
+    const primaryMarket = markets[0];
+
+    if (!byMarket.has(primaryMarket)) {
+      byMarket.set(primaryMarket, []);
+    }
+    byMarket.get(primaryMarket).push(name);
+  });
+
+  const marketsInOrder = [
+    ...(Array.isArray(MARKET_ORDER) ? MARKET_ORDER : []),
     ...Array.from(byMarket.keys()).filter((m) => !MARKET_ORDER.includes(m)),
   ];
 
-  // Helper so we don’t duplicate event logic
   function createMethodCheckbox(poolName, method) {
-    const input = document.createElement("input");
-    input.type = "checkbox";
-    input.className = `sanitation-checkbox ${method}-checkbox`;
+    const input = document.createElement('input');
+    input.type = 'checkbox';
+    input.className = 'sanitation-checkbox';
     input.dataset.pool = poolName;
     input.dataset.method = method;
 
-    // One active method per pool; match what’s stored
+    // One method per pool: stored as sanitationSettings[poolName] = 'bleach' | 'granular'
     input.checked = settings[poolName] === method;
 
-    input.addEventListener("change", handleSanitationCheckboxChange);
+    // New canonical handler
+    input.addEventListener('change', handleSanitationCheckboxChange);
     return input;
   }
 
-  for (const market of marketOrder) {
-    const poolNames = byMarket.get(market);
-    if (!poolNames || !poolNames.length) continue;
+  marketsInOrder.forEach((market) => {
+    const names = byMarket.get(market);
+    if (!names || !names.length) return;
 
-    // Market title row
-    const headerRow = document.createElement("tr");
-    headerRow.className = "sanitation-market-row";
-    const headerCell = document.createElement("td");
+    // Market heading row
+    const marketRow = document.createElement('tr');
+    marketRow.className = 'sanitation-market-row';
+    const headerCell = document.createElement('td');
     headerCell.colSpan = 3;
     headerCell.textContent = market;
-    headerCell.style.fontWeight = "bold";
-    headerCell.style.textAlign = "left";
-    headerRow.appendChild(headerCell);
-    tbody.appendChild(headerRow);
+    headerCell.style.fontWeight = 'bold';
+    headerCell.style.textAlign = 'left';
+    marketRow.appendChild(headerCell);
+    tbody.appendChild(marketRow);
 
-    // Pool rows for this market
-    poolNames
+    // Pool rows
+    names
       .slice()
       .sort((a, b) => a.localeCompare(b))
       .forEach((poolName) => {
-        const row = document.createElement("tr");
+        const row = document.createElement('tr');
 
-        const nameCell = document.createElement("td");
+        const nameCell = document.createElement('td');
         nameCell.textContent = poolName;
         row.appendChild(nameCell);
 
-        const bleachCell = document.createElement("td");
-        bleachCell.appendChild(createMethodCheckbox(poolName, "bleach"));
+        const bleachCell = document.createElement('td');
+        bleachCell.appendChild(createMethodCheckbox(poolName, 'bleach'));
         row.appendChild(bleachCell);
 
-        const granularCell = document.createElement("td");
-        granularCell.appendChild(createMethodCheckbox(poolName, "granular"));
+        const granularCell = document.createElement('td');
+        granularCell.appendChild(createMethodCheckbox(poolName, 'granular'));
         row.appendChild(granularCell);
 
         tbody.appendChild(row);
       });
-  }
+  });
 
-  // Honor current Edit/Save state (checkboxes should start disabled)
-  syncSanitationCheckboxDisabledState();
+  // Respect Edit / Save state
+  if (typeof syncSanitationCheckboxDisabledState === 'function') {
+    syncSanitationCheckboxDisabledState();
+  }
 }
 
-async function handleSanitationCheckboxChange(event) {
+
+function handleSanitationCheckboxChange(event) {
   const cb = event?.target;
   if (!cb) return;
 
@@ -746,7 +749,7 @@ async function handleSanitationCheckboxChange(event) {
   // Only one method per pool: if this one is checked, uncheck the others
   if (cb.checked) {
     const selector = `.sanitation-checkbox[data-pool="${pool}"]`;
-    document.querySelectorAll(selector).forEach(other => {
+    document.querySelectorAll(selector).forEach((other) => {
       if (other !== cb) {
         other.checked = false;
       }
@@ -754,7 +757,6 @@ async function handleSanitationCheckboxChange(event) {
 
     window.sanitationSettings[pool] = method;
   } else {
-    // If we unchecked the currently stored method, clear it
     if (window.sanitationSettings[pool] === method) {
       delete window.sanitationSettings[pool];
     }
@@ -766,6 +768,7 @@ function handleSanitationChange(checkboxEl) {
   if (!checkboxEl) return;
   handleSanitationCheckboxChange({ target: checkboxEl });
 }
+
 
 async function loadSanitationSettings() {
   window.sanitationState = {};
@@ -3298,42 +3301,53 @@ function updatePagination(totalPages) {
 // Logout function
 // Replace the existing logout function:
 function logout() {
-    console.log('logout called');
-    
-    // Close the dropdown menu first
-    const dropdown = document.getElementById('dropdownMenu');
-    if (dropdown) dropdown.style.display = 'none';
-    
-    // Reset state
-    isLoggedIn = false;
-    currentView = 'form';
-    
-    // Remove login token
-    localStorage.removeItem('loginToken');
-    
-    // Hide dashboard and remove 'show' class just in case
-    const dashboard = document.getElementById('supervisorDashboard');
-    if (dashboard) {
-        dashboard.classList.remove('show'); // <== CRUCIAL
+  console.log('🔒 Logging out supervisor');
+
+  // Try to clear any likely supervisor flags in localStorage
+  const keys = ['isSupervisorLoggedIn', 'supervisorLoggedIn', 'isSupervisor', 'supervisor'];
+  keys.forEach((key) => {
+    try {
+      localStorage.removeItem(key);
+    } catch (e) {
+      console.warn(`Could not clear localStorage key ${key}`, e);
     }
+  });
 
-    // Show form
-    const form = document.getElementById('mainForm');
-    if (form) form.style.display = 'block';
+  // Best-effort: reset global flag if used
+  try {
+    if (typeof isLoggedIn !== 'undefined') {
+      isLoggedIn = false;
+    }
+  } catch (e) {
+    // ignore
+  }
 
-    // Clear any filters
-    const poolFilter = document.getElementById('poolFilter');
-    const dateFilter = document.getElementById('dateFilter');
-    if (poolFilter) poolFilter.value = '';
-    if (dateFilter) dateFilter.value = '';
-    
-    // Reset page
-    currentPage = 1;
-    
-    // Update header buttons AFTER setting isLoggedIn to false
+  // Close login modal if present
+  if (typeof closeLoginModal === 'function') {
+    try {
+      closeLoginModal();
+    } catch (e) {}
+  }
+
+  const dashboard = document.getElementById('supervisorDashboard');
+  const mainForm = document.getElementById('mainForm');
+
+  // Hide dashboard, show main form (if they exist on this page)
+  if (dashboard) {
+    dashboard.classList.remove('show');
+  }
+  if (mainForm) {
+    mainForm.classList.remove('hidden');
+  }
+
+  if (typeof updateHeaderButtons === 'function') {
     updateHeaderButtons();
-    
-    console.log('Logged out successfully, returned to main form');
+  }
+
+  // If we're on the editor page (no dashboard present), send back to main app
+  if (!dashboard) {
+    window.location.href = '../index.html';
+  }
 }
 
 
@@ -3466,43 +3480,54 @@ function updatePoolFilterDropdown() {
   allOption.textContent = 'All Pools';
   poolFilterSelect.appendChild(allOption);
 
-  const enabledMarkets = getEnabledMarkets();
-  const seen = new Set();
+  const enabledMarkets = typeof getEnabledMarkets === 'function'
+    ? getEnabledMarkets()
+    : null;
 
-  const list = Array.isArray(availablePools) ? availablePools : [];
-  for (const pool of list) {
-    const name = getPoolNameFromDoc(pool);
-    if (!name || seen.has(name)) continue;
+  const meta = window.poolMetadataByName || {};
+  const poolNames = Object.keys(meta).sort((a, b) => a.localeCompare(b));
 
-    const markets = getPoolMarketsFromDoc(pool);
-    if (markets.length && !markets.some(m => enabledMarkets.includes(m))) {
-      // Hidden by Market settings
-      continue;
+  poolNames.forEach((name) => {
+    const info = meta[name] || {};
+    const markets = Array.isArray(info.markets) ? info.markets : [];
+
+    // Only filter by Market if enabledMarkets is a NON-empty array
+    if (Array.isArray(enabledMarkets) && enabledMarkets.length && markets.length) {
+      const visible = markets.some((m) => enabledMarkets.includes(m));
+      if (!visible) {
+        return;
+      }
     }
 
-    seen.add(name);
     const opt = document.createElement('option');
     opt.value = name;
     opt.textContent = name;
     poolFilterSelect.appendChild(opt);
-  }
+  });
 
-  if (previous && poolFilterSelect.querySelector(`option[value="${previous}"]`)) {
+  // Restore previous selection if still valid
+  if (previous && poolFilterSelect.querySelector(`option[value="${CSS.escape(previous)}"]`)) {
     poolFilterSelect.value = previous;
   }
 }
 
 function initializePoolsForUI() {
-  // Seed metadata from static pools so things work even before Firestore responds
-  rebuildPoolMetadataMap(window.availablePools || []);
-  updatePoolLocationDropdown();
+  // Build metadata from whatever we already have in memory
+  if (typeof rebuildPoolMetadataMap === 'function') {
+    rebuildPoolMetadataMap(window.availablePools || []);
+  }
 
-  // Dashboard filter still uses its own dropdown function
+  if (typeof updatePoolLocationDropdown === 'function') {
+    updatePoolLocationDropdown();
+  }
   if (typeof updatePoolFilterDropdown === 'function') {
     updatePoolFilterDropdown();
   }
+  if (typeof renderSanitationSettingsTable === 'function') {
+    renderSanitationSettingsTable();
+  }
 
-  // If we don't have the Firestore listener helper, we at least keep static pools
+  // If we don't have the Firestore listener helper, stop here
   if (typeof listenPools !== 'function') {
     console.warn('listenPools() helper is not available; pool list will not be dynamic');
     return;
@@ -3510,19 +3535,26 @@ function initializePoolsForUI() {
 
   try {
     listenPools((poolsFromFirestore) => {
-      // Pools are coming from the rule editor / Firestore
+      // Pools coming from the Rule Editor / Firestore
       window.availablePools = Array.isArray(poolsFromFirestore) ? poolsFromFirestore : [];
 
-      // Rebuild metadata using both static + Firestore pools
-      rebuildPoolMetadataMap(window.availablePools);
+      // Rebuild metadata map (STATIC_POOLS + Firestore pools)
+      if (typeof rebuildPoolMetadataMap === 'function') {
+        rebuildPoolMetadataMap(window.availablePools);
+      }
 
-      // Refresh the chemistry form dropdown + dashboard pool filter
-      updatePoolLocationDropdown();
+      // Refresh dropdowns and tables that depend on pools
+      if (typeof updatePoolLocationDropdown === 'function') {
+        updatePoolLocationDropdown();
+      }
       if (typeof updatePoolFilterDropdown === 'function') {
         updatePoolFilterDropdown();
       }
+      if (typeof renderSanitationSettingsTable === 'function') {
+        renderSanitationSettingsTable();
+      }
 
-      // Refresh supervisor dashboard table if that helper exists
+      // Refresh dashboard rows if we have data
       if (typeof filterAndDisplayData === 'function') {
         filterAndDisplayData();
       }
