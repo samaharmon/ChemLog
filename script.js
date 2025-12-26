@@ -40,6 +40,9 @@ let availablePools = [];
 // Markets used both in Metadata and dashboard filters
 const MARKET_NAMES = ['Columbia', 'Greenville', 'Charlotte', 'Charleston'];
 let marketVisibility = {};  // filled from settings
+let marketSettings = {
+  enabledMarkets: []   // empty means "no explicit setting"
+};
 
 // ===== Chemistry form: dynamic number of pools =====
 
@@ -2782,44 +2785,58 @@ function poolHasSecondary(poolName) {
 }
 
 async function initializeMarketSettings() {
-  const marketCheckboxes = document.querySelectorAll('input[name="marketFilter"]');
-  if (!marketCheckboxes.length) {
-    // No Market section on this page
-    return;
-  }
+  // 1) Start with defaults (all markets enabled)
+  marketSettings = {
+    enabledMarkets: Array.isArray(MARKET_ORDER) ? MARKET_ORDER.slice() : []
+  };
 
-  // Default: everything on
-  MARKET_NAMES.forEach((m) => {
-    if (marketVisibility[m] === undefined) {
-      marketVisibility[m] = true;
-    }
-  });
-
-  if (!db) {
-    console.warn('No Firestore DB; using in-memory market settings only');
-    applyMarketSettingsToUI();
-    return;
-  }
-
-  const settingsRef = doc(db, 'settings', 'markets');
-
+  // 2) Try to load from localStorage
   try {
-    const snap = await getDoc(settingsRef);
-    if (snap.exists()) {
-      const data = snap.data() || {};
-      MARKET_NAMES.forEach((m) => {
-        if (typeof data[m] === 'boolean') {
-          marketVisibility[m] = data[m];
-        }
-      });
-    } else {
-      await setDoc(settingsRef, marketVisibility);
+    const saved = localStorage.getItem('marketSettings');
+    if (saved) {
+      const parsed = JSON.parse(saved);
+      if (
+        parsed &&
+        Array.isArray(parsed.enabledMarkets) &&
+        parsed.enabledMarkets.length
+      ) {
+        marketSettings.enabledMarkets = parsed.enabledMarkets.slice();
+      }
     }
   } catch (err) {
-    console.error('Error loading market settings', err);
+    console.warn('Could not parse marketSettings from localStorage:', err);
   }
 
-  applyMarketSettingsToUI();
+  // 3) If Firestore isn't available, stop here (local-only mode)
+  if (!window.db || typeof getDoc !== 'function' || typeof doc !== 'function') {
+    console.warn('Firestore not available; using local marketSettings only.');
+    return;
+  }
+
+  // 4) Try to fetch Firestore settings. If this fails (permission-denied), we KEEP our
+  //    current marketSettings (defaults or localStorage) and do NOT break the app.
+  try {
+    const settingsRef = doc(db, 'settings', 'marketVisibility');
+    const snap = await getDoc(settingsRef);
+
+    if (snap.exists()) {
+      const data = snap.data() || {};
+      if (
+        Array.isArray(data.enabledMarkets) &&
+        data.enabledMarkets.length
+      ) {
+        marketSettings.enabledMarkets = data.enabledMarkets.slice();
+      }
+      // Sync to localStorage
+      localStorage.setItem('marketSettings', JSON.stringify(marketSettings));
+    } else {
+      console.warn('Market settings document does not exist; using defaults.');
+    }
+  } catch (error) {
+    console.error('Error loading market settings from Firestore:', error);
+    // IMPORTANT: do NOT throw or change marketSettings here.
+    // We just log and keep whatever we already had (defaults / localStorage).
+  }
 }
 
 function applyMarketSettingsToUI() {
@@ -3461,14 +3478,22 @@ function buildPoolsByMarket(pools) {
 }
 
 function getEnabledMarkets() {
-  // If settings haven't loaded yet, treat all as enabled
-  const anyConfigured = MARKET_NAMES.some(m =>
-    Object.prototype.hasOwnProperty.call(marketVisibility, m)
-  );
-  if (!anyConfigured) {
-    return [...MARKET_NAMES];
+  // If we have explicit enabledMarkets and it's non-empty, use it.
+  if (
+    marketSettings &&
+    Array.isArray(marketSettings.enabledMarkets) &&
+    marketSettings.enabledMarkets.length
+  ) {
+    return marketSettings.enabledMarkets.slice();
   }
-  return MARKET_NAMES.filter(m => marketVisibility[m]);
+
+  // Otherwise, default to "all markets known to the app"
+  if (Array.isArray(MARKET_ORDER) && MARKET_ORDER.length) {
+    return MARKET_ORDER.slice();
+  }
+
+  // Last resort
+  return [];
 }
 
 function updatePoolFilterDropdown() {
