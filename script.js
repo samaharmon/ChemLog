@@ -3717,22 +3717,10 @@ function showRecipientSelectionInModal(modal) {
 }
 
 function toggleMenu() {
-    const menu = document.getElementById('dropdownMenu');
-    if (!menu) return;
-    
-    if (menu.style.display === 'none' || menu.style.display === '') {
-        menu.style.display = 'block';
-    } else {
-        menu.style.display = 'none';
-    }
-    
-    // Close menu when clicking outside
-    document.addEventListener('click', function closeMenu(e) {
-        if (!e.target.closest('.menu-container')) {
-            menu.style.display = 'none';
-            document.removeEventListener('click', closeMenu);
-        }
-    });
+  const menu = document.getElementById('dropdownMenu');
+  if (!menu) return;
+
+  menu.classList.toggle('show');
 }
 
 async function openSettings() {
