@@ -629,113 +629,6 @@ function closeSettings() {
 // poolName -> { bleach: boolean, granular: boolean }
 window.sanitationState = window.sanitationState || {};
 
-/**
- * Build the sanitation table from metadata and current state.
- */
-function renderSanitationSettingsTable() {
-  const tbody = document.getElementById('sanitationTableBody');
-  if (!tbody) return;
-
-  tbody.innerHTML = '';
-
-  const meta = window.poolMetadataByName || {};
-  const poolNames = Object.keys(meta);
-
-  if (!poolNames.length) {
-    const tr = document.createElement('tr');
-    const td = document.createElement('td');
-    td.colSpan = 3;
-    td.textContent = 'No pools found. Add or sync pools in the Rule Editor.';
-    tr.appendChild(td);
-    tbody.appendChild(tr);
-    return;
-  }
-
-  if (!window.sanitationSettings || typeof window.sanitationSettings !== 'object') {
-    window.sanitationSettings = {};
-  }
-  const settings = window.sanitationSettings;
-
-  // Group pools by their primary market
-  const byMarket = new Map();
-
-  poolNames.forEach((name) => {
-    const info = meta[name] || {};
-    const markets = Array.isArray(info.markets) && info.markets.length
-      ? info.markets
-      : ['Unassigned'];
-    const primaryMarket = markets[0];
-
-    if (!byMarket.has(primaryMarket)) {
-      byMarket.set(primaryMarket, []);
-    }
-    byMarket.get(primaryMarket).push(name);
-  });
-
-  const marketsInOrder = [
-    ...(Array.isArray(MARKET_ORDER) ? MARKET_ORDER : []),
-    ...Array.from(byMarket.keys()).filter((m) => !MARKET_ORDER.includes(m)),
-  ];
-
-  function createMethodCheckbox(poolName, method) {
-    const input = document.createElement('input');
-    input.type = 'checkbox';
-    input.className = 'sanitation-checkbox';
-    input.dataset.pool = poolName;
-    input.dataset.method = method;
-
-    // One method per pool: stored as sanitationSettings[poolName] = 'bleach' | 'granular'
-    input.checked = settings[poolName] === method;
-
-    // New canonical handler
-    input.addEventListener('change', handleSanitationCheckboxChange);
-    return input;
-  }
-
-  marketsInOrder.forEach((market) => {
-    const names = byMarket.get(market);
-    if (!names || !names.length) return;
-
-    // Market heading row
-    const marketRow = document.createElement('tr');
-    marketRow.className = 'sanitation-market-row';
-    const headerCell = document.createElement('td');
-    headerCell.colSpan = 3;
-    headerCell.textContent = market;
-    headerCell.style.fontWeight = 'bold';
-    headerCell.style.textAlign = 'left';
-    marketRow.appendChild(headerCell);
-    tbody.appendChild(marketRow);
-
-    // Pool rows
-    names
-      .slice()
-      .sort((a, b) => a.localeCompare(b))
-      .forEach((poolName) => {
-        const row = document.createElement('tr');
-
-        const nameCell = document.createElement('td');
-        nameCell.textContent = poolName;
-        row.appendChild(nameCell);
-
-        const bleachCell = document.createElement('td');
-        bleachCell.appendChild(createMethodCheckbox(poolName, 'bleach'));
-        row.appendChild(bleachCell);
-
-        const granularCell = document.createElement('td');
-        granularCell.appendChild(createMethodCheckbox(poolName, 'granular'));
-        row.appendChild(granularCell);
-
-        tbody.appendChild(row);
-      });
-  });
-
-  // Respect Edit / Save state
-  if (typeof syncSanitationCheckboxDisabledState === 'function') {
-    syncSanitationCheckboxDisabledState();
-  }
-}
-
 
 function handleSanitationCheckboxChange(event) {
   const cb = event?.target;
@@ -1080,59 +973,6 @@ console.log('🔥 Pool Chemistry App - Script Starting to Load 🔥');
 // ===================================================
 // FIXED DASHBOARD DATA TABLE FUNCTIONS
 // ===================================================
-
-async function initializeSanitationSettings() {
-    const pools = [
-        'Camden CC', 'CC of Lexington', 'Columbia CC', 'Forest Lake',
-        'Forest Lake Lap Pool', 'Quail Hollow', 'Rockbridge', 'Wildewood', 'Winchester'
-    ];
-    const statusDiv = document.getElementById('firebaseStatus');
-
-    console.log('Initializing sanitation settings...');
-    updateFirebaseStatus('');
-
-    // Set defaults first
-    pools.forEach(pool => {
-        sanitationSettings[pool] = 'bleach';
-    });
-
-    try {
-        if (!db) throw new Error('Firestore not initialized');
-
-        const settingsRef = doc(db, 'settings', 'sanitationMethods');
-        const settingsDoc = await getDoc(settingsRef);
-
-        if (settingsDoc.exists()) {
-            const firebaseSettings = settingsDoc.data();
-            Object.assign(sanitationSettings, firebaseSettings);
-            console.log('✅ Loaded sanitation settings from Firebase:', sanitationSettings);
-            updateFirebaseStatus('');
-        } else {
-            console.log('⚠️ No Firebase settings found, saving defaults');
-            await setDoc(settingsRef, sanitationSettings); // ✅ uses imported setDoc
-            updateFirebaseStatus('Default settings saved to cloud');
-        }
-    } catch (error) {
-        console.warn('⚠️ Could not load from Firebase, using localStorage fallback:', error);
-        updateFirebaseStatus('Using local settings (offline fallback)');
-
-        const saved = localStorage.getItem('sanitationSettings');
-        if (saved) {
-            sanitationSettings = JSON.parse(saved);
-            console.log('📦 Loaded sanitation settings from localStorage:', sanitationSettings);
-        } else {
-            localStorage.setItem('sanitationSettings', JSON.stringify(sanitationSettings));
-            console.log('💾 Saved default settings to localStorage');
-        }
-    }
-
-    console.log('✅ Final sanitationSettings after initialization:', sanitationSettings);
-    updateSanitationUI();
-
-    setTimeout(() => {
-        if (statusDiv) statusDiv.style.display = 'none';
-    }, 3000);
-}
 
 let sanitationUnsubscribe = null; // to store the listener cleanup function if needed
 
@@ -2002,21 +1842,116 @@ function validateFirebaseConfig() {
 // SANITATION SETTINGS MANAGEMENT
 // ===================================================
 
-// Save sanitation settings to Firebase and localStorage
-async function saveSanitationSettings() {
-    try {
-        if (db) {
-            const settingsRef = doc(db, 'settings', 'sanitationMethods');
-            await setDoc(settingsRef, sanitationSettings);
-            console.log('✅ Saved sanitation settings to Firebase');
-        }
-    } catch (error) {
-        console.warn('❌ Could not save to Firebase:', error);
-    }
+// ---- Sanitation settings (local, driven by availablePools) ----
+window.sanitationSettings = window.sanitationSettings || {};
+let sanitationEditing = false;
 
-    // Always save to localStorage as backup
-    localStorage.setItem('sanitationSettings', JSON.stringify(sanitationSettings));
-    console.log('💾 Saved sanitation settings to localStorage');
+function saveSanitationSettings() {
+  try {
+    localStorage.setItem(
+      'sanitationSettings',
+      JSON.stringify(window.sanitationSettings || {})
+    );
+  } catch (err) {
+    console.warn('⚠️ Could not save sanitationSettings to localStorage:', err);
+  }
+}
+
+function initializeSanitationSettings() {
+  // Load from localStorage
+  try {
+    const saved = localStorage.getItem('sanitationSettings');
+    if (saved) {
+      const parsed = JSON.parse(saved);
+      if (parsed && typeof parsed === 'object') {
+        window.sanitationSettings = parsed;
+      }
+    }
+  } catch (err) {
+    console.warn('⚠️ Could not parse sanitationSettings from localStorage:', err);
+  }
+
+  renderSanitationSettingsTable();
+}
+
+// No‑op now; we’re not listening to Firestore for sanitation settings
+function startSanitationSettingsListener() {
+  // Intentionally empty – avoids permission errors from old Firestore code.
+}
+
+function syncSanitationCheckboxDisabledState() {
+  const checkboxes = document.querySelectorAll('.sanitation-checkbox');
+  checkboxes.forEach((cb) => {
+    cb.disabled = !sanitationEditing;
+  });
+}
+
+function renderSanitationSettingsTable() {
+  const tbody = document.getElementById('sanitationTableBody');
+  if (!tbody) return;
+
+  tbody.innerHTML = '';
+
+  const list = Array.isArray(window.availablePools) ? window.availablePools : [];
+  if (!list.length) return;
+
+  const marketMap = new Map(); // market -> Set(poolName)
+
+  list.forEach((doc) => {
+    const name = getPoolNameFromDoc(doc);
+    if (!name) return;
+    let markets = getPoolMarketsFromDoc(doc);
+    if (!markets || !markets.length) markets = ['Unassigned'];
+
+    markets.forEach((m) => {
+      if (!marketMap.has(m)) marketMap.set(m, new Set());
+      marketMap.get(m).add(name);
+    });
+  });
+
+  const allMarkets = Array.from(marketMap.keys()).sort();
+
+  allMarkets.forEach((market) => {
+    // Market title row
+    const marketRow = document.createElement('tr');
+    marketRow.classList.add('sanitation-market-row');
+    const marketCell = document.createElement('td');
+    marketCell.colSpan = 3;
+    marketCell.textContent = market;
+    marketRow.appendChild(marketCell);
+    tbody.appendChild(marketRow);
+
+    Array.from(marketMap.get(market))
+      .sort()
+      .forEach((poolName) => {
+        const row = document.createElement('tr');
+
+        const nameCell = document.createElement('td');
+        nameCell.textContent = poolName;
+        row.appendChild(nameCell);
+
+        ['bleach', 'granular'].forEach((method) => {
+          const cell = document.createElement('td');
+          const cb = document.createElement('input');
+          cb.type = 'checkbox';
+          cb.className = 'sanitation-checkbox';
+          cb.dataset.pool = poolName;
+          cb.dataset.method = method;
+
+          const current = (window.sanitationSettings || {})[poolName];
+          cb.checked = current === method;
+
+          cb.addEventListener('change', handleSanitationCheckboxChange);
+
+          cell.appendChild(cb);
+          row.appendChild(cell);
+        });
+
+        tbody.appendChild(row);
+      });
+  });
+
+  syncSanitationCheckboxDisabledState();
 }
 
 // Update UI checkboxes based on settings
@@ -2558,17 +2493,6 @@ function updateSanitationCheckboxesFromSettings() {
   syncSanitationCheckboxDisabledState();
 }
 
-let sanitationEditing = false;
-
-function syncSanitationCheckboxDisabledState() {
-  const checkboxes = document.querySelectorAll(".sanitation-checkbox");
-  checkboxes.forEach((cb) => {
-    cb.disabled = !sanitationEditing;
-  });
-}
-
-
-
 // Add all other functions you're calling in onclick attributes
 
 function createAndAppendMenu(parentElement) {
@@ -2796,44 +2720,84 @@ function updateMarketCheckboxesFromSettings() {
   });
 }
 
-async function initializeMarketSettings() {
-  // Start with default: all markets enabled
-  marketSettings = { enabledMarkets: MARKET_ORDER.slice() };
+// ---- Market settings (localStorage only, default = all markets) ----
 
-  // 1) Try localStorage
-  try {
-    const raw = localStorage.getItem('marketSettings');
-    if (raw) {
-      const parsed = JSON.parse(raw);
-      if (parsed && Array.isArray(parsed.enabledMarkets) && parsed.enabledMarkets.length) {
-        marketSettings.enabledMarkets = parsed.enabledMarkets;
-      }
-    }
-  } catch (e) {
-    console.warn('Could not read marketSettings from localStorage', e);
+window.marketSettings = window.marketSettings || {
+  enabledMarkets: ['Columbia', 'Greenville', 'Charlotte', 'Charleston'],
+};
+
+function getEnabledMarkets() {
+  const ms = window.marketSettings;
+  if (ms && Array.isArray(ms.enabledMarkets) && ms.enabledMarkets.length) {
+    return ms.enabledMarkets;
   }
-
-  // 2) Try Firestore (non-fatal; we keep defaults/local values if this fails)
-  if (typeof db !== 'undefined' && typeof doc === 'function' && typeof getDoc === 'function') {
-    try {
-      const ref = doc(db, 'settings', 'marketVisibility');
-      const snap = await getDoc(ref);
-      if (snap.exists()) {
-        const data = snap.data() || {};
-        if (Array.isArray(data.enabledMarkets) && data.enabledMarkets.length) {
-          marketSettings.enabledMarkets = data.enabledMarkets;
-          localStorage.setItem('marketSettings', JSON.stringify(marketSettings));
-        }
-      }
-    } catch (err) {
-      console.error('Error loading market settings from Firestore:', err);
-      // ignore – we keep whatever we had from defaults/localStorage
-    }
-  }
-
-  updateMarketCheckboxesFromSettings();
+  // Fallback: treat as "all on"
+  return ['Columbia', 'Greenville', 'Charlotte', 'Charleston'];
 }
 
+function initializeMarketSettings() {
+  const checkboxes = document.querySelectorAll('.market-filter-checkbox');
+  if (!checkboxes.length) return;
+
+  // Try to load from localStorage
+  try {
+    const saved = localStorage.getItem('marketSettings');
+    if (saved) {
+      const parsed = JSON.parse(saved);
+      if (
+        parsed &&
+        Array.isArray(parsed.enabledMarkets) &&
+        parsed.enabledMarkets.length
+      ) {
+        window.marketSettings.enabledMarkets = parsed.enabledMarkets;
+      }
+    }
+  } catch (err) {
+    console.warn('⚠️ Could not parse marketSettings from localStorage:', err);
+  }
+
+  const enabled = new Set(getEnabledMarkets());
+
+  // Apply to checkboxes and attach change handlers
+  checkboxes.forEach((cb) => {
+    const market = cb.value;
+    cb.checked = enabled.has(market);
+    cb.removeEventListener('change', handleMarketCheckboxChange);
+    cb.addEventListener('change', handleMarketCheckboxChange);
+  });
+}
+
+function handleMarketCheckboxChange() {
+  const checkboxes = document.querySelectorAll('.market-filter-checkbox');
+  const enabled = [];
+
+  checkboxes.forEach((cb) => {
+    if (cb.checked) enabled.push(cb.value);
+  });
+
+  // If user unchecks everything, treat it as "all on" so you never get a blank app.
+  window.marketSettings.enabledMarkets =
+    enabled.length > 0
+      ? enabled
+      : ['Columbia', 'Greenville', 'Charlotte', 'Charleston'];
+
+  try {
+    localStorage.setItem('marketSettings', JSON.stringify(window.marketSettings));
+  } catch (err) {
+    console.warn('⚠️ Could not save marketSettings to localStorage:', err);
+  }
+
+  // Rebuild anything that depends on markets
+  if (typeof updatePoolLocationDropdown === 'function') {
+    updatePoolLocationDropdown();
+  }
+  if (typeof updatePoolFilterDropdown === 'function') {
+    updatePoolFilterDropdown();
+  }
+  if (typeof filterAndDisplayData === 'function') {
+    filterAndDisplayData();
+  }
+}
 
 function applyMarketSettingsToUI() {
   const marketCheckboxes = document.querySelectorAll('input[name="marketFilter"]');
@@ -2884,76 +2848,73 @@ function onMarketCheckboxChanged(event) {
   saveMarketSettings();
 }
 
+// Global pool list: filled by listenPools(...)
+window.availablePools = window.availablePools || [];
+
+// Utility helpers you already have:
+/*
+function getPoolNameFromDoc(pool) { ... }
+function getPoolMarketsFromDoc(pool) { ... }
+*/
+
 function updatePoolLocationDropdown() {
   const select = document.getElementById('poolLocation');
   if (!select) return;
 
   const previous = select.value;
-
-  // Clear any hard‑coded options
   select.innerHTML = '';
 
-  // Default "Select" option
-  const defaultOpt = document.createElement('option');
-  defaultOpt.value = '';
-  defaultOpt.textContent = 'Select';
-  select.appendChild(defaultOpt);
+  // Placeholder
+  const placeholder = document.createElement('option');
+  placeholder.value = '';
+  placeholder.textContent = 'Select';
+  select.appendChild(placeholder);
 
-  // Use the combined metadata map (static + Firestore)
-  const meta = window.poolMetadataByName || {};
-  const poolsByMarket = new Map();
+  const enabledMarkets = getEnabledMarkets();
+  const poolsByMarket = new Map(); // market -> Set(poolName)
 
-  // Group pool names by their primary market
-  Object.entries(meta).forEach(([name, info]) => {
+  const list = Array.isArray(window.availablePools) ? window.availablePools : [];
+  list.forEach((doc) => {
+    const name = getPoolNameFromDoc(doc);
     if (!name) return;
 
-    const markets = Array.isArray(info.markets) && info.markets.length
-      ? info.markets
-      : ['Unassigned'];
+    let markets = getPoolMarketsFromDoc(doc);
+    if (!markets || !markets.length) markets = ['Unassigned'];
 
-    const primaryMarket = markets[0];
-    if (!poolsByMarket.has(primaryMarket)) {
-      poolsByMarket.set(primaryMarket, []);
-    }
-    poolsByMarket.get(primaryMarket).push(name);
+    markets.forEach((m) => {
+      // If some markets are enabled, respect that filter
+      if (enabledMarkets.length && !enabledMarkets.includes(m)) return;
+      if (!poolsByMarket.has(m)) poolsByMarket.set(m, new Set());
+      poolsByMarket.get(m).add(name);
+    });
   });
 
-  // Helper to add a market section
-  function appendMarketSection(marketLabel) {
-    const names = (poolsByMarket.get(marketLabel) || []).slice().sort((a, b) =>
-      a.localeCompare(b),
-    );
-    if (!names.length) return;
+  const sortedMarkets = Array.from(poolsByMarket.keys()).sort();
 
-    const header = document.createElement('option');
-    header.value = '';
-    header.textContent = `— ${marketLabel} —`;
-    header.disabled = true;
-    header.classList.add('market-header-option');
-    select.appendChild(header);
+  sortedMarkets.forEach((market) => {
+    // Non‑selectable "market title"
+    const heading = document.createElement('option');
+    heading.value = '';
+    heading.textContent = `— ${market} —`;
+    heading.disabled = true;
+    heading.classList.add('pool-group-label');
+    select.appendChild(heading);
 
-    names.forEach((name) => {
-      const opt = document.createElement('option');
-      opt.value = name;
-      opt.textContent = name;
-      select.appendChild(opt);
-    });
-  }
+    Array.from(poolsByMarket.get(market))
+      .sort()
+      .forEach((name) => {
+        const opt = document.createElement('option');
+        opt.value = name;
+        opt.textContent = name;
+        select.appendChild(opt);
+      });
+  });
 
-  // Known market order first
-  MARKET_ORDER.forEach((market) => appendMarketSection(market));
-
-  // Any other markets (including "Unassigned")
-  for (const [market] of poolsByMarket.entries()) {
-    if (MARKET_ORDER.includes(market)) continue;
-    appendMarketSection(market);
-  }
-
-  // Try to preserve previous selection
   if (previous && select.querySelector(`option[value="${previous}"]`)) {
     select.value = previous;
   }
 }
+
 
 
 // ===================================================
@@ -3491,114 +3452,95 @@ function buildPoolsByMarket(pools) {
   return { byMarket, unassigned };
 }
 
-function getEnabledMarkets() {
-  if (
-    marketSettings &&
-    Array.isArray(marketSettings.enabledMarkets) &&
-    marketSettings.enabledMarkets.length
-  ) {
-    return marketSettings.enabledMarkets.slice();
-  }
-  // Fallback: everything
-  return MARKET_ORDER.slice();
-}
-
 function updatePoolFilterDropdown() {
-  const poolFilterSelect = document.getElementById('poolFilter');
-  if (!poolFilterSelect) return;
+  const select = document.getElementById('poolFilter');
+  if (!select) return;
 
-  const previous = poolFilterSelect.value;
-  poolFilterSelect.innerHTML = '';
+  const previous = select.value;
+  select.innerHTML = '';
 
-  // "All Pools" option
+  // "All pools" entry
   const allOption = document.createElement('option');
   allOption.value = '';
   allOption.textContent = 'All Pools';
-  poolFilterSelect.appendChild(allOption);
+  select.appendChild(allOption);
 
-  const enabledMarkets = typeof getEnabledMarkets === 'function'
-    ? getEnabledMarkets()
-    : null;
+  const enabledMarkets = getEnabledMarkets();
+  const poolsByMarket = new Map(); // market -> Set(poolName)
 
-  const meta = window.poolMetadataByName || {};
-  const poolNames = Object.keys(meta).sort((a, b) => a.localeCompare(b));
+  const list = Array.isArray(window.availablePools) ? window.availablePools : [];
+  list.forEach((doc) => {
+    const name = getPoolNameFromDoc(doc);
+    if (!name) return;
 
-  poolNames.forEach((name) => {
-    const info = meta[name] || {};
-    const markets = Array.isArray(info.markets) ? info.markets : [];
+    let markets = getPoolMarketsFromDoc(doc);
+    if (!markets || !markets.length) markets = ['Unassigned'];
 
-    // Only filter by Market if enabledMarkets is a NON-empty array
-    if (Array.isArray(enabledMarkets) && enabledMarkets.length && markets.length) {
-      const visible = markets.some((m) => enabledMarkets.includes(m));
-      if (!visible) {
-        return;
-      }
-    }
-
-    const opt = document.createElement('option');
-    opt.value = name;
-    opt.textContent = name;
-    poolFilterSelect.appendChild(opt);
+    markets.forEach((m) => {
+      if (enabledMarkets.length && !enabledMarkets.includes(m)) return;
+      if (!poolsByMarket.has(m)) poolsByMarket.set(m, new Set());
+      poolsByMarket.get(m).add(name);
+    });
   });
 
-  // Restore previous selection if still valid
-  if (previous && poolFilterSelect.querySelector(`option[value="${CSS.escape(previous)}"]`)) {
-    poolFilterSelect.value = previous;
+  const sortedMarkets = Array.from(poolsByMarket.keys()).sort();
+
+  sortedMarkets.forEach((market) => {
+    const heading = document.createElement('option');
+    heading.value = '';
+    heading.textContent = `— ${market} —`;
+    heading.disabled = true;
+    heading.classList.add('pool-group-label');
+    select.appendChild(heading);
+
+    Array.from(poolsByMarket.get(market))
+      .sort()
+      .forEach((name) => {
+        const opt = document.createElement('option');
+        opt.value = name;
+        opt.textContent = name;
+        select.appendChild(opt);
+      });
+  });
+
+  if (previous && select.querySelector(`option[value="${previous}"]`)) {
+    select.value = previous;
   }
 }
 
 function initializePoolsForUI() {
-  // Build metadata from whatever we already have in memory
-  if (typeof rebuildPoolMetadataMap === 'function') {
-    rebuildPoolMetadataMap(window.availablePools || []);
-  }
-
-  if (typeof updatePoolLocationDropdown === 'function') {
-    updatePoolLocationDropdown();
-  }
-  if (typeof updatePoolFilterDropdown === 'function') {
-    updatePoolFilterDropdown();
-  }
+  // Initial fill in case we already have something in memory
+  updatePoolLocationDropdown();
+  updatePoolFilterDropdown();
   if (typeof renderSanitationSettingsTable === 'function') {
     renderSanitationSettingsTable();
   }
 
-  // If we don't have the Firestore listener helper, stop here
   if (typeof listenPools !== 'function') {
-    console.warn('listenPools() helper is not available; pool list will not be dynamic');
+    console.warn('listenPools() is not available; pool lists will not be live-updated.');
     return;
   }
 
   try {
-    listenPools((poolsFromFirestore) => {
-      // Pools coming from the Rule Editor / Firestore
-      window.availablePools = Array.isArray(poolsFromFirestore) ? poolsFromFirestore : [];
+    listenPools((pools) => {
+      window.availablePools = Array.isArray(pools) ? pools : [];
 
-      // Rebuild metadata map (STATIC_POOLS + Firestore pools)
-      if (typeof rebuildPoolMetadataMap === 'function') {
-        rebuildPoolMetadataMap(window.availablePools);
-      }
+      updatePoolLocationDropdown();
+      updatePoolFilterDropdown();
 
-      // Refresh dropdowns and tables that depend on pools
-      if (typeof updatePoolLocationDropdown === 'function') {
-        updatePoolLocationDropdown();
-      }
-      if (typeof updatePoolFilterDropdown === 'function') {
-        updatePoolFilterDropdown();
-      }
       if (typeof renderSanitationSettingsTable === 'function') {
         renderSanitationSettingsTable();
       }
 
-      // Refresh dashboard rows if we have data
       if (typeof filterAndDisplayData === 'function') {
         filterAndDisplayData();
       }
     });
   } catch (err) {
-    console.error('Failed to attach pool listener', err);
+    console.error('Failed to attach pool listener:', err);
   }
 }
+
 
 
 // ===================================================
