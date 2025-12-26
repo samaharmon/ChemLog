@@ -77,6 +77,13 @@ function saveSignups(list) {
   }
 }
 
+function toggleTrainingMenu() {
+  const menu = document.getElementById('trainingDropdownMenu');
+  if (!menu) return;
+  const isVisible = menu.style.display === 'block';
+  menu.style.display = isVisible ? 'none' : 'block';
+}
+
 // ===== Admin UI rendering =====
 
 function renderSessionLists() {
@@ -349,3 +356,7 @@ function initTrainingPage() {
 }
 
 document.addEventListener('DOMContentLoaded', initTrainingPage);
+// Expose functions for inline onclick handlers in training.html
+window.toggleTrainingMenu = toggleTrainingMenu;
+window.openTrainingLoginModal = openTrainingLoginModal;
+
