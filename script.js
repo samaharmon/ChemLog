@@ -667,18 +667,19 @@ function handleSanitationChange(checkboxEl) {
 
 
 async function loadSanitationSettings() {
-  window.sanitationState = {};
+  if (!window.sanitationSettings || typeof window.sanitationSettings !== 'object') {
+    window.sanitationSettings = {};
+  }
 
-  const snap = await getDocs(collection(db, 'sanitationSettings'));
-  snap.forEach((docSnap) => {
-    const data = docSnap.data() || {};
-    window.sanitationState[docSnap.id] = {
-      bleach: !!data.bleach,
-      granular: !!data.granular,
-    };
-  });
-
+  // Rebuild the table from pool metadata + current settings
   renderSanitationSettingsTable();
+
+  if (typeof updateSanitationCheckboxesFromSettings === 'function') {
+    updateSanitationCheckboxesFromSettings();
+  }
+  if (typeof syncSanitationCheckboxDisabledState === 'function') {
+    syncSanitationCheckboxDisabledState();
+  }
 }
 
 // =====================
@@ -1846,8 +1847,11 @@ function renderSanitationSettingsTable() {
 
   tbody.innerHTML = '';
 
-  const list = Array.isArray(window.availablePools) ? window.availablePools : [];
-  if (!list.length) return;
+  // Prefer live pools from Firestore; fall back to static legacy list
+  let list = Array.isArray(window.availablePools) ? window.availablePools : [];
+  if (!list.length) {
+    list = STATIC_POOLS;
+  }
 
   const marketMap = new Map(); // market -> Set(poolName)
 
