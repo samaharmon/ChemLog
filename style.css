@@ -80,21 +80,6 @@ p {
     margin-bottom: 10px;
 }
 
-.supervisor-login-btn {
-    display: flex; /* NEW & CRUCIAL: Makes children (spans) line up horizontally */
-    align-items: center; /* NEW: Vertically aligns the icon and text */
-    gap: 5px; /* NEW: Adds space between the icon and the word "Menu" */
-    background-color: rgba(255, 255, 255, 0.2);
-    color: white;
-    border: 2px solid white;
-    border-radius: 0;
-    padding: 10px 15px;
-    cursor: pointer;
-    font-size: 18px;
-    font-family: 'Franklin Gothic Medium', Arial, sans-serif;
-    transition: background-color 0.3s;
-}
-
 .supervisor-login-btn:hover {
     background-color: rgba(255, 255, 255, 0.3);
 }
