@@ -976,52 +976,6 @@ console.log('🔥 Pool Chemistry App - Script Starting to Load 🔥');
 
 let sanitationUnsubscribe = null; // to store the listener cleanup function if needed
 
-function startSanitationSettingsListener() {
-  if (!db) {
-    console.warn("⚠️ Firestore not initialized — cannot start sanitation settings listener.");
-    return;
-  }
-
-  // Prevent duplicate listeners
-  if (sanitationUnsubscribe) {
-    sanitationUnsubscribe(); // clean up previous listener if it exists
-    sanitationUnsubscribe = null;
-  }
-
-  try {
-    const settingsRef = doc(db, 'settings', 'sanitationMethods');
-
-    sanitationUnsubscribe = onSnapshot(
-      settingsRef,
-      (docSnapshot) => {
-        if (docSnapshot.exists()) {
-          sanitationSettings = docSnapshot.data();
-          console.log('🔄 Sanitation settings updated from Firestore:', sanitationSettings);
-
-          if (typeof updateSanitationCheckboxesFromSettings === 'function') {
-            updateSanitationCheckboxesFromSettings();
-          }
-        } else {
-          console.warn('⚠️ Sanitation settings document does not exist.');
-        }
-      },
-      (error) => {
-        console.error('❌ Firestore listener error (sanitation settings):', error);
-        // Optional: fallback to localStorage here if you want
-        const saved = localStorage.getItem('sanitationSettings');
-        if (saved) {
-          sanitationSettings = JSON.parse(saved);
-          console.log('💾 Fallback to sanitation settings from localStorage:', sanitationSettings);
-          updateSanitationCheckboxesFromSettings?.();
-        }
-      }
-    );
-  } catch (error) {
-    console.error('❌ Failed to start sanitation listener:', error);
-  }
-}
-
-
 function applySanitationSettingsToCheckboxes() {
     Object.entries(sanitationSettings).forEach(([pool, method]) => {
         const bleachCheckbox = document.querySelector(`[data-pool="${pool}"][data-method="bleach"]`);
