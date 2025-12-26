@@ -41,7 +41,7 @@ let availablePools = [];
 const MARKET_NAMES = ['Columbia', 'Greenville', 'Charlotte', 'Charleston'];
 let marketVisibility = {};  // filled from settings
 let marketSettings = {
-  enabledMarkets: []   // empty means "no explicit setting"
+  enabledMarkets: MARKET_ORDER.slice() // default: all markets ON
 };
 
 // ===== Chemistry form: dynamic number of pools =====
@@ -2432,17 +2432,21 @@ document.addEventListener('DOMContentLoaded', () => {
     }
   }
 
-  // 🔹 Market filter checkboxes trigger dashboard refresh
+  // 🔹 Market filter checkboxes trigger save + dashboard refresh
   const marketCheckboxes = document.querySelectorAll('.market-filter-checkbox');
   marketCheckboxes.forEach((cb) => {
     cb.addEventListener('change', () => {
+      if (typeof saveMarketSettings === 'function') {
+        saveMarketSettings();
+      }
       if (typeof filterData === 'function') {
-        filterData(); // wrapper around filterAndDisplayData
+        filterData();
       } else if (typeof filterAndDisplayData === 'function') {
         filterAndDisplayData();
       }
     });
   });
+
 
   // === Misc app‑level handlers ===
   if (typeof setupEventHandlers === 'function') {
@@ -2784,60 +2788,52 @@ function poolHasSecondary(poolName) {
   return POOLS_WITH_SECONDARY.includes(poolName);
 }
 
-async function initializeMarketSettings() {
-  // 1) Start with defaults (all markets enabled)
-  marketSettings = {
-    enabledMarkets: Array.isArray(MARKET_ORDER) ? MARKET_ORDER.slice() : []
-  };
-
-  // 2) Try to load from localStorage
-  try {
-    const saved = localStorage.getItem('marketSettings');
-    if (saved) {
-      const parsed = JSON.parse(saved);
-      if (
-        parsed &&
-        Array.isArray(parsed.enabledMarkets) &&
-        parsed.enabledMarkets.length
-      ) {
-        marketSettings.enabledMarkets = parsed.enabledMarkets.slice();
-      }
-    }
-  } catch (err) {
-    console.warn('Could not parse marketSettings from localStorage:', err);
-  }
-
-  // 3) If Firestore isn't available, stop here (local-only mode)
-  if (!window.db || typeof getDoc !== 'function' || typeof doc !== 'function') {
-    console.warn('Firestore not available; using local marketSettings only.');
-    return;
-  }
-
-  // 4) Try to fetch Firestore settings. If this fails (permission-denied), we KEEP our
-  //    current marketSettings (defaults or localStorage) and do NOT break the app.
-  try {
-    const settingsRef = doc(db, 'settings', 'marketVisibility');
-    const snap = await getDoc(settingsRef);
-
-    if (snap.exists()) {
-      const data = snap.data() || {};
-      if (
-        Array.isArray(data.enabledMarkets) &&
-        data.enabledMarkets.length
-      ) {
-        marketSettings.enabledMarkets = data.enabledMarkets.slice();
-      }
-      // Sync to localStorage
-      localStorage.setItem('marketSettings', JSON.stringify(marketSettings));
-    } else {
-      console.warn('Market settings document does not exist; using defaults.');
-    }
-  } catch (error) {
-    console.error('Error loading market settings from Firestore:', error);
-    // IMPORTANT: do NOT throw or change marketSettings here.
-    // We just log and keep whatever we already had (defaults / localStorage).
-  }
+function updateMarketCheckboxesFromSettings() {
+  const enabled = getEnabledMarkets();
+  document.querySelectorAll('.market-filter-checkbox').forEach((cb) => {
+    if (!cb.value) return;
+    cb.checked = enabled.includes(cb.value);
+  });
 }
+
+async function initializeMarketSettings() {
+  // Start with default: all markets enabled
+  marketSettings = { enabledMarkets: MARKET_ORDER.slice() };
+
+  // 1) Try localStorage
+  try {
+    const raw = localStorage.getItem('marketSettings');
+    if (raw) {
+      const parsed = JSON.parse(raw);
+      if (parsed && Array.isArray(parsed.enabledMarkets) && parsed.enabledMarkets.length) {
+        marketSettings.enabledMarkets = parsed.enabledMarkets;
+      }
+    }
+  } catch (e) {
+    console.warn('Could not read marketSettings from localStorage', e);
+  }
+
+  // 2) Try Firestore (non-fatal; we keep defaults/local values if this fails)
+  if (typeof db !== 'undefined' && typeof doc === 'function' && typeof getDoc === 'function') {
+    try {
+      const ref = doc(db, 'settings', 'marketVisibility');
+      const snap = await getDoc(ref);
+      if (snap.exists()) {
+        const data = snap.data() || {};
+        if (Array.isArray(data.enabledMarkets) && data.enabledMarkets.length) {
+          marketSettings.enabledMarkets = data.enabledMarkets;
+          localStorage.setItem('marketSettings', JSON.stringify(marketSettings));
+        }
+      }
+    } catch (err) {
+      console.error('Error loading market settings from Firestore:', err);
+      // ignore – we keep whatever we had from defaults/localStorage
+    }
+  }
+
+  updateMarketCheckboxesFromSettings();
+}
+
 
 function applyMarketSettingsToUI() {
   const marketCheckboxes = document.querySelectorAll('input[name="marketFilter"]');
@@ -2853,12 +2849,30 @@ function applyMarketSettingsToUI() {
 }
 
 async function saveMarketSettings() {
-  if (!db) return;
+  const enabled = [];
+  document.querySelectorAll('.market-filter-checkbox').forEach((cb) => {
+    if (cb.checked && cb.value) {
+      enabled.push(cb.value);
+    }
+  });
+
+  // If nothing is checked, treat it as "all markets ON"
+  marketSettings.enabledMarkets = enabled.length ? enabled : MARKET_ORDER.slice();
+
   try {
-    const settingsRef = doc(db, 'settings', 'markets');
-    await setDoc(settingsRef, marketVisibility, { merge: true });
-  } catch (err) {
-    console.error('Failed to save market settings', err);
+    localStorage.setItem('marketSettings', JSON.stringify(marketSettings));
+  } catch (e) {
+    console.warn('Could not save marketSettings to localStorage', e);
+  }
+
+  if (typeof db !== 'undefined' && typeof doc === 'function' && typeof setDoc === 'function') {
+    try {
+      const ref = doc(db, 'settings', 'marketVisibility');
+      await setDoc(ref, { enabledMarkets: marketSettings.enabledMarkets }, { merge: true });
+    } catch (err) {
+      console.error('Error saving market settings to Firestore:', err);
+      // not fatal – we still have localStorage
+    }
   }
 }
 
@@ -3478,7 +3492,6 @@ function buildPoolsByMarket(pools) {
 }
 
 function getEnabledMarkets() {
-  // If we have explicit enabledMarkets and it's non-empty, use it.
   if (
     marketSettings &&
     Array.isArray(marketSettings.enabledMarkets) &&
@@ -3486,14 +3499,8 @@ function getEnabledMarkets() {
   ) {
     return marketSettings.enabledMarkets.slice();
   }
-
-  // Otherwise, default to "all markets known to the app"
-  if (Array.isArray(MARKET_ORDER) && MARKET_ORDER.length) {
-    return MARKET_ORDER.slice();
-  }
-
-  // Last resort
-  return [];
+  // Fallback: everything
+  return MARKET_ORDER.slice();
 }
 
 function updatePoolFilterDropdown() {
