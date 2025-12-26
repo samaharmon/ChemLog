@@ -3036,6 +3036,13 @@ function renderDashboardPage() {
   updateDashboardPagination(totalPages);
 }
 
+// Simple alias so older code that calls displayData() still works
+function displayData() {
+  if (typeof renderDashboardPage === 'function') {
+    renderDashboardPage();
+  }
+}
+
 function renderDashboardRowsByMarket(rows) {
   // Hide the old “Main / Secondary” tables
   const oldMainTable = document.getElementById('dataTable1');
