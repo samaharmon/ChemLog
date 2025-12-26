@@ -3716,8 +3716,15 @@ function showRecipientSelectionInModal(modal) {
     feedbackContent.appendChild(sendBtn);
 }
 
-function toggleMenu() {
-  const menu = document.getElementById('dropdownMenu');
+function toggleMenu(button) {
+  if (!button) return;
+
+  // Find the nearest menu container for this button
+  const container = button.closest('.menu-container');
+  if (!container) return;
+
+  // Find the dropdown menu *inside that container only*
+  const menu = container.querySelector('.dropdown-menu');
   if (!menu) return;
 
   menu.classList.toggle('show');
