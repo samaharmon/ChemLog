@@ -39,6 +39,8 @@ let availablePools = [];
 
 // Markets used both in Metadata and dashboard filters
 const MARKET_NAMES = ['Columbia', 'Greenville', 'Charlotte', 'Charleston'];
+const MARKET_ORDER = MARKET_NAMES;   // alias – keeps everything in sync
+
 let marketVisibility = {};  // filled from settings
 let marketSettings = {
   enabledMarkets: MARKET_ORDER.slice() // default: all markets ON
@@ -60,8 +62,6 @@ const CHEM_POOL_SECTIONS = [
 // ===== Global pool data helpers =====
 window.availablePools = window.availablePools || [];
 window.poolMetadataByName = window.poolMetadataByName || {};
-
-const MARKET_ORDER = ['Columbia', 'Greenville', 'Charlotte', 'Charleston'];
 
 // Static base list so legacy pools still appear even if no Firestore doc yet
 const STATIC_POOLS = [
