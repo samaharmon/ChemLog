@@ -3232,14 +3232,6 @@ function goToNextPage() {
   renderDashboardPage();
 }
 
-// Simple alias so older code that calls displayData() still works
-function displayData() {
-  // Use the new multi‑market dashboard renderer
-  if (typeof renderDashboardPage === 'function') {
-    renderDashboardPage();
-  }
-}
-
 // Backward‑compat wrapper: old code expects updatePagination(totalPages)
 function updatePagination(totalPages) {
   if (typeof updateDashboardPagination === 'function') {
