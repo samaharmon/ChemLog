@@ -671,7 +671,7 @@ async function loadSanitationSettings() {
     window.sanitationSettings = {};
   }
 
-  // Rebuild the table from pool metadata + current settings
+  // Rebuild the table from the current pools + settings
   renderSanitationSettingsTable();
 
   if (typeof updateSanitationCheckboxesFromSettings === 'function') {
