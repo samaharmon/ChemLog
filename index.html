@@ -34,7 +34,17 @@
                     <div class="header-right">
                         <div> <img id="logo" src="Logos/logo.png"></div>
                     </div>
-                    <button class="supervisor-login-btn">Supervisor Login</button>
+                    <div class="menu-container">
+                        <button class="menu-btn" id="menuButton" onclick="toggleMenu()">
+                            <span>≡</span>
+                            <span>Menu</span>
+                        </button>
+                        <div class="dropdown-menu" id="dropdownMenu">
+                            <a href="#" class="dropdown-item" onclick="openSettings(); return false;">Settings</a>
+                            <a href="training.html" class="dropdown-item">Training Sign-Up</a>
+                            <a href="#" class="dropdown-item logout" onclick="logout(); return false;">Logout</a>
+                        </div>
+                    </div>
                     </div>
             </div>
         </div>
@@ -452,7 +462,6 @@
             <select id="smsRecipientSelect">
                 <option value="">Choose recipient</option>
                 <option value="+18644096231">Sam Harmon</option>
-                <!--<option value="+18036738396">OTHER SUPERVISOR</option>-->
             </select>
             <button onclick="chooseAndSendSMS()">Send Text Message</button>
     </div> 
