@@ -829,6 +829,30 @@ input[type="text"], select, input[type="password"] {
     font-family: 'Franklin Gothic Medium', Arial, sans-serif;
 }
 
+/* Training schedule table reuses sanitation-table styling */
+.training-schedule-table th,
+.training-schedule-table td {
+    font-size: 13px;
+}
+
+.training-schedule-table .actions-cell button {
+    margin-right: 6px;
+}
+
+#trainingCapacityInfo {
+    font-size: 0.9rem;
+}
+
+#trainingNotesInput {
+    width: 100%;
+    min-height: 60px;
+    padding: 8px;
+    border: 1px solid #ccc;
+    font-family: inherit;
+    font-size: 14px;
+    box-sizing: border-box;
+}
+
 .sanitation-table th,
 .sanitation-table td {
     border: 1px solid #ddd;
