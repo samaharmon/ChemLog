@@ -12,6 +12,12 @@ body {
   min-height: 100vh;
   background-clip: content-box;
   font-family: 'Franklin Gothic Medium', 'Franklin Gothic Medium Cond', Arial, sans-serif;
+    opacity: 0;
+    transition: opacity 0.4s ease;
+}
+
+body.page-loaded {
+    opacity: 1;
 }
 
 * {
@@ -116,43 +122,58 @@ p {
     background-color: rgba(255, 255, 255, 0.3);
 }
 
-/* Dropdown Menu Styles */
+/* Dropdown Menu Styles with roll-down animation */
 .dropdown-menu {
-    display: none;                /* hidden by default */
     position: absolute;
-    top: calc(100% + 4px);        /* a little gap under the Menu button */
+    top: calc(100% + 4px);
     left: 0;
-    background-color: #333;       /* dark grey like your header/footer */
+    min-width: 180px;
+    background-color: #333;
     border: 1px solid #ddd;
     box-shadow: 0 4px 8px rgba(0,0,0,0.3);
-    min-width: 180px;
     z-index: 1000;
     border-radius: 0;
-    padding: 0;                   /* let items control height */
+    padding: 0;
+    display: flex;
+    flex-direction: column;
+
+    /* animation pieces */
+    opacity: 0;
+    transform-origin: top;
+    transform: translateY(-8px) scaleY(0.9);
+    max-height: 0;
+    overflow: hidden;
+    pointer-events: none;
+    transition:
+        opacity 0.2s ease,
+        transform 0.2s ease,
+        max-height 0.25s ease;
 }
 
 .dropdown-menu.show {
-    display: flex;                /* stack items vertically */
-    flex-direction: column;
+    opacity: 1;
+    transform: translateY(0) scaleY(1);
+    max-height: 400px; /* big enough for all items */
+    pointer-events: auto;
 }
 
 .dropdown-item {
     display: block;
     padding: 10px 15px;
     text-decoration: none;
-    color: #fff;                  /* white text */
+    color: #fff;
     background-color: #333;
     font-family: 'Franklin Gothic Medium', Arial, sans-serif;
     font-size: 16px;
     border-bottom: 1px solid #ccc;
 }
 
-.dropdown-item:hover {
-    background-color: #444;
+.dropdown-item:last-child {
+    border-bottom: none;
 }
 
-.dropdown-menu .dropdown-item:last-child {
-    border-bottom: none;
+.dropdown-item:hover {
+    background-color: #444;
 }
 
 /* Dark-mode keeps it consistent */
@@ -339,6 +360,40 @@ input[type="text"], select, input[type="password"] {
     background-color: #521008;
 }
 
+/* Generic button active/click state */
+button,
+.submit-btn,
+.editAndSave,
+.logout-btn,
+.menu-btn,
+.button-shadow,
+.notify-btn,
+.supervisor-login-btn {
+    transition: background-color 0.15s ease, transform 0.05s ease;
+}
+
+button:active,
+.submit-btn:active,
+.editAndSave:active,
+.logout-btn:active,
+.menu-btn:active,
+.button-shadow:active,
+.notify-btn:active,
+.supervisor-login-btn:active {
+    background-color: #8b1f12 !important; /* Lighter/brighter red */
+    transform: translateY(1px);
+}
+
+/* Dropdown item active state (links) */
+.dropdown-item {
+    transition: background-color 0.15s ease, transform 0.05s ease;
+}
+
+.dropdown-item:active {
+    background-color: #555 !important;
+    transform: translateY(1px);
+}
+
 .editAndSave {
     background-color: #69140e;
     color: white;
@@ -430,6 +485,34 @@ input[type="text"], select, input[type="password"] {
     .settings-modal-content {
         padding: 10px;
     }
+}
+
+/* Base fade state for modals */
+#settingsModal,
+#loginModal,
+.feedback-modal {
+    opacity: 0;
+    transition: opacity 0.25s ease, transform 0.25s ease;
+}
+
+/* When we add .visible, they fade/scale in */
+#settingsModal.visible,
+#loginModal.visible,
+.feedback-modal.visible {
+    opacity: 1;
+}
+
+/* Slight pop-in transform */
+#settingsModal,
+#loginModal,
+.feedback-modal {
+    transform: translate(-50%, -54%) scale(0.96);
+}
+
+#settingsModal.visible,
+#loginModal.visible,
+.feedback-modal.visible {
+    transform: translate(-50%, -50%) scale(1);
 }
 
 /* Settings Modal Content - Centered */
@@ -608,6 +691,21 @@ input[type="text"], select, input[type="password"] {
 
 #supervisorDashboard.show {
     display: block !important;
+}
+
+#supervisorDashboard.show {
+    animation: fadeInUp 0.35s ease;
+}
+
+@keyframes fadeInUp {
+    from {
+        opacity: 0;
+        transform: translateY(10px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
 }
 
 .dashboard-header {
@@ -1268,15 +1366,23 @@ body.dark-mode #trainingNotesInput {
     max-width: none; /* override global 50px cap */
 }
 
-/* Market header rows inside the sanitation methods table */
-.sanitation-table .sanitation-market-row td {
-    background-color: #000;   /* black row background */
-    color: #fff;              /* white text */
-    text-align: center;       /* center the market name */
-    font-weight: bold;
+/* Grouped sanitation tables by market */
+.sanitation-market-wrapper {
+    margin-top: 18px;
 }
 
-/* Override the "first column left-aligned" rule for these rows */
-.sanitation-table .sanitation-market-row td:first-child {
-    text-align: center;
+.sanitation-market-title {
+    margin: 0;
+    padding: 6px 10px;
+    background-color: #000;
+    color: #fff;
+    font-weight: bold;
+    font-size: 16px;
+    font-family: 'Franklin Gothic Medium', Arial, sans-serif;
 }
+
+/* Stack multiple market tables with spacing */
+#sanitationTablesContainer .sanitation-table {
+    margin-top: 0;
+}
+
