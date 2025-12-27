@@ -453,6 +453,17 @@ select {
     background-color: rgba(255, 255, 255, 0.3);
 }
 
+button,
+.submit-btn {
+  transition: background-color 0.15s ease, transform 0.05s ease;
+}
+
+button:active,
+.submit-btn:active {
+  background-color: #2b54c2; /* lighter than #1f3c88 */
+  transform: translateY(1px);
+}
+
 /* Dropdown Menu Styles */
 .dropdown-menu {
     display: none;                /* hidden by default */
