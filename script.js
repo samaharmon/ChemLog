@@ -11,7 +11,6 @@ import {
   onSnapshot,
   orderBy,
   query,
-  where,
   Timestamp,
   writeBatch,
   onAuthStateChanged,
@@ -3583,30 +3582,27 @@ async function saveTrainingSchedule() {
 
 async function enrichTrainingSessionsWithSignupCounts() {
   const sessions = trainingSchedule.sessions;
-  if (!sessions.length) return;
+  if (!Array.isArray(sessions) || !sessions.length) return;
 
-  const counts = {};
+  try {
+    // Grab all signups once
+    const snap = await getDocs(collection(db, 'trainingSignups'));
+    const counts = {};
 
-  for (const session of sessions) {
-    if (!session.id) continue;
-    try {
-      const q = query(
-        collection(db, 'trainingSignups'),
-        where('sessionId', '==', session.id)
-      );
-      const snap = await getDocs(q);
-      counts[session.id] = snap.size;
-    } catch (err) {
-      console.warn('Could not load signups for session', session.id, err);
-    }
+    snap.forEach(docSnap => {
+      const data = docSnap.data() || {};
+      const sessionId = data.sessionId;
+      if (!sessionId) return;
+      counts[sessionId] = (counts[sessionId] || 0) + 1;
+    });
+
+    trainingSchedule.sessions = sessions.map(session => ({
+      ...session,
+      taken: counts[session.id] || 0
+    }));
+  } catch (err) {
+    console.warn('Could not load training signups:', err);
   }
-
-  trainingSchedule.sessions = sessions.map(session => ({
-    ...session,
-    taken: typeof counts[session.id] === 'number'
-      ? counts[session.id]
-      : (session.taken || 0)
-  }));
 }
 
 function updateCapacityInfo(session) {
