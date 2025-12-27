@@ -420,3 +420,43 @@ select {
     flex-direction: column;
   }
 }
+
+/* Dropdown Menu Styles */
+.dropdown-menu {
+    display: none;                /* hidden by default */
+    position: absolute;
+    top: calc(100% + 4px);        /* a little gap under the Menu button */
+    left: 0;
+    background-color: #333;       /* dark grey like your header/footer */
+    border: 1px solid #ddd;
+    box-shadow: 0 4px 8px rgba(0,0,0,0.3);
+    min-width: 180px;
+    z-index: 1000;
+    border-radius: 0;
+    padding: 0;                   /* let items control height */
+}
+
+.dropdown-menu.show {
+    display: flex;                /* stack items vertically */
+    flex-direction: column;
+}
+
+.dropdown-item {
+    display: block;
+    padding: 10px 15px;
+    text-decoration: none;
+    color: #fff;                  /* white text */
+    background-color: #333;
+    font-family: 'Franklin Gothic Medium', Arial, sans-serif;
+    font-size: 16px;
+    border-bottom: 1px solid #ccc;
+}
+
+.dropdown-item:hover {
+    background-color: #444;
+}
+
+.dropdown-menu .dropdown-item:last-child {
+    border-bottom: none;
+}
+
