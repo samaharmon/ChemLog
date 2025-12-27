@@ -364,6 +364,16 @@
                 <em>Developed by Sam Harmon | 2025<br>v2.1</em>
             </div>
     </div> 
+
+    <!-- Dark overlay behind the Settings modal -->
+    <div class="modal-overlay" id="settingsOverlay"></div>
+
+    <div id="settingsModal">
+        <div class="modal-content settings-modal-content">
+            <!-- existing content... -->
+        </div>
+    </div>
+
     <div id="settingsModal">
         <div class="modal-content settings-modal-content">
             <div class="modal-header">
@@ -437,7 +447,6 @@
                         </label>
                     </div>
                 </div>
-
                 <!-- NEW: Schedule Trainings -->
                 <div class="settings-section" id="scheduleTrainingsSection">
                     <h3>Schedule Trainings</h3>
@@ -445,6 +454,7 @@
                         Create or edit in‑service training sessions that lifeguards can sign up for on the Training page.
                     </p>
 
+                    <!-- Date + Time -->
                     <div class="form-row">
                         <div class="form-group">
                             <label for="trainingDateInput">Date</label>
@@ -459,23 +469,27 @@
                         </div>
                     </div>
 
-                    <div class="form-group">
-                        <label for="trainingPoolSelect">Location (Pool)</label>
-                        <select id="trainingPoolSelect">
-                            <option value="">Select pool</option>
-                            <!-- options populated by script.js from editor pools -->
-                        </select>
+                    <!-- Location + Address now in same row -->
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="trainingPoolSelect">Location (Pool)</label>
+                            <select id="trainingPoolSelect">
+                                <option value="">Select pool</option>
+                                <!-- options populated by script.js from editor pools -->
+                            </select>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="trainingAddressInput">Address</label>
+                            <input
+                                type="text"
+                                id="trainingAddressInput"
+                                placeholder="Street, city, state"
+                            >
+                        </div>
                     </div>
 
-                    <div class="form-group">
-                        <label for="trainingAddressInput">Address</label>
-                        <input
-                            type="text"
-                            id="trainingAddressInput"
-                            placeholder="Street, city, state"
-                        >
-                    </div>
-
+                    <!-- Capacity + spots -->
                     <div class="form-row">
                         <div class="form-group">
                             <label for="trainingCapacityInput">Capacity</label>
@@ -484,7 +498,7 @@
                                 id="trainingCapacityInput"
                                 min="1"
                                 step="1"
-                                placeholder="e.g., 20"
+                                placeholder="e.g. 20"
                             >
                         </div>
                         <div class="form-group">
@@ -495,6 +509,7 @@
                         </div>
                     </div>
 
+                    <!-- Notes -->
                     <div class="form-group">
                         <label for="trainingNotesInput">Notes</label>
                         <textarea
@@ -510,22 +525,64 @@
                         Save Training Session
                     </button>
 
+                    <!-- 8. Separate tables for May / June / July -->
                     <h4 style="margin-top: 20px;">Scheduled Sessions</h4>
-                    <table class="sanitation-table training-schedule-table">
-                        <thead>
-                            <tr>
-                                <th>Date</th>
-                                <th>Time</th>
-                                <th>Location</th>
-                                <th>Capacity / Taken</th>
-                                <th>Actions</th>
-                            </tr>
-                        </thead>
-                        <tbody id="trainingSessionsTableBody">
-                            <!-- filled by script.js -->
-                        </tbody>
-                    </table>
+
+                    <div class="training-month-group">
+                        <h5>May In‑Service</h5>
+                        <table class="sanitation-table training-schedule-table">
+                            <thead>
+                                <tr>
+                                    <th>Date</th>
+                                    <th>Time</th>
+                                    <th>Location</th>
+                                    <th>Capacity / Taken</th>
+                                    <th>Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody id="trainingSessionsMayBody">
+                                <!-- filled by script.js -->
+                            </tbody>
+                        </table>
+                    </div>
+
+                    <div class="training-month-group">
+                        <h5>June In‑Service</h5>
+                        <table class="sanitation-table training-schedule-table">
+                            <thead>
+                                <tr>
+                                    <th>Date</th>
+                                    <th>Time</th>
+                                    <th>Location</th>
+                                    <th>Capacity / Taken</th>
+                                    <th>Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody id="trainingSessionsJuneBody">
+                                <!-- filled by script.js -->
+                            </tbody>
+                        </table>
+                    </div>
+
+                    <div class="training-month-group">
+                        <h5>July In‑Service</h5>
+                        <table class="sanitation-table training-schedule-table">
+                            <thead>
+                                <tr>
+                                    <th>Date</th>
+                                    <th>Time</th>
+                                    <th>Location</th>
+                                    <th>Capacity / Taken</th>
+                                    <th>Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody id="trainingSessionsJulyBody">
+                                <!-- filled by script.js -->
+                            </tbody>
+                        </table>
+                    </div>
                 </div>
+
 
                 <div class="settings-section">
                     <h3>Data Storage</h3>
