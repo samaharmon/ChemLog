@@ -15,8 +15,17 @@
   <!-- Header: red ChemLog band with Supervisor Login -->
   <header class="app-header">
     <div class="training-header-left">
-      <h1 class="app-title">ChemLog Trainings</h1>
-      <p>Lifeguard In‑Service Sign‑Up</p>
+      <h1 class="app-title">In-Service Sign-Up</h1>
+      <p>Capital City Aquatics</p>
+    </div>
+    <div class="menu-container">
+        <button class="menu-btn" onclick="toggleMenu(this)">
+            <span>≡</span>
+            <span>Menu</span>
+        </button>
+        <div class="dropdown-menu" id="dropdownMenu">
+            <a href="#" class="dropdown-item logout" onclick="logout(); return false;">ChemLog</a>
+        </div>
     </div>
     <div class="training-header-right">
       <button class="supervisor-login-btn" id="openTrainingLoginBtn">
