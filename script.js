@@ -2272,6 +2272,26 @@ document.addEventListener('DOMContentLoaded', () => {
     console.log('✅ Login form handler attached');
   }
 
+  const loginMenuLink = document.getElementById('supervisorLoginMenuLink');
+    if (loginMenuLink) {
+    loginMenuLink.addEventListener('click', (e) => {
+        e.preventDefault();
+        // Close any open menus
+        document.querySelectorAll('.dropdown-menu.show').forEach(m => m.classList.remove('show'));
+        if (window.menuAutoCloseTimeoutId) {
+        clearTimeout(window.menuAutoCloseTimeoutId);
+        window.menuAutoCloseTimeoutId = null;
+        }
+        // Open your existing login modal function, if you have one
+        if (typeof openLoginModal === 'function') {
+        openLoginModal();
+        } else {
+        const loginModal = document.getElementById('loginModal');
+        if (loginModal) loginModal.style.display = 'block';
+        }
+    });
+    }
+
   // === Pool dropdown change ===
   const poolLocation = document.getElementById('poolLocation');
   if (poolLocation && typeof handlePoolLocationChange === 'function') {
