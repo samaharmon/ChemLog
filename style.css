@@ -1268,9 +1268,15 @@ body.dark-mode #trainingNotesInput {
     max-width: none; /* override global 50px cap */
 }
 
+/* Market header rows inside the sanitation methods table */
+.sanitation-table .sanitation-market-row td {
+    background-color: #000;   /* black row background */
+    color: #fff;              /* white text */
+    text-align: center;       /* center the market name */
+    font-weight: bold;
+}
 
-
-
-
-
-
+/* Override the "first column left-aligned" rule for these rows */
+.sanitation-table .sanitation-market-row td:first-child {
+    text-align: center;
+}
