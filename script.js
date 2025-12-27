@@ -3990,18 +3990,37 @@ function showRecipientSelectionInModal(modal) {
 }
 
 function toggleMenu(button) {
-  if (!button) return;
+  let btn = button;
 
-  // Find the nearest menu container for this button
-  const container = button.closest('.menu-container');
+  // If called as toggleMenu() from inline HTML, button will be undefined.
+  // Try to figure out the correct button based on what’s visible.
+  if (!btn) {
+    // Prefer the dashboard menu when it’s showing
+    const dashboard = document.getElementById('supervisorDashboard');
+    if (dashboard && dashboard.classList.contains('show')) {
+      btn = dashboard.querySelector('.menu-btn');
+    } else {
+      // Otherwise, fall back to the main form menu
+      const mainForm = document.getElementById('mainForm');
+      if (mainForm) {
+        btn = mainForm.querySelector('.menu-btn');
+      }
+    }
+  }
+
+  if (!btn) return;
+
+  const container = btn.closest('.menu-container');
   if (!container) return;
 
-  // Find the dropdown menu *inside that container only*
   const menu = container.querySelector('.dropdown-menu');
   if (!menu) return;
 
   menu.classList.toggle('show');
 }
+
+// Make it callable from your inline onclick attributes
+window.toggleMenu = toggleMenu;
 
 async function openSettings() {
     // Close the dropdown menu first
