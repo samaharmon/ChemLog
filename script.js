@@ -625,13 +625,6 @@ function filterData() {
     filterAndDisplayData();
 }
 
-function closeSettings() {
-  const modal = document.getElementById('settingsModal');
-  const overlay = document.getElementById('settingsOverlay');
-  if (modal) modal.style.display = 'none';
-  if (overlay) overlay.style.display = 'none';
-}
-
 document.getElementById('settingsOverlay')?.addEventListener('click', closeSettings);
 
 // poolName -> { bleach: boolean, granular: boolean }
@@ -1849,60 +1842,136 @@ function syncSanitationCheckboxDisabledState() {
   });
 }
 
-function renderSanitationSettingsTable() {
-  const tbody = document.getElementById('sanitationTableBody');
-  if (!tbody) return;
+function renderSanitationSettingsTables() {
+  const container = document.getElementById('sanitationTablesContainer');
+  if (!container) return;
 
-  tbody.innerHTML = '';
+  container.innerHTML = '';
 
   const pools = Array.isArray(window.availablePools) ? window.availablePools : [];
   if (!pools.length) return;
 
-  // Group pools by market (you likely already have something like this)
+  // Build market → pools map
   const marketMap = new Map();
-  pools.forEach(pool => {
-    const markets = pool.markets || ['Unassigned'];
-    markets.forEach(market => {
+  pools.forEach((pool) => {
+    const marketsForPool = Array.isArray(pool.markets) && pool.markets.length
+      ? pool.markets
+      : [pool.market || 'Unassigned'];
+
+    marketsForPool.forEach((market) => {
       if (!marketMap.has(market)) marketMap.set(market, []);
       marketMap.get(market).push(pool);
     });
   });
 
-  const markets = Array.from(marketMap.keys()).sort();
+  const enabledMarkets = (window.marketSettings && Array.isArray(window.marketSettings.enabledMarkets))
+    ? window.marketSettings.enabledMarkets
+    : MARKET_ORDER.slice();
 
-  markets.forEach((market) => {
-    // --- MARKET HEADER ROW ---
-    const marketRow = document.createElement('tr');
-    marketRow.classList.add('sanitation-market-row');
+  const enabledSet = new Set(enabledMarkets);
 
-    const marketCell = document.createElement('td');
-    marketCell.colSpan = 3; // Pool Name + Bleach + Granular
-    marketCell.textContent = market;
+  MARKET_ORDER.forEach((market) => {
+    const poolsInMarket = marketMap.get(market) || [];
+    if (!poolsInMarket.length) return; // no pools for this market
 
-    marketRow.appendChild(marketCell);
-    tbody.appendChild(marketRow);
+    const wrapper = document.createElement('div');
+    wrapper.className = 'sanitation-market-wrapper';
+    wrapper.dataset.market = market;
 
-    // --- POOL ROWS FOR THIS MARKET ---
-    marketMap.get(market).forEach(pool => {
-      const row = document.createElement('tr');
+    // Hide wrapper entirely if that market is disabled
+    if (!enabledSet.has(market)) {
+      wrapper.style.display = 'none';
+    }
 
-      const nameCell = document.createElement('td');
-      nameCell.textContent = pool.name || pool.poolName || '';
+    const title = document.createElement('h4');
+    title.className = 'sanitation-market-title';
+    title.textContent = market;
+    wrapper.appendChild(title);
 
-      const bleachCell = document.createElement('td');
-      const granularCell = document.createElement('td');
+    const table = document.createElement('table');
+    table.className = 'sanitation-table';
 
-      // ...your existing checkbox creation logic...
-      // (bleachCell.appendChild(...), granularCell.appendChild(...))
+    table.innerHTML = `
+      <thead>
+        <tr>
+          <th>Pool Name</th>
+          <th>Bleach</th>
+          <th>Granular</th>
+        </tr>
+      </thead>
+      <tbody></tbody>
+    `;
 
-      row.appendChild(nameCell);
-      row.appendChild(bleachCell);
-      row.appendChild(granularCell);
-      tbody.appendChild(row);
-    });
+    const tbody = table.querySelector('tbody');
+
+    poolsInMarket
+      .slice()
+      .sort((a, b) => (a.name || '').localeCompare(b.name || ''))
+      .forEach((pool) => {
+        const poolName = pool.name || pool.poolName || '';
+        if (!poolName) return;
+
+        const settings = (window.sanitationSettings && window.sanitationSettings[poolName]) || {};
+        const bleachChecked = !!settings.bleach;
+        const granularChecked = !!settings.granular;
+
+        const tr = document.createElement('tr');
+        tr.innerHTML = `
+          <td>${poolName}</td>
+          <td>
+            <input type="checkbox"
+              class="sanitation-checkbox bleach-checkbox"
+              data-pool="${poolName}"
+              data-method="bleach"
+              ${bleachChecked ? 'checked' : ''}
+              disabled
+            >
+          </td>
+          <td>
+            <input type="checkbox"
+              class="sanitation-checkbox granular-checkbox"
+              data-pool="${poolName}"
+              data-method="granular"
+              ${granularChecked ? 'checked' : ''}
+              disabled
+            >
+          </td>
+        `;
+        tbody.appendChild(tr);
+      });
+
+    wrapper.appendChild(table);
+    container.appendChild(wrapper);
+  });
+
+  // Hook up change events (your existing handler logic)
+  container.querySelectorAll('.sanitation-checkbox').forEach((cb) => {
+    cb.addEventListener('change', () => handleSanitationChange(cb));
   });
 }
 
+function updateSanitationTablesVisibility() {
+  const enabledMarkets = (window.marketSettings && Array.isArray(window.marketSettings.enabledMarkets))
+    ? window.marketSettings.enabledMarkets
+    : MARKET_ORDER.slice();
+
+  const enabledSet = new Set(enabledMarkets);
+
+  document.querySelectorAll('.sanitation-market-wrapper').forEach((wrapper) => {
+    const market = wrapper.dataset.market;
+    if (!market) return;
+    wrapper.style.display = enabledSet.has(market) ? '' : 'none';
+  });
+}
+
+// Wherever you handle market checkbox changes:
+function handleMarketFilterChange() {
+  // ... your existing code that updates marketSettings.enabledMarkets + Firestore ...
+  updateSanitationTablesVisibility();
+}
+
+// Also call once after loading marketSettings on startup:
+updateSanitationTablesVisibility();
 
 // Update UI checkboxes based on settings
 function updateSanitationUI() {
@@ -4019,10 +4088,37 @@ window.toggleMenu = toggleMenu;
 
 function openSettings() {
   const modal = document.getElementById('settingsModal');
-  const overlay = document.getElementById('settingsOverlay');
-  if (modal) modal.style.display = 'block';
+  const overlay = document.getElementById('settingsOverlay'); // if you have one
+
+  if (!modal) return;
+  modal.style.display = 'block';
   if (overlay) overlay.style.display = 'block';
+
+  // trigger animation
+  requestAnimationFrame(() => {
+    modal.classList.add('visible');
+    if (overlay) overlay.classList.add('visible');
+  });
 }
+
+function closeSettings() {
+  const modal = document.getElementById('settingsModal');
+  const overlay = document.getElementById('settingsOverlay');
+
+  if (!modal) return;
+
+  modal.classList.remove('visible');
+  if (overlay) overlay.classList.remove('visible');
+
+  // wait for fade-out then hide
+  setTimeout(() => {
+    modal.style.display = 'none';
+    if (overlay) overlay.style.display = 'none';
+  }, 250);
+}
+
+window.openSettings = openSettings;
+window.closeSettings = closeSettings;
 
 function sendSMSNotification(message, phoneNumber) {
     console.log(`SMS would be sent to ${phoneNumber}: ${message}`);
@@ -4080,3 +4176,8 @@ window.addEventListener('error', (e) => {
     }
     console.groupEnd();
 });
+
+window.addEventListener('load', () => {
+  document.body.classList.add('page-loaded');
+});
+
