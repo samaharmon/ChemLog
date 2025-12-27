@@ -11,6 +11,7 @@ import {
   onSnapshot,
   orderBy,
   query,
+  where,
   Timestamp,
   writeBatch,
   onAuthStateChanged,
@@ -33,6 +34,10 @@ let isLoggedIn = false;
 let sanitationSettings = {};        // ✅ fixes ReferenceError at line 695
 let currentView = 'form';
 let dashboardRows = [];
+let trainingSchedule = {
+  sessions: []
+};
+window.trainingSchedule = trainingSchedule;
 
 // Pools from the Rule Editor (Firestore "pools" collection)
 let availablePools = [];
@@ -3484,6 +3489,7 @@ function initializePoolsForUI() {
 
       updatePoolLocationDropdown();
       updatePoolFilterDropdown();
+      populateTrainingPoolSelect();
 
       if (typeof renderSanitationSettingsTable === 'function') {
         renderSanitationSettingsTable();
@@ -3496,6 +3502,277 @@ function initializePoolsForUI() {
   } catch (err) {
     console.error('Failed to attach pool listener:', err);
   }
+}
+
+function formatTimeLabel(hhmm) {
+  const [hh, mm] = hhmm.split(':').map(Number);
+  const hour12 = ((hh + 11) % 12) + 1;
+  const suffix = hh < 12 ? 'AM' : 'PM';
+  return `${hour12}:${mm.toString().padStart(2, '0')} ${suffix}`;
+}
+
+function populateTrainingTimeOptions() {
+  const select = document.getElementById('trainingTimeSelect');
+  if (!select) return;
+
+  // Only populate once
+  if (select.options.length > 1) return;
+
+  const times = [
+    '08:00','08:30','09:00','09:30',
+    '10:00','10:30','11:00','11:30',
+    '12:00','12:30','13:00','13:30',
+    '14:00','14:30','15:00','15:30',
+    '16:00','16:30','17:00'
+  ];
+
+  times.forEach(t => {
+    const opt = document.createElement('option');
+    opt.value = t;
+    opt.textContent = formatTimeLabel(t);
+    select.appendChild(opt);
+  });
+}
+
+function populateTrainingPoolSelect() {
+  const select = document.getElementById('trainingPoolSelect');
+  if (!select) return;
+
+  select.innerHTML = '<option value="">Select pool</option>';
+
+  const pools = Array.isArray(window.availablePools) ? window.availablePools : [];
+  pools.forEach(pool => {
+    const opt = document.createElement('option');
+    opt.value = pool.name || pool.poolName || '';
+    opt.textContent = pool.name || pool.poolName || '';
+    select.appendChild(opt);
+  });
+}
+
+async function loadTrainingSchedule() {
+  try {
+    const scheduleRef = doc(db, 'settings', 'trainingSchedule');
+    const snap = await getDoc(scheduleRef);
+
+    if (snap.exists()) {
+      const data = snap.data() || {};
+      trainingSchedule.sessions = Array.isArray(data.sessions) ? data.sessions : [];
+    } else {
+      trainingSchedule.sessions = [];
+    }
+
+    window.trainingSchedule = trainingSchedule;
+
+    await enrichTrainingSessionsWithSignupCounts();
+    renderTrainingScheduleTable();
+  } catch (err) {
+    console.error('Failed to load training schedule:', err);
+    trainingSchedule.sessions = [];
+    renderTrainingScheduleTable();
+  }
+}
+
+async function saveTrainingSchedule() {
+  const scheduleRef = doc(db, 'settings', 'trainingSchedule');
+
+  // Don’t store derived fields like "taken"
+  const sessionsToSave = trainingSchedule.sessions.map(({ taken, ...rest }) => rest);
+
+  await setDoc(scheduleRef, { sessions: sessionsToSave }, { merge: true });
+}
+
+async function enrichTrainingSessionsWithSignupCounts() {
+  const sessions = trainingSchedule.sessions;
+  if (!sessions.length) return;
+
+  const counts = {};
+
+  for (const session of sessions) {
+    if (!session.id) continue;
+    try {
+      const q = query(
+        collection(db, 'trainingSignups'),
+        where('sessionId', '==', session.id)
+      );
+      const snap = await getDocs(q);
+      counts[session.id] = snap.size;
+    } catch (err) {
+      console.warn('Could not load signups for session', session.id, err);
+    }
+  }
+
+  trainingSchedule.sessions = sessions.map(session => ({
+    ...session,
+    taken: typeof counts[session.id] === 'number'
+      ? counts[session.id]
+      : (session.taken || 0)
+  }));
+}
+
+function updateCapacityInfo(session) {
+  const infoEl = document.getElementById('trainingCapacityInfo');
+  if (!infoEl) return;
+
+  if (!session) {
+    infoEl.textContent =
+      'Spots used / remaining will appear after you select or save a session.';
+    return;
+  }
+
+  const taken = typeof session.taken === 'number' ? session.taken : 0;
+  const cap = Number(session.capacity || 0);
+  const remaining = cap > 0 ? Math.max(cap - taken, 0) : '—';
+
+  infoEl.textContent = `${taken} taken, ${
+    remaining === '—' ? '—' : remaining
+  } spots remaining`;
+}
+
+function renderTrainingScheduleTable() {
+  const tbody = document.getElementById('trainingSessionsTableBody');
+  if (!tbody) return;
+
+  tbody.innerHTML = '';
+
+  if (!Array.isArray(trainingSchedule.sessions) || !trainingSchedule.sessions.length) {
+    const row = document.createElement('tr');
+    const cell = document.createElement('td');
+    cell.colSpan = 5;
+    cell.textContent = 'No trainings scheduled yet.';
+    row.appendChild(cell);
+    tbody.appendChild(row);
+    updateCapacityInfo(null);
+    return;
+  }
+
+  const sessions = [...trainingSchedule.sessions].sort((a, b) => {
+    const d = (a.date || '').localeCompare(b.date || '');
+    if (d !== 0) return d;
+    return (a.time || '').localeCompare(b.time || '');
+  });
+
+  sessions.forEach(session => {
+    const taken = typeof session.taken === 'number' ? session.taken : 0;
+    const cap = Number(session.capacity || 0);
+    const remaining = cap > 0 ? Math.max(cap - taken, 0) : '—';
+
+    const tr = document.createElement('tr');
+    tr.innerHTML = `
+      <td>${session.date || ''}</td>
+      <td>${session.time ? formatTimeLabel(session.time) : ''}</td>
+      <td>${session.poolName || ''}</td>
+      <td>${cap || '—'} / ${taken}</td>
+      <td class="actions-cell">
+        <button type="button" class="editAndSave" data-session-id="${session.id}">
+          Edit
+        </button>
+        <button
+          type="button"
+          class="editAndSave danger-button"
+          data-session-id="${session.id}"
+          data-action="delete"
+        >
+          Delete
+        </button>
+      </td>
+    `;
+    tbody.appendChild(tr);
+  });
+
+  // Attach handlers
+  tbody.querySelectorAll('button[data-session-id]').forEach(btn => {
+    btn.addEventListener('click', () => {
+      const sessionId = btn.getAttribute('data-session-id');
+      const action = btn.getAttribute('data-action');
+      if (action === 'delete') {
+        deleteTrainingSession(sessionId);
+      } else {
+        loadTrainingSessionIntoForm(sessionId);
+      }
+    });
+  });
+}
+
+function loadTrainingSessionIntoForm(sessionId) {
+  const session = trainingSchedule.sessions.find(s => s.id === sessionId);
+  if (!session) return;
+
+  const dateInput = document.getElementById('trainingDateInput');
+  const timeSelect = document.getElementById('trainingTimeSelect');
+  const poolSelect = document.getElementById('trainingPoolSelect');
+  const addressInput = document.getElementById('trainingAddressInput');
+  const capacityInput = document.getElementById('trainingCapacityInput');
+  const notesInput = document.getElementById('trainingNotesInput');
+  const idHidden = document.getElementById('trainingSessionId');
+
+  if (dateInput) dateInput.value = session.date || '';
+  if (timeSelect) timeSelect.value = session.time || '';
+  if (poolSelect) poolSelect.value = session.poolName || '';
+  if (addressInput) addressInput.value = session.address || '';
+  if (capacityInput) capacityInput.value =
+      session.capacity != null ? session.capacity : '';
+  if (notesInput) notesInput.value = session.notes || '';
+  if (idHidden) idHidden.value = session.id || '';
+
+  updateCapacityInfo(session);
+}
+
+async function deleteTrainingSession(sessionId) {
+  if (!sessionId) return;
+  if (!window.confirm('Delete this training session? Existing signups are not removed.')) {
+    return;
+  }
+
+  trainingSchedule.sessions = trainingSchedule.sessions.filter(s => s.id !== sessionId);
+  await saveTrainingSchedule();
+  await enrichTrainingSessionsWithSignupCounts();
+  renderTrainingScheduleTable();
+}
+
+async function handleTrainingScheduleSaveClick() {
+  const dateInput = document.getElementById('trainingDateInput');
+  const timeSelect = document.getElementById('trainingTimeSelect');
+  const poolSelect = document.getElementById('trainingPoolSelect');
+  const addressInput = document.getElementById('trainingAddressInput');
+  const capacityInput = document.getElementById('trainingCapacityInput');
+  const notesInput = document.getElementById('trainingNotesInput');
+  const idHidden = document.getElementById('trainingSessionId');
+
+  const date = dateInput?.value || '';
+  const time = timeSelect?.value || '';
+  const poolName = poolSelect?.value || '';
+  const address = addressInput?.value || '';
+  const capacity = Number(capacityInput?.value || 0);
+  const notes = notesInput?.value || '';
+  const existingId = idHidden?.value || '';
+
+  if (!date || !time || !poolName || !capacity) {
+    alert('Date, time, pool, and capacity are required.');
+    return;
+  }
+
+  const base = { date, time, poolName, address, capacity, notes };
+
+  if (existingId) {
+    const idx = trainingSchedule.sessions.findIndex(s => s.id === existingId);
+    if (idx !== -1) {
+      const existing = trainingSchedule.sessions[idx];
+      trainingSchedule.sessions[idx] = { ...existing, ...base };
+    }
+  } else {
+    const newId = `${date}_${time}_${poolName}`.replace(/\s+/g, '_');
+    trainingSchedule.sessions.push({ id: newId, ...base });
+    if (idHidden) idHidden.value = newId;
+  }
+
+  await saveTrainingSchedule();
+  await enrichTrainingSessionsWithSignupCounts();
+  renderTrainingScheduleTable();
+
+  const updated = trainingSchedule.sessions.find(
+    s => s.id === (existingId || `${date}_${time}_${poolName}`.replace(/\s+/g, '_'))
+  );
+  updateCapacityInfo(updated || null);
 }
 
 
@@ -3760,6 +4037,10 @@ async function openSettings() {
     // Show the settings modal
     document.getElementById('settingsModal').style.display = 'block';
     loadSanitationSettings();
+    populateTrainingTimeOptions();
+    populateTrainingPoolSelect();
+    loadTrainingSchedule();
+
 }
 
 function sendSMSNotification(message, phoneNumber) {
@@ -3801,6 +4082,18 @@ function debugViews() {
 window.debugViews = debugViews;
 
 window.debugApp = debugApp;
+
+const saveTrainingBtn = document.getElementById('saveTrainingSessionBtn');
+if (saveTrainingBtn) {
+  saveTrainingBtn.addEventListener('click', (e) => {
+    e.preventDefault();
+    handleTrainingScheduleSaveClick();
+  });
+}
+
+// expose anything you need globally
+window.loadTrainingSchedule = loadTrainingSchedule;
+
 
 window.addEventListener('error', (e) => {
     console.group('🚨 DASHBOARD ERROR DETECTED');
