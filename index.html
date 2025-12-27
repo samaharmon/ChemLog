@@ -378,66 +378,63 @@
                 <button id="siteEditor" class="submit-btn" onclick="goToEditor()">Go to the Site Editor</button>
             </div>
             <div class="settings-section">
-                <h3>Sanitation Methods</h3>
-                <table class="sanitation-table">
-                    <thead>
-                        <tr>
-                            <th>Pool Name</th>
-                            <th>Bleach</th>
-                            <th>Granular</th>
-                        </tr>
-                    </thead>
-                    <tbody id="sanitationTableBody">
-                        <!-- filled by script.js -->
-                    </tbody>
-                </table>
-                <div id="sanitationControls" style="margin-top: 10px;">
-                    <button id="editSanitationBtn" class="editAndSave">Edit</button>
-                    <button id="saveSanitationBtn" class="editAndSave" disabled>Save</button>
+                <h3>Market</h3>
+                <p style="margin-top: 0; font-size: 0.9rem;">
+                    Select which markets' pools are visible on the supervisor dashboard.
+                </p>
+                <br>
+                <div class="market-options">
+                    <label class="market-option">
+                        <input
+                            type="checkbox"
+                            class="market-filter-checkbox"
+                            name="marketFilter"
+                            value="Columbia"
+                        >
+                        Columbia
+                    </label>
+                    <label class="market-option">
+                        <input
+                            type="checkbox"
+                            class="market-filter-checkbox"
+                            name="marketFilter"
+                            value="Greenville"
+                        >
+                        Greenville
+                    </label>
+                    <label class="market-option">
+                        <input
+                            type="checkbox"
+                            class="market-filter-checkbox"
+                            name="marketFilter"
+                            value="Charlotte"
+                        >
+                        Charlotte
+                    </label>
+                    <label class="market-option">
+                        <input
+                            type="checkbox"
+                            class="market-filter-checkbox"
+                            name="marketFilter"
+                            value="Charleston"
+                        >
+                        Charleston
+                    </label>
+                </div>
                 </div>
                 <div class="settings-section">
-                    <h3>Market</h3>
+                    <h3>Sanitation Methods</h3>
                     <p style="margin-top: 0; font-size: 0.9rem;">
-                        Select which markets' pools are visible on the supervisor dashboard.
+                        Sanitation methods are managed per market. Only markets selected below are shown.
                     </p>
-                    <br>
-                    <div class="market-options">
-                        <label class="market-option">
-                            <input
-                                type="checkbox"
-                                class="market-filter-checkbox"
-                                name="marketFilter"
-                                value="Columbia"
-                            >
-                            Columbia
-                        </label>
-                        <label class="market-option">
-                            <input
-                                type="checkbox"
-                                class="market-filter-checkbox"
-                                name="marketFilter"
-                                value="Greenville"
-                            >
-                            Greenville
-                        </label>
-                        <label class="market-option">
-                            <input
-                                type="checkbox"
-                                class="market-filter-checkbox"
-                                name="marketFilter"
-                                value="Charlotte"
-                            >
-                            Charlotte
-                        </label>
-                        <label class="market-option">
-                            <input
-                                type="checkbox"
-                                class="market-filter-checkbox"
-                                name="marketFilter"
-                                value="Charleston"
-                            >
-                            Charleston
-                        </label>
+
+                    <div id="sanitationTablesContainer">
+                        <!-- Tables are injected by script.js -->
+                    </div>
+
+                    <div id="sanitationControls" style="margin-top: 10px;">
+                        <button id="editSanitationBtn" class="editAndSave">Edit</button>
+                        <button id="saveSanitationBtn" class="editAndSave" disabled>Save</button>
                     </div>
                 </div>
                 <div class="settings-section">
