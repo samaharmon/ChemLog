@@ -1274,13 +1274,23 @@
         </div>
     </div>
 </div>
-    <!-- end of form-container / sections -->
-    <div class="footer" style="margin-top: auto;">
-        <em>Developed by Sam Harmon | 2025<br>v2.1</em>
-    </div>
-    </div> <!-- #mainForm -->
+<!-- end of form-container / sections -->
+<div class="footer" style="margin-top: auto;">
+    <em>Developed by Sam Harmon | 2025<br>v2.1</em>
+</div>
+</div> <!-- #mainForm -->
+
+<!-- Dark overlay behind the Settings modal -->
+<div class="modal-overlay" id="settingsOverlay"></div>
 
 <div id="settingsModal">
+    <div class="modal-content settings-modal-content">
+        <!-- existing content... -->
+    </div>
+</div>
+
+
+    <div id="settingsModal">
         <div class="modal-content settings-modal-content">
             <div class="modal-header">
                 <h2>Settings</h2>
@@ -1300,52 +1310,8 @@
                             <th>Granular</th>
                         </tr>
                     </thead>
-                    <tbody>
-                        <tr>
-                            <td>Camden CC</td>
-                            <td><input type="checkbox" class="sanitation-checkbox bleach-checkbox" data-pool="Camden CC" data-method="bleach" onchange="handleSanitationChange(this)"></td>
-                            <td><input type="checkbox" class="sanitation-checkbox granular-checkbox" data-pool="Camden CC" data-method="granular" onchange="handleSanitationChange(this)"></td>
-                        </tr>
-                        <tr>
-                            <td>CC of Lexington</td>
-                            <td><input type="checkbox" class="sanitation-checkbox bleach-checkbox" data-pool="CC of Lexington" data-method="bleach" onchange="handleSanitationChange(this)"></td>
-                            <td><input type="checkbox" class="sanitation-checkbox granular-checkbox" data-pool="CC of Lexington" data-method="granular" onchange="handleSanitationChange(this)"></td>
-                        </tr>
-                        <tr>
-                            <td>Columbia CC</td>
-                            <td><input type="checkbox" class="sanitation-checkbox bleach-checkbox" data-pool="Columbia CC" data-method="bleach" onchange="handleSanitationChange(this)"></td>
-                            <td><input type="checkbox" class="sanitation-checkbox granular-checkbox" data-pool="Columbia CC" data-method="granular" onchange="handleSanitationChange(this)"></td>
-                        </tr>
-                        <tr>
-                            <td>Forest Lake Lap Pool</td>
-                            <td><input type="checkbox" class="sanitation-checkbox bleach-checkbox" data-pool="Forest Lake Lap Pool" data-method="bleach" onchange="handleSanitationChange(this)"></td>
-                            <td><input type="checkbox" class="sanitation-checkbox granular-checkbox" data-pool="Forest Lake Lap Pool" data-method="granular" onchange="handleSanitationChange(this)"></td>
-                        </tr>
-                        <tr>
-                            <td>Forest Lake Main Pool</td>
-                            <td><input type="checkbox" class="sanitation-checkbox bleach-checkbox" data-pool="Forest Lake" data-method="bleach" onchange="handleSanitationChange(this)"></td>
-                            <td><input type="checkbox" class="sanitation-checkbox granular-checkbox" data-pool="Forest Lake" data-method="granular" onchange="handleSanitationChange(this)"></td>
-                        </tr>
-                        <tr>
-                            <td>Quail Hollow</td>
-                            <td><input type="checkbox" class="sanitation-checkbox bleach-checkbox" data-pool="Quail Hollow" data-method="bleach" onchange="handleSanitationChange(this)"></td>
-                            <td><input type="checkbox" class="sanitation-checkbox granular-checkbox" data-pool="Quail Hollow" data-method="granular" onchange="handleSanitationChange(this)"></td>
-                        </tr>
-                        <tr>
-                            <td>Rockbridge</td>
-                            <td><input type="checkbox" class="sanitation-checkbox bleach-checkbox" data-pool="Rockbridge" data-method="bleach" onchange="handleSanitationChange(this)"></td>
-                            <td><input type="checkbox" class="sanitation-checkbox granular-checkbox" data-pool="Rockbridge" data-method="granular" onchange="handleSanitationChange(this)"></td>
-                        </tr>
-                        <tr>
-                            <td>Wildewood</td>
-                            <td><input type="checkbox" class="sanitation-checkbox bleach-checkbox" data-pool="Wildewood" data-method="bleach" onchange="handleSanitationChange(this)"></td>
-                            <td><input type="checkbox" class="sanitation-checkbox granular-checkbox" data-pool="Wildewood" data-method="granular" onchange="handleSanitationChange(this)"></td>
-                        </tr>
-                        <tr>
-                            <td>Winchester</td>
-                            <td><input type="checkbox" class="sanitation-checkbox bleach-checkbox" data-pool="Winchester" data-method="bleach" onchange="handleSanitationChange(this)"></td>
-                            <td><input type="checkbox" class="sanitation-checkbox granular-checkbox" data-pool="Winchester" data-method="granular" onchange="handleSanitationChange(this)"></td>
-                        </tr>
+                    <tbody id="sanitationTableBody">
+                        <!-- filled by script.js -->
                     </tbody>
                 </table>
                 <div id="sanitationControls" style="margin-top: 10px;">
@@ -1353,8 +1319,7 @@
                     <button id="saveSanitationBtn" class="editAndSave" disabled>Save</button>
                 </div>
                 <div class="settings-section">
-                    <h3>Markets</h3>
-                    <br>
+                    <h3>Market</h3>
                     <p style="margin-top: 0; font-size: 0.9rem;">
                         Select which markets' pools are visible on the supervisor dashboard.
                     </p>
@@ -1398,9 +1363,145 @@
                         </label>
                     </div>
                 </div>
+                <!-- NEW: Schedule Trainings -->
+                <div class="settings-section" id="scheduleTrainingsSection">
+                    <h3>Schedule Trainings</h3>
+                    <p style="margin-top: 0; font-size: 0.9rem;">
+                        Create or edit in‑service training sessions that lifeguards can sign up for on the Training page.
+                    </p>
+
+                    <!-- Date + Time -->
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="trainingDateInput">Date</label>
+                            <input type="date" id="trainingDateInput">
+                        </div>
+                        <div class="form-group">
+                            <label for="trainingTimeSelect">Time</label>
+                            <select id="trainingTimeSelect">
+                                <option value="">Select time</option>
+                                <!-- options populated by script.js -->
+                            </select>
+                        </div>
+                    </div>
+
+                    <!-- Location + Address now in same row -->
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="trainingPoolSelect">Location (Pool)</label>
+                            <select id="trainingPoolSelect">
+                                <option value="">Select pool</option>
+                                <!-- options populated by script.js from editor pools -->
+                            </select>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="trainingAddressInput">Address</label>
+                            <input
+                                type="text"
+                                id="trainingAddressInput"
+                                placeholder="Street, city, state"
+                            >
+                        </div>
+                    </div>
+
+                    <!-- Capacity + spots -->
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="trainingCapacityInput">Capacity</label>
+                            <input
+                                type="number"
+                                id="trainingCapacityInput"
+                                min="1"
+                                step="1"
+                                placeholder="e.g. 20"
+                            >
+                        </div>
+                        <div class="form-group">
+                            <label>Spots</label>
+                            <p id="trainingCapacityInfo" style="margin-top: 8px; font-size: 0.9rem;">
+                                Spots used / remaining will appear after you save this session.
+                            </p>
+                        </div>
+                    </div>
+
+                    <!-- Notes -->
+                    <div class="form-group">
+                        <label for="trainingNotesInput">Notes</label>
+                        <textarea
+                            id="trainingNotesInput"
+                            rows="3"
+                            style="width: 100%;"
+                        ></textarea>
+                    </div>
+
+                    <input type="hidden" id="trainingSessionId">
+
+                    <button type="button" id="saveTrainingSessionBtn" class="submit-btn">
+                        Save Training Session
+                    </button>
+
+                    <!-- 8. Separate tables for May / June / July -->
+                    <h4 style="margin-top: 20px;">Scheduled Sessions</h4>
+
+                    <div class="training-month-group">
+                        <h5>May In‑Service</h5>
+                        <table class="sanitation-table training-schedule-table">
+                            <thead>
+                                <tr>
+                                    <th>Date</th>
+                                    <th>Time</th>
+                                    <th>Location</th>
+                                    <th>Capacity / Taken</th>
+                                    <th>Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody id="trainingSessionsMayBody">
+                                <!-- filled by script.js -->
+                            </tbody>
+                        </table>
+                    </div>
+
+                    <div class="training-month-group">
+                        <h5>June In‑Service</h5>
+                        <table class="sanitation-table training-schedule-table">
+                            <thead>
+                                <tr>
+                                    <th>Date</th>
+                                    <th>Time</th>
+                                    <th>Location</th>
+                                    <th>Capacity / Taken</th>
+                                    <th>Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody id="trainingSessionsJuneBody">
+                                <!-- filled by script.js -->
+                            </tbody>
+                        </table>
+                    </div>
+
+                    <div class="training-month-group">
+                        <h5>July In‑Service</h5>
+                        <table class="sanitation-table training-schedule-table">
+                            <thead>
+                                <tr>
+                                    <th>Date</th>
+                                    <th>Time</th>
+                                    <th>Location</th>
+                                    <th>Capacity / Taken</th>
+                                    <th>Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody id="trainingSessionsJulyBody">
+                                <!-- filled by script.js -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+
                 <div class="settings-section">
                     <h3>Data Storage</h3>
-
                     <button id="clearAllData" class="submit-btn">Clear All Chemistry Log Data</button>
                     <br>
                     <button id="exportCsvBtn" class="submit-btn">Export Data to CSV</button>
@@ -1416,7 +1517,7 @@
                 </div>
             </div>
         </div>
-</div>
+    </div>
 
 <!-- Delete pool confirmation modal -->
 <div id="deletePoolModal" class="feedback-modal" style="display: none;">
