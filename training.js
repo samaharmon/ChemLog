@@ -717,3 +717,7 @@ document.addEventListener('DOMContentLoaded', () => {
     updateSessionSelectForMonth('', el);
   }
 });
+
+window.addEventListener('load', () => {
+  document.body.classList.add('page-loaded');
+});
