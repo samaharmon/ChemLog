@@ -3964,49 +3964,6 @@ function showRecipientSelectionInModal(modal) {
     samCheckboxItem.appendChild(samCheckbox);
     samCheckboxItem.appendChild(samLabel);
     messageList.appendChild(samCheckboxItem);
-    
-    // Haley Wilson checkbox
-    /*
-    const haleyCheckboxItem = document.createElement('div');
-    haleyCheckboxItem.className = 'checkbox-item';
-    haleyCheckboxItem.style.cssText = `
-        display: flex;
-        align-items: flex-start;
-        margin: 15px 0;
-        padding: 10px;
-        border: 1px solid #e0e0e0;
-        border-radius: 4px;
-        background-color: #f9f9f9;
-    `;
-    
-    const haleyCheckbox = document.createElement('input');
-    haleyCheckbox.type = 'checkbox';
-    haleyCheckbox.className = 'feedback-checkbox';
-    haleyCheckbox.id = 'haleyOption';
-    haleyCheckbox.value = '+18036738396';
-    haleyCheckbox.style.cssText = `
-        margin-right: 10px;
-        margin-top: 4px;
-        transform: scale(1.2);
-    `;
-    
-    const haleyLabel = document.createElement('label');
-    haleyLabel.textContent = 'Haley Wilson';
-    haleyLabel.htmlFor = 'haleyOption';
-    haleyLabel.style.cssText = `
-        flex: 1;
-        font-size: 14px;
-        line-height: 1.4;
-        cursor: pointer;
-    `;
-    haleyLabel.onclick = () => {
-        haleyCheckbox.checked = !haleyCheckbox.checked;
-    };
-    
-    haleyCheckboxItem.appendChild(haleyCheckbox);
-    haleyCheckboxItem.appendChild(haleyLabel);
-    messageList.appendChild(haleyCheckboxItem);
-    */
 
     feedbackContent.appendChild(messageList);
     modal.appendChild(feedbackContent);
@@ -4029,31 +3986,53 @@ function showRecipientSelectionInModal(modal) {
     feedbackContent.appendChild(sendBtn);
 }
 
-function toggleMenu(button) {
-  let btn = button;
+let menuAutoCloseTimeoutId = null;
 
-  // Fallback: if called as toggleMenu() with no args
-  if (!btn) {
+function toggleMenu(button) {
+  let targetButton = button || null;
+
+  // If no button was passed (fallback), pick the visible header's menu
+  if (!targetButton) {
     const dashboard = document.getElementById('supervisorDashboard');
     if (dashboard && dashboard.classList.contains('show')) {
-      btn = dashboard.querySelector('.menu-btn');
+      targetButton = dashboard.querySelector('.menu-btn');
     } else {
       const mainForm = document.getElementById('mainForm');
       if (mainForm) {
-        btn = mainForm.querySelector('.menu-btn');
+        targetButton = mainForm.querySelector('.menu-btn');
       }
     }
   }
 
-  if (!btn) return;
+  if (!targetButton) return;
 
-  const container = btn.closest('.menu-container');
+  const container = targetButton.closest('.menu-container');
   if (!container) return;
 
   const menu = container.querySelector('.dropdown-menu');
   if (!menu) return;
 
-  menu.classList.toggle('show');
+  const isOpen = menu.classList.contains('show');
+
+  // Clear any existing auto‑close timer
+  if (menuAutoCloseTimeoutId) {
+    clearTimeout(menuAutoCloseTimeoutId);
+    menuAutoCloseTimeoutId = null;
+  }
+
+  if (isOpen) {
+    // If it’s already open, close it immediately
+    menu.classList.remove('show');
+  } else {
+    // Open the menu
+    menu.classList.add('show');
+
+    // Auto‑close after 5 seconds
+    menuAutoCloseTimeoutId = setTimeout(() => {
+      menu.classList.remove('show');
+      menuAutoCloseTimeoutId = null;
+    }, 5000);
+  }
 }
 
 // Make it callable from your inline onclick attributes
