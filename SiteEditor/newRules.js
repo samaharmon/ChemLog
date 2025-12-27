@@ -794,6 +794,26 @@ function attachEditorEvents() {
     const editorModeAddBtn  = document.getElementById('editorModeAdd');
     const numPoolsInput     = document.getElementById('editorNumPools');
 
+    // Helper: apply Rockbridge presets, optionally showing a toast
+    async function applyRockbridgePresets({ showToast = false } = {}) {
+        try {
+            await cloneRockbridgePresets();
+
+            // Only show this toast when explicitly requested (e.g., button click)
+            if (showToast) {
+                showMessage('Rockbridge presets applied.', 'success');
+            }
+
+            // Whatever this was doing before stays the same
+            if (typeof captureRockbridgePresetIfNeeded === 'function') {
+                captureRockbridgePresetIfNeeded();
+            }
+        } catch (err) {
+            console.error('Error applying Rockbridge presets', err);
+            showMessage('Error applying Rockbridge presets.', 'error');
+        }
+    }
+
     // When a pool is chosen in "Edit existing pool" mode
     if (poolSelect) {
         poolSelect.addEventListener('change', () => {
@@ -818,18 +838,11 @@ function attachEditorEvents() {
         });
     }
 
-    // Apply Rockbridge preset for “Add new pool”
+    // Apply Rockbridge preset for “Add new pool” (button only)
     if (rockbridgeBtn) {
         rockbridgeBtn.addEventListener('click', async () => {
-            try {
-                await cloneRockbridgePresets();
-                showMessage('Rockbridge presets applied.', 'success');
-            } catch (err) {
-                console.error('Error applying Rockbridge presets', err);
-                showMessage('Error applying Rockbridge presets.', 'error');
-            }
-          captureRockbridgePresetIfNeeded();
-          });
+            await applyRockbridgePresets({ showToast: true });
+        });
     }
 
     // Mode buttons (top of the editor)
@@ -844,6 +857,10 @@ function attachEditorEvents() {
         editorModeAddBtn.addEventListener('click', () => {
             setActiveModeButton('add');
             toggleMode('add');
+
+            // If you want Rockbridge presets to auto‑apply WITHOUT a toast when
+            // switching into "add" mode, you can do:
+            // applyRockbridgePresets({ showToast: false });
         });
     }
 
@@ -1009,7 +1026,7 @@ async function initEditor() {
   setupSanitationTabs();
   wireConcernDropdowns();
   setupDeletePool();
-  attachEditorEvents();
+  applyRockbridgePresets({ showToast: false });
   toggleMode('add');
 
   const editorSection       = document.getElementById('poolRuleEditorSection');
@@ -1048,6 +1065,13 @@ window.cloneRockbridgePresets = cloneRockbridgePresets;
 window.loadPoolIntoEditor = loadPoolIntoEditor;
 window.readEditorToObject = readEditorToObject;
 window.onSaveSuccess = onSaveSuccess;
+// Override the main-page logout on the rule editor page
+window.logout = function () {
+  // If you ever add auth, clear it here first
+  window.location.href = '../index.html';
+  return false;
+};
+
 
 // Initialize the editor once the DOM is ready
 document.addEventListener('DOMContentLoaded', () => {
@@ -1057,4 +1081,8 @@ document.addEventListener('DOMContentLoaded', () => {
       showMessage('Error loading pool rule editor. Please refresh the page.', 'error');
     }
   });
+});
+
+window.addEventListener('load', () => {
+  document.body.classList.add('page-loaded');
 });
