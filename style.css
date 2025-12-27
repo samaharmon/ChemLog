@@ -116,34 +116,54 @@ p {
     background-color: rgba(255, 255, 255, 0.3);
 }
 
-/* Dropdown Menu Styles (solving "Logout/Settings always visible") */
+/* Dropdown Menu Styles */
 .dropdown-menu {
-    display: none; /* NEW & CRUCIAL: Hides the dropdown by default */
-    position: absolute; /* NEW & CRUCIAL: Positions it relative to .menu-container */
-    top: 100%; /* NEW: Places it right below the button */
-    left: 0; /* NEW: Aligns it with the left edge of the button */
-    background-color: white;
+    display: none;                /* hidden by default */
+    position: absolute;
+    top: calc(100% + 4px);        /* a little gap under the Menu button */
+    left: 0;
+    background-color: #333;       /* dark grey like your header/footer */
     border: 1px solid #ddd;
-    box-shadow: 0 4px 8px rgba(0,0,0,0.1);
-    min-width: 150px; /* Adjust as needed */
-    z-index: 1000; /* Ensures it appears above other content */
-    border-radius: 0; /* Keeping your square aesthetic */
-    padding: 5px 0;
+    box-shadow: 0 4px 8px rgba(0,0,0,0.3);
+    min-width: 180px;
+    z-index: 1000;
+    border-radius: 0;
+    padding: 0;                   /* let items control height */
 }
 
-.dropdown-menu.show { /* NEW: Class to be toggled by JavaScript to show the menu */
-    display: block;
+.dropdown-menu.show {
+    display: flex;                /* stack items vertically */
+    flex-direction: column;
 }
 
 .dropdown-item {
-    display: block; /* Makes each link take full width */
+    display: block;
     padding: 10px 15px;
     text-decoration: none;
-    color: #333;
-    font-family: 'Franklin Gothic Medium', Arial, sans-serif; /* Ensure consistent font */
-    font-size: 16px; /* Adjust as needed */
-        border-bottom: 1px solid #ccc;
+    color: #fff;                  /* white text */
+    background-color: #333;
+    font-family: 'Franklin Gothic Medium', Arial, sans-serif;
+    font-size: 16px;
+    border-bottom: 1px solid #ccc;
 }
+
+.dropdown-item:hover {
+    background-color: #444;
+}
+
+.dropdown-menu .dropdown-item:last-child {
+    border-bottom: none;
+}
+
+/* Dark-mode keeps it consistent */
+body.dark-mode .dropdown-menu {
+    background-color: #2e2e2e;
+}
+
+body.dark-mode .dropdown-item {
+    background-color: #2e2e2e;
+}
+
 
 .dropdown-item:hover {
     background-color: #f5f5f5;
