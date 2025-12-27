@@ -627,10 +627,12 @@ function filterData() {
 
 function closeSettings() {
   const modal = document.getElementById('settingsModal');
-  if (modal) {
-    modal.style.display = 'none';
-  }
+  const overlay = document.getElementById('settingsOverlay');
+  if (modal) modal.style.display = 'none';
+  if (overlay) overlay.style.display = 'none';
 }
+
+document.getElementById('settingsOverlay')?.addEventListener('click', closeSettings);
 
 // poolName -> { bleach: boolean, granular: boolean }
 window.sanitationState = window.sanitationState || {};
@@ -3626,69 +3628,88 @@ function updateCapacityInfo(session) {
   } spots remaining`;
 }
 
-function renderTrainingScheduleTable() {
-  const tbody = document.getElementById('trainingSessionsTableBody');
-  if (!tbody) return;
+function resetTrainingForm() {
+  const dateInput = document.getElementById('trainingDateInput');
+  const timeSelect = document.getElementById('trainingTimeSelect');
+  const poolSelect = document.getElementById('trainingPoolSelect');
+  const addressInput = document.getElementById('trainingAddressInput');
+  const capacityInput = document.getElementById('trainingCapacityInput');
+  const notesInput = document.getElementById('trainingNotesInput');
+  const idInput = document.getElementById('trainingSessionId');
+  const capacityInfo = document.getElementById('trainingCapacityInfo');
 
-  tbody.innerHTML = '';
+  if (dateInput) dateInput.value = '';
+  if (timeSelect) timeSelect.value = '';
+  if (poolSelect) poolSelect.value = '';
+  if (addressInput) addressInput.value = '';
+  if (capacityInput) capacityInput.value = '';
+  if (notesInput) notesInput.value = '';
+  if (idInput) idInput.value = ''; // back to “new” mode
 
-  if (!Array.isArray(trainingSchedule.sessions) || !trainingSchedule.sessions.length) {
-    const row = document.createElement('tr');
-    const cell = document.createElement('td');
-    cell.colSpan = 5;
-    cell.textContent = 'No trainings scheduled yet.';
-    row.appendChild(cell);
-    tbody.appendChild(row);
-    updateCapacityInfo(null);
-    return;
+  if (capacityInfo) {
+    capacityInfo.textContent =
+      'Spots used / remaining will appear after you save this session.';
   }
+}
 
-  const sessions = [...trainingSchedule.sessions].sort((a, b) => {
-    const d = (a.date || '').localeCompare(b.date || '');
-    if (d !== 0) return d;
-    return (a.time || '').localeCompare(b.time || '');
-  });
+function renderTrainingScheduleTable() {
+  const mayBody = document.getElementById('trainingSessionsMayBody');
+  const juneBody = document.getElementById('trainingSessionsJuneBody');
+  const julyBody = document.getElementById('trainingSessionsJulyBody');
 
-  sessions.forEach(session => {
+  if (!mayBody || !juneBody || !julyBody) return;
+
+  // Clear all month tables
+  mayBody.innerHTML = '';
+  juneBody.innerHTML = '';
+  julyBody.innerHTML = '';
+
+  const sessions = Array.isArray(trainingSchedule.sessions)
+    ? trainingSchedule.sessions
+    : [];
+
+  sessions.forEach((session) => {
+    if (!session.date) return;
+
+    const dateObj = new Date(session.date);
+    if (Number.isNaN(dateObj.getTime())) return;
+
+    const month = dateObj.getMonth(); // 0-based: May=4, June=5, July=6
+    let targetBody = null;
+
+    if (month === 4) targetBody = mayBody;
+    else if (month === 5) targetBody = juneBody;
+    else if (month === 6) targetBody = julyBody;
+    else return; // ignore sessions not in May/June/July
+
     const taken = typeof session.taken === 'number' ? session.taken : 0;
     const cap = Number(session.capacity || 0);
-    const remaining = cap > 0 ? Math.max(cap - taken, 0) : '—';
 
     const tr = document.createElement('tr');
     tr.innerHTML = `
-      <td>${session.date || ''}</td>
-      <td>${session.time ? formatTimeLabel(session.time) : ''}</td>
-      <td>${session.poolName || ''}</td>
-      <td>${cap || '—'} / ${taken}</td>
-      <td class="actions-cell">
-        <button type="button" class="editAndSave" data-session-id="${session.id}">
+      <td>${session.date}</td>
+      <td>${session.time || ''}</td>
+      <td>${session.poolName || session.location || ''}</td>
+      <td>${cap || 0} / ${taken}</td>
+      <td>
+        <button type="button"
+                class="editAndSave"
+                data-session-id="${session.id}">
           Edit
         </button>
-        <button
-          type="button"
-          class="editAndSave danger-button"
-          data-session-id="${session.id}"
-          data-action="delete"
-        >
+        <button type="button"
+                class="editAndSave danger-button"
+                data-session-id="${session.id}"
+                data-action="delete">
           Delete
         </button>
       </td>
     `;
-    tbody.appendChild(tr);
+
+    targetBody.appendChild(tr);
   });
 
-  // Attach handlers
-  tbody.querySelectorAll('button[data-session-id]').forEach(btn => {
-    btn.addEventListener('click', () => {
-      const sessionId = btn.getAttribute('data-session-id');
-      const action = btn.getAttribute('data-action');
-      if (action === 'delete') {
-        deleteTrainingSession(sessionId);
-      } else {
-        loadTrainingSessionIntoForm(sessionId);
-      }
-    });
-  });
+  // (Re‑attach Edit/Delete handlers here if you aren't using event delegation)
 }
 
 function loadTrainingSessionIntoForm(sessionId) {
@@ -3751,6 +3772,10 @@ async function handleTrainingScheduleSaveClick() {
 
   const base = { date, time, poolName, address, capacity, notes };
 
+  if (!Array.isArray(trainingSchedule.sessions)) {
+    trainingSchedule.sessions = [];
+  }
+
   if (existingId) {
     const idx = trainingSchedule.sessions.findIndex(s => s.id === existingId);
     if (idx !== -1) {
@@ -3771,7 +3796,20 @@ async function handleTrainingScheduleSaveClick() {
     s => s.id === (existingId || `${date}_${time}_${poolName}`.replace(/\s+/g, '_'))
   );
   updateCapacityInfo(updated || null);
+
+  // 🔹 Clear the form after a successful save
+  resetTrainingForm();
 }
+
+// Click handler hookup (paste this once, after the function above)
+const saveTrainingBtn = document.getElementById('saveTrainingSessionBtn');
+if (saveTrainingBtn) {
+  saveTrainingBtn.addEventListener('click', (e) => {
+    e.preventDefault();
+    handleTrainingScheduleSaveClick();
+  });
+}
+
 
 
 
@@ -4023,35 +4061,10 @@ window.toggleMenu = toggleMenu;
 
 function openSettings() {
   const modal = document.getElementById('settingsModal');
-  if (!modal) return;
-
-  // 1) Show the modal right away
-  modal.style.display = 'block';
-
-  // 2) Prepare static UI pieces
-  if (typeof populateTrainingTimeOptions === 'function') {
-    populateTrainingTimeOptions();
-  }
-  if (typeof populateTrainingPoolSelect === 'function') {
-    populateTrainingPoolSelect();
-  }
-
-  // 3) Fire off data loads in the background, but don't block the UI
-  (async () => {
-    try {
-      if (typeof loadSanitationSettings === 'function') {
-        await loadSanitationSettings();
-      }
-      if (typeof loadTrainingSchedule === 'function') {
-        await loadTrainingSchedule();
-      }
-      // add any other settings loaders here (market visibility, etc.)
-    } catch (err) {
-      console.error('Error loading settings data:', err);
-    }
-  })();
+  const overlay = document.getElementById('settingsOverlay');
+  if (modal) modal.style.display = 'block';
+  if (overlay) overlay.style.display = 'block';
 }
-
 
 function sendSMSNotification(message, phoneNumber) {
     console.log(`SMS would be sent to ${phoneNumber}: ${message}`);
@@ -4092,14 +4105,6 @@ function debugViews() {
 window.debugViews = debugViews;
 
 window.debugApp = debugApp;
-
-const saveTrainingBtn = document.getElementById('saveTrainingSessionBtn');
-if (saveTrainingBtn) {
-  saveTrainingBtn.addEventListener('click', (e) => {
-    e.preventDefault();
-    handleTrainingScheduleSaveClick();
-  });
-}
 
 // expose anything you need globally
 window.loadTrainingSchedule = loadTrainingSchedule;
