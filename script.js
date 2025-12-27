@@ -1855,70 +1855,54 @@ function renderSanitationSettingsTable() {
 
   tbody.innerHTML = '';
 
-  // Prefer live pools from Firestore; fall back to static legacy list
-  let list = Array.isArray(window.availablePools) ? window.availablePools : [];
-  if (!list.length) {
-    list = STATIC_POOLS;
-  }
+  const pools = Array.isArray(window.availablePools) ? window.availablePools : [];
+  if (!pools.length) return;
 
-  const marketMap = new Map(); // market -> Set(poolName)
-
-  list.forEach((doc) => {
-    const name = getPoolNameFromDoc(doc);
-    if (!name) return;
-    let markets = getPoolMarketsFromDoc(doc);
-    if (!markets || !markets.length) markets = ['Unassigned'];
-
-    markets.forEach((m) => {
-      if (!marketMap.has(m)) marketMap.set(m, new Set());
-      marketMap.get(m).add(name);
+  // Group pools by market (you likely already have something like this)
+  const marketMap = new Map();
+  pools.forEach(pool => {
+    const markets = pool.markets || ['Unassigned'];
+    markets.forEach(market => {
+      if (!marketMap.has(market)) marketMap.set(market, []);
+      marketMap.get(market).push(pool);
     });
   });
 
-  const allMarkets = Array.from(marketMap.keys()).sort();
+  const markets = Array.from(marketMap.keys()).sort();
 
-  allMarkets.forEach((market) => {
-    // Market title row
+  markets.forEach((market) => {
+    // --- MARKET HEADER ROW ---
     const marketRow = document.createElement('tr');
     marketRow.classList.add('sanitation-market-row');
+
     const marketCell = document.createElement('td');
-    marketCell.colSpan = 3;
+    marketCell.colSpan = 3; // Pool Name + Bleach + Granular
     marketCell.textContent = market;
+
     marketRow.appendChild(marketCell);
     tbody.appendChild(marketRow);
 
-    Array.from(marketMap.get(market))
-      .sort()
-      .forEach((poolName) => {
-        const row = document.createElement('tr');
+    // --- POOL ROWS FOR THIS MARKET ---
+    marketMap.get(market).forEach(pool => {
+      const row = document.createElement('tr');
 
-        const nameCell = document.createElement('td');
-        nameCell.textContent = poolName;
-        row.appendChild(nameCell);
+      const nameCell = document.createElement('td');
+      nameCell.textContent = pool.name || pool.poolName || '';
 
-        ['bleach', 'granular'].forEach((method) => {
-          const cell = document.createElement('td');
-          const cb = document.createElement('input');
-          cb.type = 'checkbox';
-          cb.className = 'sanitation-checkbox';
-          cb.dataset.pool = poolName;
-          cb.dataset.method = method;
+      const bleachCell = document.createElement('td');
+      const granularCell = document.createElement('td');
 
-          const current = (window.sanitationSettings || {})[poolName];
-          cb.checked = current === method;
+      // ...your existing checkbox creation logic...
+      // (bleachCell.appendChild(...), granularCell.appendChild(...))
 
-          cb.addEventListener('change', handleSanitationCheckboxChange);
-
-          cell.appendChild(cb);
-          row.appendChild(cell);
-        });
-
-        tbody.appendChild(row);
-      });
+      row.appendChild(nameCell);
+      row.appendChild(bleachCell);
+      row.appendChild(granularCell);
+      tbody.appendChild(row);
+    });
   });
-
-  syncSanitationCheckboxDisabledState();
 }
+
 
 // Update UI checkboxes based on settings
 function updateSanitationUI() {
