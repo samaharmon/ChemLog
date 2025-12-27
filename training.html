@@ -4,21 +4,26 @@
   <meta charset="UTF-8" />
   <title>ChemLog – Lifeguard Trainings</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <!-- Reuse your main styles if you want -->
+
+  <!-- (Optional) Leave this if you have a global stylesheet; otherwise it won’t hurt -->
   <link rel="stylesheet" href="styles.css" />
-  <!-- Training-specific styles -->
+
+  <!-- Training‑page specific styling that matches the main ChemLog theme -->
   <link rel="stylesheet" href="training.css" />
 </head>
 <body>
-    <header class="app-header">
-    <div class="header-left">
-        <h1 class="app-title">ChemLog Trainings</h1>
+  <!-- Header: red ChemLog band with Supervisor Login -->
+  <header class="app-header">
+    <div class="training-header-left">
+      <h1 class="app-title">ChemLog Trainings</h1>
+      <p>Lifeguard In‑Service Sign‑Up</p>
     </div>
-    <div class="header-right">
-        <button class="supervisor-login-btn" id="openTrainingLoginBtn">Supervisor Login</button>
+    <div class="training-header-right">
+      <button class="supervisor-login-btn" id="openTrainingLoginBtn">
+        Supervisor Login
+      </button>
     </div>
-    </header>
-
+  </header>
 
   <main class="training-main">
     <!-- Lifeguard signup form -->
@@ -43,7 +48,13 @@
         <div class="form-row">
           <div class="form-group">
             <label for="guardPool">Home Pool / Location</label>
-            <input type="text" id="guardPool" name="guardPool" placeholder="e.g., Rockbridge" required />
+            <input
+              type="text"
+              id="guardPool"
+              name="guardPool"
+              placeholder="e.g., Rockbridge"
+              required
+            />
           </div>
           <div class="form-group">
             <label for="trainingMonth">Training Month</label>
@@ -60,7 +71,7 @@
           <div class="form-group full-width">
             <label for="trainingSession">Training Date &amp; Location</label>
             <select id="trainingSession" name="trainingSession" required>
-              <option value="">Select a session</option>
+              <option value="">Select a month first</option>
               <!-- Options populated by training.js based on supervisor config -->
             </select>
             <small class="help-text">
@@ -74,73 +85,150 @@
       </form>
     </section>
 
-    <!-- Supervisor configuration panel -->
+    <!-- Supervisor configuration panel, styled like Settings → Schedule Trainings -->
     <section class="card training-card" id="trainingAdminPanel">
       <h2>Supervisor Training Setup</h2>
       <p class="card-subtitle">
-        Configure dates, times, and locations for monthly in‑service trainings.
+        Create, edit, and track the in‑service training sessions that appear in the signup form above.
       </p>
 
-      <div class="training-admin-grid">
-        <!-- May -->
-        <div class="training-admin-column">
-          <h3>May Training</h3>
-          <div class="training-session-list" id="maySessionList"></div>
+      <div class="settings-section" id="scheduleTrainingsSection">
+        <h3>Schedule Trainings</h3>
+        <p>
+          Use this panel to build your May, June, and July in‑service calendar. Capacity and sign‑ups
+          are tracked for each session.
+        </p>
 
-          <form class="training-session-form" id="maySessionForm">
-            <label>Date</label>
-            <input type="date" id="mayDate" required />
-
-            <label>Time</label>
-            <input type="time" id="mayTime" required />
-
-            <label>Location</label>
-            <input type="text" id="mayLocation" placeholder="e.g., Rockbridge Pool Deck" required />
-
-            <button type="submit" class="submit-btn small">Add May Session</button>
-          </form>
+        <!-- Date + Time -->
+        <div class="form-row">
+          <div class="form-group">
+            <label for="trainingDateInput">Date</label>
+            <input type="date" id="trainingDateInput" />
+          </div>
+          <div class="form-group">
+            <label for="trainingTimeSelect">Time</label>
+            <select id="trainingTimeSelect">
+              <option value="">Select time</option>
+              <!-- options populated by training.js -->
+            </select>
+          </div>
         </div>
 
-        <!-- June -->
-        <div class="training-admin-column">
-          <h3>June Training</h3>
-          <div class="training-session-list" id="juneSessionList"></div>
+        <!-- Location + Address -->
+        <div class="form-row">
+          <div class="form-group">
+            <label for="trainingPoolSelect">Location (Pool)</label>
+            <select id="trainingPoolSelect">
+              <option value="">Select pool</option>
+              <!-- you can add static options here or populate via JS -->
+            </select>
+          </div>
 
-          <form class="training-session-form" id="juneSessionForm">
-            <label>Date</label>
-            <input type="date" id="juneDate" required />
-
-            <label>Time</label>
-            <input type="time" id="juneTime" required />
-
-            <label>Location</label>
-            <input type="text" id="juneLocation" placeholder="e.g., Forest Lake Clubhouse" required />
-
-            <button type="submit" class="submit-btn small">Add June Session</button>
-          </form>
+          <div class="form-group">
+            <label for="trainingAddressInput">Address</label>
+            <input
+              type="text"
+              id="trainingAddressInput"
+              placeholder="Street, city, state"
+            />
+          </div>
         </div>
 
-        <!-- July -->
-        <div class="training-admin-column">
-          <h3>July Training</h3>
-          <div class="training-session-list" id="julySessionList"></div>
+        <!-- Capacity + spots -->
+        <div class="form-row">
+          <div class="form-group">
+            <label for="trainingCapacityInput">Capacity</label>
+            <input
+              type="number"
+              id="trainingCapacityInput"
+              min="1"
+              step="1"
+              placeholder="e.g. 20"
+            />
+          </div>
+          <div class="form-group">
+            <label>Spots</label>
+            <p id="trainingCapacityInfo">
+              Spots used / remaining will appear after you save this session.
+            </p>
+          </div>
+        </div>
 
-          <form class="training-session-form" id="julySessionForm">
-            <label>Date</label>
-            <input type="date" id="julyDate" required />
+        <!-- Notes -->
+        <div class="form-group full-width">
+          <label for="trainingNotesInput">Notes</label>
+          <textarea
+            id="trainingNotesInput"
+            rows="3"
+          ></textarea>
+        </div>
 
-            <label>Time</label>
-            <input type="time" id="julyTime" required />
+        <input type="hidden" id="trainingSessionId" />
 
-            <label>Location</label>
-            <input type="text" id="julyLocation" placeholder="e.g., Columbia CC Pool" required />
+        <button type="button" id="saveTrainingSessionBtn" class="submit-btn">
+          Save Training Session
+        </button>
 
-            <button type="submit" class="submit-btn small">Add July Session</button>
-          </form>
+        <h4 style="margin-top: 20px;">Scheduled Sessions</h4>
+
+        <!-- May table -->
+        <div class="training-month-group">
+          <h5>May In‑Service</h5>
+          <table class="sanitation-table training-schedule-table">
+            <thead>
+              <tr>
+                <th>Date</th>
+                <th>Time</th>
+                <th>Location</th>
+                <th>Capacity / Taken</th>
+                <th>Actions</th>
+              </tr>
+            </thead>
+            <tbody id="trainingSessionsMayBody">
+              <!-- filled by training.js -->
+            </tbody>
+          </table>
+        </div>
+
+        <!-- June table -->
+        <div class="training-month-group">
+          <h5>June In‑Service</h5>
+          <table class="sanitation-table training-schedule-table">
+            <thead>
+              <tr>
+                <th>Date</th>
+                <th>Time</th>
+                <th>Location</th>
+                <th>Capacity / Taken</th>
+                <th>Actions</th>
+              </tr>
+            </thead>
+            <tbody id="trainingSessionsJuneBody">
+              <!-- filled by training.js -->
+            </tbody>
+          </table>
+        </div>
+
+        <!-- July table -->
+        <div class="training-month-group">
+          <h5>July In‑Service</h5>
+          <table class="sanitation-table training-schedule-table">
+            <thead>
+              <tr>
+                <th>Date</th>
+                <th>Time</th>
+                <th>Location</th>
+                <th>Capacity / Taken</th>
+                <th>Actions</th>
+              </tr>
+            </thead>
+            <tbody id="trainingSessionsJulyBody">
+              <!-- filled by training.js -->
+            </tbody>
+          </table>
         </div>
       </div>
 
-      <button id="saveTrainingConfigBtn" class="submit-btn secondary">Save Training Schedule</button>
       <p class="form-message" id="adminMessage"></p>
     </section>
   </main>
