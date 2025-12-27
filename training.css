@@ -421,6 +421,38 @@ select {
   }
 }
 
+/* Menu button styles for dashboard */
+.menu-container {
+    position: relative; /* NEW: Essential for positioning the dropdown menu */
+    /* Adjust margin/padding as needed relative to other header-left content */
+    /* Example: If you want menu button higher than text: margin-bottom: auto; */
+}
+
+.menu-btn {
+    display: flex; /* NEW & CRUCIAL: Makes children (spans) line up horizontally */
+    align-items: center; /* NEW: Vertically aligns the icon and text */
+    gap: 5px; /* NEW: Adds space between the icon and the word "Menu" */
+    background-color: rgba(255, 255, 255, 0.2);
+    color: white;
+    border: 2px solid white;
+    border-radius: 0;
+    padding: 10px 15px;
+    cursor: pointer;
+    font-size: 18px;
+    font-family: 'Franklin Gothic Medium', Arial, sans-serif;
+    transition: background-color 0.3s;
+}
+
+.menu-btn span {
+    /* NEW: Ensure spans inside the button don't break the flex layout */
+    display: inline-block;
+    vertical-align: middle; /* Helps ensure icon and text align well */
+}
+
+.menu-btn:hover {
+    background-color: rgba(255, 255, 255, 0.3);
+}
+
 /* Dropdown Menu Styles */
 .dropdown-menu {
     display: none;                /* hidden by default */
