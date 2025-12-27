@@ -626,8 +626,10 @@ function filterData() {
 }
 
 function closeSettings() {
-    document.getElementById('settingsModal').style.display = 'none';
-        removeOverlay();
+  const modal = document.getElementById('settingsModal');
+  if (modal) {
+    modal.style.display = 'none';
+  }
 }
 
 // poolName -> { bleach: boolean, granular: boolean }
@@ -3992,15 +3994,12 @@ function showRecipientSelectionInModal(modal) {
 function toggleMenu(button) {
   let btn = button;
 
-  // If called as toggleMenu() from inline HTML, button will be undefined.
-  // Try to figure out the correct button based on what’s visible.
+  // Fallback: if called as toggleMenu() with no args
   if (!btn) {
-    // Prefer the dashboard menu when it’s showing
     const dashboard = document.getElementById('supervisorDashboard');
     if (dashboard && dashboard.classList.contains('show')) {
       btn = dashboard.querySelector('.menu-btn');
     } else {
-      // Otherwise, fall back to the main form menu
       const mainForm = document.getElementById('mainForm');
       if (mainForm) {
         btn = mainForm.querySelector('.menu-btn');
@@ -4022,41 +4021,37 @@ function toggleMenu(button) {
 // Make it callable from your inline onclick attributes
 window.toggleMenu = toggleMenu;
 
-async function openSettings() {
-    // Close the dropdown menu first
-    document.getElementById('dropdownMenu').style.display = 'none';
+function openSettings() {
+  const modal = document.getElementById('settingsModal');
+  if (!modal) return;
 
-    // Refresh settings from Firebase before showing modal (if available)
-    try {
-        if (db) {
-            console.log('🔄 Refreshing settings from Firebase v9 before showing modal...');
-            const settingsRef = doc(db, 'settings', 'sanitationMethods');
-            const settingsDoc = await getDoc(settingsRef);
+  // 1) Show the modal right away
+  modal.style.display = 'block';
 
-            if (settingsDoc.exists()) {
-                const firebaseSettings = settingsDoc.data();
-                Object.assign(sanitationSettings, firebaseSettings);
-                console.log('✅ Refreshed sanitation settings from Firebase:', sanitationSettings);
-            } else {
-                console.log('⚠️ No sanitation settings found in Firebase when refreshing');
-            }
-        } else {
-            console.log('⚠️ Firebase not ready when showing settings — using in-memory settings');
-        }
-    } catch (error) {
-        console.warn('❌ Could not refresh from Firebase when showing settings:', error);
-    }
-
-    createOrShowOverlay();
-
-    // Show the settings modal
-    document.getElementById('settingsModal').style.display = 'block';
-    loadSanitationSettings();
+  // 2) Prepare static UI pieces
+  if (typeof populateTrainingTimeOptions === 'function') {
     populateTrainingTimeOptions();
+  }
+  if (typeof populateTrainingPoolSelect === 'function') {
     populateTrainingPoolSelect();
-    loadTrainingSchedule();
+  }
 
+  // 3) Fire off data loads in the background, but don't block the UI
+  (async () => {
+    try {
+      if (typeof loadSanitationSettings === 'function') {
+        await loadSanitationSettings();
+      }
+      if (typeof loadTrainingSchedule === 'function') {
+        await loadTrainingSchedule();
+      }
+      // add any other settings loaders here (market visibility, etc.)
+    } catch (err) {
+      console.error('Error loading settings data:', err);
+    }
+  })();
 }
+
 
 function sendSMSNotification(message, phoneNumber) {
     console.log(`SMS would be sent to ${phoneNumber}: ${message}`);
