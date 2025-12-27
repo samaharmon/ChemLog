@@ -3255,61 +3255,39 @@ function updatePagination(totalPages) {
 // LOGIN & AUTHENTICATION
 // ===================================================
 
-// Logout function
-// Replace the existing logout function:
 function logout() {
-    console.log('logout called');
+  const dashboard = document.getElementById('supervisorDashboard');
+  const mainForm = document.getElementById('mainForm');
 
-    // Close the dropdown menu first
-    const dropdown = document.getElementById('dropdownMenu');
-    if (dropdown) dropdown.style.display = 'none';
+  // Hide dashboard, show chemistry form
+  if (dashboard) {
+    dashboard.classList.remove('show');   // CSS uses .show to display it
+  }
+  if (mainForm) {
+    mainForm.style.display = 'block';
+  }
 
-    // Reset login state
-    try {
-        isLoggedIn = false;
-    } catch (e) {
-        console.warn('isLoggedIn not defined or not writable:', e);
-    }
-    currentView = 'form';
+  // Close Settings modal if it's open
+  const settingsModal = document.getElementById('settingsModal');
+  const settingsOverlay = document.getElementById('settingsOverlay');
+  if (settingsModal) settingsModal.style.display = 'none';
+  if (settingsOverlay) settingsOverlay.style.display = 'none';
 
-    // Remove stored login token
-    try {
-        localStorage.removeItem('loginToken');
-    } catch (e) {
-        console.warn('Could not remove loginToken from localStorage:', e);
-    }
+  // Close ALL menus (both headers)
+  document.querySelectorAll('.dropdown-menu.show').forEach((menu) => {
+    menu.classList.remove('show');
+  });
 
-    // Use the central view-switcher so everything is cleaned up:
-    //  - hides dashboard
-    //  - shows #mainForm
-    //  - closes modals
-    //  - calls removeOverlay()
-    if (typeof showForm === 'function') {
-        showForm();
-    } else {
-        // Fallback if something is weird and showForm isn't defined
-        const mainForm = document.getElementById('mainForm');
-        const dashboard = document.getElementById('supervisorDashboard');
-
-        if (dashboard) dashboard.classList.remove('show');
-        if (mainForm) {
-            mainForm.classList.remove('hidden');
-            mainForm.style.display = 'block';
-        }
-
-        const loginModal = document.getElementById('loginModal');
-        if (loginModal) loginModal.style.display = 'none';
-
-        if (typeof removeOverlay === 'function') {
-            removeOverlay();
-        }
-        if (typeof updateHeaderButtons === 'function') {
-            updateHeaderButtons();
-        }
-    }
-
-    console.log('Logged out successfully, returned to main form');
+  // Clear any pending auto-close timer
+  if (menuAutoCloseTimeoutId) {
+    clearTimeout(menuAutoCloseTimeoutId);
+    menuAutoCloseTimeoutId = null;
+  }
 }
+
+// so onclick="logout();" keeps working
+window.logout = logout;
+
 
 
 // ===================================================
@@ -3986,24 +3964,12 @@ function showRecipientSelectionInModal(modal) {
     feedbackContent.appendChild(sendBtn);
 }
 
+// Shared timer so only one menu auto-closes at a time
 let menuAutoCloseTimeoutId = null;
 
 function toggleMenu(button) {
-  let targetButton = button || null;
-
-  // If no button was passed (fallback), pick the visible header's menu
-  if (!targetButton) {
-    const dashboard = document.getElementById('supervisorDashboard');
-    if (dashboard && dashboard.classList.contains('show')) {
-      targetButton = dashboard.querySelector('.menu-btn');
-    } else {
-      const mainForm = document.getElementById('mainForm');
-      if (mainForm) {
-        targetButton = mainForm.querySelector('.menu-btn');
-      }
-    }
-  }
-
+  // Always rely on the button we clicked
+  const targetButton = button;
   if (!targetButton) return;
 
   const container = targetButton.closest('.menu-container');
@@ -4014,26 +3980,35 @@ function toggleMenu(button) {
 
   const isOpen = menu.classList.contains('show');
 
-  // Clear any existing auto‑close timer
+  // Clear any existing auto-close timer
   if (menuAutoCloseTimeoutId) {
     clearTimeout(menuAutoCloseTimeoutId);
     menuAutoCloseTimeoutId = null;
   }
 
   if (isOpen) {
-    // If it’s already open, close it immediately
+    // If it's open, just close it
     menu.classList.remove('show');
   } else {
-    // Open the menu
+    // First close all other menus (just in case)
+    document.querySelectorAll('.dropdown-menu.show').forEach((el) => {
+      el.classList.remove('show');
+    });
+
+    // Open this one
     menu.classList.add('show');
 
-    // Auto‑close after 5 seconds
+    // Auto-close after 5 seconds
     menuAutoCloseTimeoutId = setTimeout(() => {
       menu.classList.remove('show');
       menuAutoCloseTimeoutId = null;
-    }, 5000);
+    }, 8000);
   }
 }
+
+// Make sure inline onclick="toggleMenu(this)" can find it
+window.toggleMenu = toggleMenu;
+
 
 // Make it callable from your inline onclick attributes
 window.toggleMenu = toggleMenu;
